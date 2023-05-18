@@ -25,13 +25,12 @@ function clearline {
 }
 
 function usage {
-  printf "Usage: $0 [command]\n" 1>&2
+  printf "Usage: %s [command]\n" "$0" 1>&2
   printf "command: one of\n" 1>&2
   printf "  status - display status of system\n" 1>&2
   printf "  deploy - write current version to connected device\n" 1>&2
   printf "  clean - delete version data on connected device\n" 1>&2
   printf "  checkout - checkout connected device's version of the code\n" 1>&2
-  exit 1
 }
 
 function is_connected {
@@ -102,7 +101,7 @@ clearline
 
 # command "status" or no command
 # display system status - connected or not, Git status, etc.
-if [ $# -eq 0 ] || [ $1 = "status" ]; then
+if [ $# -eq 0 ] || [ "$1" = "status" ]; then
   printf "System status:\n"
   if is_connected; then
     printf "${CSUCCESS}  ✓ Device connected${CRST}\n"
@@ -114,7 +113,7 @@ if [ $# -eq 0 ] || [ $1 = "status" ]; then
     printf "${CWARN}  ✗ No device connected${CRST}\n" 1>&2
   fi
   exit 0
-elif [ $1 = "deploy" ]; then
+elif [ "$1" = "deploy" ]; then
   require_connection
   pulldown
 
@@ -125,10 +124,12 @@ elif [ $1 = "deploy" ]; then
   fi
   printf "${CNOTE}  Writing deployment info${CRST}"
   printf "gitftc:\n" >"$TEMPF/gitftc/$REPONAME/state"
-  printf "[version] $VERSION\n" >>"$TEMPF/gitftc/$REPONAME/state"
-  printf "[head] $HEAD_AT\n" >>"$TEMPF/gitftc/$REPONAME/state"
-  printf "[deploy_at] $(date +%s)\n" >>"$TEMPF/gitftc/$REPONAME/state"
-  printf "[deploy_by] $(git config user.name)\n" >>"$TEMPF/gitftc/$REPONAME/state"
+  {
+  printf "[version] $VERSION\n"
+  printf "[head] $HEAD_AT\n"
+  printf "[deploy_at] $(date +%s)\n"
+  printf "[deploy_by] $(git config user.name)\n"
+  } >>"$TEMPF/gitftc/$REPONAME/state"
 
   clearline
   if ! [ "$(git status --porcelain=v1 | wc -l)" -eq 0 ]; then
@@ -152,11 +153,11 @@ elif [ $1 = "deploy" ]; then
   fi
 
   exit 0
-elif [ $1 = "clean" ]; then
+elif [ "$1" = "clean" ]; then
   require_connection
   printf "clean\n"
   exit 0
-elif [ $1 = "checkout" ]; then
+elif [ "$1" = "checkout" ]; then
   require_connection
   printf "checkout\n"
   exit 0
