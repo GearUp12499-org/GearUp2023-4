@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+
+VERSION=2
+
+CRST=$(tput sgr0)
+CSUCCESS=$(
+  tput setaf 2
+  tput bold
+)
+CWARN=$(tput setaf 3)
+CHINT=$(tput setaf 4)
+CERROR=$(
+  tput setaf 1
+  tput bold
+)
+CNOTE=$(
+  tput setaf 7
+)
+CEOL=$(
+  tput el
+)
+
+function clearline {
+  printf "\r${CEOL}"
+}
+
+function usage {
+  printf "Usage: $0 [command]\n" 1>&2
+  printf "command: one of\n" 1>&2
+  printf "  status - display status of system\n" 1>&2
+  printf "  deploy - write current version to connected device\n" 1>&2
+  printf "  clean - delete version data on connected device\n" 1>&2
+  printf "  checkout - checkout connected device's version of the code\n" 1>&2
+  exit 1
+}
+
+function is_connected {
+  adb get-state >/dev/null 2>&1 && return 0 || return 1
+}
+
+function require_connection {
+  if is_connected; then
+    printf "${CSUCCESS}✓ Device connected${CRST}\n"
+  else
+    printf "${CERROR}✗ No device connected (required)${CRST}\n" 1>&2
+    printf "${CHINT}→ Ensure the device is connected and ADB sees it (adb connect ...?)${CRST}\n" 1>&2
+    exit 1
+  fi
+}
+
+function require_libraries {
+  ERROR=0
+  if ! which git >/dev/null; then
+    printf "${CWARN}! missing git${CRST}\n" 1>&2
+    ERROR=1
+  fi
+  if ! which adb >/dev/null; then
+    printf "${CWARN}! missing adb${CRST}\n" 1>&2
+    ERROR=1
+  fi
+  if ! which mktemp >/dev/null; then
+    printf "${CWARN}! missing mktemp${CRST}\n" 1>&2
+    ERROR=1
+  fi
+  if [ $ERROR -eq 1 ]; then
+    printf "${CERROR}✗ Aborting due to missing libraries${CRST}\n" 1>&2
+    exit 1
+  fi
+}
+
+require_libraries
+
+TEMPF=$(mktemp -d)
+printf "${CNOTE}Using $TEMPF for temporary files${CRST}\n"
+trap "rm -rf '$TEMPF' && printf '${CNOTE}Cleanup successful${CRST}\n'" EXIT
+
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  printf "${CERROR}✗ Not inside a Git repository${CRST}\n" 1>&2
+  printf "${CHINT}→ cd to a Git repository then try again${CRST}\n" 1>&2
+  exit 1
+fi
+
+REPONAME=$(git rev-list --max-parents=0 HEAD)
+HEAD_AT=$(git rev-parse HEAD)
+
+function pulldown {
+  printf "${CNOTE}  downloading files, please wait${CRST}"
+  adb pull "/sdcard/gitftc" "$TEMPF" >/dev/null
+  mkdir -p "$TEMPF/gitftc"
+  clearline
+}
+
+function pushup {
+  printf "${CNOTE}  uploading files, please wait${CRST}"
+  mkdir -p "$TEMPF/gitftc"
+  touch "$TEMPF/gitftc/.placeholder"
+  adb push "$TEMPF/gitftc" "/sdcard" >/dev/null
+  clearline
+}
+
+clearline
+
+# command "status" or no command
+# display system status - connected or not, Git status, etc.
+if [ $# -eq 0 ] || [ $1 = "status" ]; then
+  printf "System status:\n"
+  if is_connected; then
+    printf "${CSUCCESS}  ✓ Device connected${CRST}\n"
+    pulldown
+    if ! [ -d "$TEMPF/gitftc/$REPONAME" ]; then
+      printf "${CWARN}  ! No version info for this repo found on the device.${CRST}\n"
+    fi
+  else
+    printf "${CWARN}  ✗ No device connected${CRST}\n" 1>&2
+  fi
+  exit 0
+elif [ $1 = "deploy" ]; then
+  require_connection
+  pulldown
+
+  # Main deployment process.
+  if ! [ -d "$TEMPF/gitftc/$REPONAME" ]; then
+    printf "${CHINT}→ No version info for this repo found on the device.${CRST}\n"
+    mkdir -p "$TEMPF/gitftc/$REPONAME"
+  fi
+  printf "${CNOTE}  Writing deployment info${CRST}"
+  printf "gitftc:\n" >"$TEMPF/gitftc/$REPONAME/state"
+  printf "[version] $VERSION\n" >>"$TEMPF/gitftc/$REPONAME/state"
+  printf "[head] $HEAD_AT\n" >>"$TEMPF/gitftc/$REPONAME/state"
+  printf "[deploy_at] $(date +%s)\n" >>"$TEMPF/gitftc/$REPONAME/state"
+  printf "[deploy_by] $(git config user.name)\n" >>"$TEMPF/gitftc/$REPONAME/state"
+
+  clearline
+  if ! [ "$(git status --porcelain=v1 | wc -l)" -eq 0 ]; then
+    printf "${CNOTE}  Generating patch for staged changes${CRST}"
+    git add . >/dev/null
+    STAGING_DIFF=$(git --no-pager diff --cached --no-color)
+    printf "[staged] staged.patch]\n" >>"$TEMPF/gitftc/$REPONAME/state"
+    printf "$STAGING_DIFF" >"$TEMPF/gitftc/$REPONAME/staged.patch"
+    clearline
+    DIFFED=1
+  else
+    DIFFED=0
+  fi
+
+  pushup
+  printf "${CSUCCESS}✓ Deployment successful${CRST}\n"
+  if [ "$DIFFED" -eq 1 ]; then
+    printf "${CHINT}  Deployed commit ${HEAD_AT:0:7} + staged changes${CRST}\n"
+  else
+    printf "${CHINT}  Deployed commit ${HEAD_AT:0:7}${CRST}\n"
+  fi
+
+  exit 0
+elif [ $1 = "clean" ]; then
+  require_connection
+  printf "clean\n"
+  exit 0
+elif [ $1 = "checkout" ]; then
+  require_connection
+  printf "checkout\n"
+  exit 0
+else
+  printf "${CERROR}✗ command '$1' not found${CRST}\n" 1>&2
+  usage
+  exit 1
+fi
