@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-
-# I am so confused. TODO: remove this message
+# shellcheck disable=SC2059
 
 VERSION=2
 
@@ -25,11 +24,11 @@ CEOL=$(
     tput el
 )
 
-function clearline {
+clearline() {
     printf "\r${CEOL}"
 }
 
-function usage {
+usage() {
     printf "Usage: %s [command]\n" "$0" 1>&2
     printf "command: one of\n" 1>&2
     printf "  status - display status of system\n" 1>&2
@@ -76,6 +75,7 @@ require_libraries
 
 TEMPF=$(mktemp -d)
 printf "${CNOTE}Using %s for temporary files${CRST}\n" "$TEMPF"
+# shellcheck disable=SC2064
 trap "rm -rf '$TEMPF' && printf '${CNOTE}Cleanup successful${CRST}\n'" EXIT
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -108,24 +108,6 @@ pushup_overwrite() {
     adb shell "rm -rf /sdcard/gitftc"
     adb push "$TEMPF/gitftc" "/sdcard" >/dev/null
     clearline
-}
-
-find_relevant_commits() {
-    LOOK_FROM=$1
-    PATCHFILE=$2
-    # remote HEAD, patch file...
-    RETURN_TO=$(git rev-parse --abbrev-ref HEAD)
-    if [ "$RETURN_TO" = "HEAD" ]; then
-        RETURN_TO=$(git rev-parse HEAD)  # detached HEAD
-    fi
-    # first, create a dummy commit that applies the patch...
-    git checkout $LOOK_FROM
-    git apply --quiet $PATCHFILE
-    git add .
-    git commit --quiet -m "gitftc: dummy commit"
-    
-    POSSIBLE_FUTURES=$(git rev-list --all --not $1^@ --children | grep $REV | sed -E "s/^$REV //")
-    
 }
 
 #!/usr/bin/env bash
