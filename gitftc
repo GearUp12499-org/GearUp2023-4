@@ -70,7 +70,7 @@ function require_libraries {
 require_libraries
 
 TEMPF=$(mktemp -d)
-printf "${CNOTE}Using $TEMPF for temporary files${CRST}\n"
+printf "${CNOTE}Using %s for temporary files${CRST}\n" "$TEMPF"
 trap "rm -rf '$TEMPF' && printf '${CNOTE}Cleanup successful${CRST}\n'" EXIT
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -136,7 +136,7 @@ elif [ "$1" = "deploy" ]; then
     printf "${CNOTE}  Generating patch for staged changes${CRST}"
     git add . >/dev/null
     STAGING_DIFF=$(git --no-pager diff --cached --no-color)
-    printf "[staged] staged.patch]\n" >>"$TEMPF/gitftc/$REPONAME/state"
+    printf "[staged] staged.patch\n" >>"$TEMPF/gitftc/$REPONAME/state"
     printf "$STAGING_DIFF" >"$TEMPF/gitftc/$REPONAME/staged.patch"
     clearline
     DIFFED=1
