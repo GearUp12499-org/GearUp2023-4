@@ -5,70 +5,70 @@ VERSION=2
 
 CRST=$(tput sgr0)
 CSUCCESS=$(
-    tput setaf 2
-    tput bold
+  tput setaf 2
+  tput bold
 )
 CGREEN=$(
-    tput setaf 2
+  tput setaf 2
 )
 CWARN=$(tput setaf 3)
 CHINT=$(tput setaf 4)
 CERROR=$(
-    tput setaf 1
-    tput bold
+  tput setaf 1
+  tput bold
 )
 CNOTE=$(
-    tput setaf 7
+  tput setaf 7
 )
 CEOL=$(
-    tput el
+  tput el
 )
 
 clearline() {
-    printf "\r${CEOL}"
+  printf "\r${CEOL}"
 }
 
 usage() {
-    printf "Usage: %s [command]\n" "$0" 1>&2
-    printf "command: one of\n" 1>&2
-    printf "  status - display status of system\n" 1>&2
-    printf "  deploy - write current version to connected device\n" 1>&2
-    printf "  delete - delete version data for this repo on connected device\n" 1>&2
-    printf "  checkout - checkout connected device's version of the code\n" 1>&2
+  printf "Usage: %s [command]\n" "$0" 1>&2
+  printf "command: one of\n" 1>&2
+  printf "  status - display status of system\n" 1>&2
+  printf "  deploy - write current version to connected device\n" 1>&2
+  printf "  delete - delete version data for this repo on connected device\n" 1>&2
+  printf "  checkout - checkout connected device's version of the code\n" 1>&2
 }
 
 is_connected() {
-    adb get-state >/dev/null 2>&1 && return 0 || return 1
+  adb get-state >/dev/null 2>&1 && return 0 || return 1
 }
 
 require_connection() {
-    if is_connected; then
-        printf "${CSUCCESS}✓ Device connected${CRST}\n"
-    else
-        printf "${CERROR}✗ No device connected (required)${CRST}\n" 1>&2
-        printf "${CHINT}→ Ensure the device is connected and ADB sees it (adb connect ...?)${CRST}\n" 1>&2
-        exit 1
-    fi
+  if is_connected; then
+    printf "${CSUCCESS}✓ Device connected${CRST}\n"
+  else
+    printf "${CERROR}✗ No device connected (required)${CRST}\n" 1>&2
+    printf "${CHINT}→ Ensure the device is connected and ADB sees it (adb connect ...?)${CRST}\n" 1>&2
+    exit 1
+  fi
 }
 
 require_libraries() {
-    ERROR=0
-    if ! which git >/dev/null; then
-        printf "${CWARN}! missing git${CRST}\n" 1>&2
-        ERROR=1
-    fi
-    if ! which adb >/dev/null; then
-        printf "${CWARN}! missing adb${CRST}\n" 1>&2
-        ERROR=1
-    fi
-    if ! which mktemp >/dev/null; then
-        printf "${CWARN}! missing mktemp${CRST}\n" 1>&2
-        ERROR=1
-    fi
-    if [ $ERROR -eq 1 ]; then
-        printf "${CERROR}✗ Aborting due to missing libraries${CRST}\n" 1>&2
-        exit 1
-    fi
+  ERROR=0
+  if ! which git >/dev/null; then
+    printf "${CWARN}! missing git${CRST}\n" 1>&2
+    ERROR=1
+  fi
+  if ! which adb >/dev/null; then
+    printf "${CWARN}! missing adb${CRST}\n" 1>&2
+    ERROR=1
+  fi
+  if ! which mktemp >/dev/null; then
+    printf "${CWARN}! missing mktemp${CRST}\n" 1>&2
+    ERROR=1
+  fi
+  if [ $ERROR -eq 1 ]; then
+    printf "${CERROR}✗ Aborting due to missing libraries${CRST}\n" 1>&2
+    exit 1
+  fi
 }
 
 require_libraries
@@ -79,109 +79,47 @@ printf "${CNOTE}Using %s for temporary files${CRST}\n" "$TEMPF"
 trap "rm -rf '$TEMPF' && printf '${CNOTE}Cleanup successful${CRST}\n'" EXIT
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    printf "${CERROR}✗ Not inside a Git repository${CRST}\n" 1>&2
-    printf "${CHINT}→ cd to a Git repository then try again${CRST}\n" 1>&2
-    exit 1
+  printf "${CERROR}✗ Not inside a Git repository${CRST}\n" 1>&2
+  printf "${CHINT}→ cd to a Git repository then try again${CRST}\n" 1>&2
+  exit 1
 fi
 
 REPONAME=$(git rev-list --max-parents=0 HEAD)
+REPOROOT=$(git rev-parse --show-toplevel)
 HEAD_AT=$(git rev-parse HEAD)
 
 pulldown() {
-    printf "${CNOTE}  downloading files, please wait${CRST}"
-    adb pull "/sdcard/gitftc" "$TEMPF" >/dev/null
-    mkdir -p "$TEMPF/gitftc"
-    clearline
+  printf "${CNOTE}  downloading files, please wait${CRST}"
+  adb pull "/sdcard/gitftc" "$TEMPF" >/dev/null
+  mkdir -p "$TEMPF/gitftc"
+  clearline
 }
 
 pushup() {
-    printf "${CNOTE}  uploading files, please wait${CRST}"
-    mkdir -p "$TEMPF/gitftc"
-    touch "$TEMPF/gitftc/.placeholder"
-    adb push "$TEMPF/gitftc" "/sdcard" >/dev/null
-    clearline
+  printf "${CNOTE}  uploading files, please wait${CRST}"
+  mkdir -p "$TEMPF/gitftc"
+  touch "$TEMPF/gitftc/.placeholder"
+  adb push "$TEMPF/gitftc" "/sdcard" >/dev/null
+  clearline
 }
 
 pushup_overwrite() {
-    printf "${CNOTE}  uploading files, please wait${CRST}"
-    mkdir -p "$TEMPF/gitftc"
-    adb shell "rm -rf /sdcard/gitftc"
-    adb push "$TEMPF/gitftc" "/sdcard" >/dev/null
-    clearline
+  printf "${CNOTE}  uploading files, please wait${CRST}"
+  mkdir -p "$TEMPF/gitftc"
+  adb shell "rm -rf /sdcard/gitftc"
+  adb push "$TEMPF/gitftc" "/sdcard" >/dev/null
+  clearline
 }
 
-#!/usr/bin/env bash
-TEMPF=$(mktemp -d)
-
-find_relevant_commits() {
-    LOOK_FROM=$1
-    PATCHFILE=$2
-    # remote HEAD, patch file...
-    RETURN_TO=$(git rev-parse --abbrev-ref HEAD)
-    if [ "$RETURN_TO" = "HEAD" ]; then
-        RETURN_TO=$(git rev-parse HEAD)  # detached HEAD
-    fi
-    # first, create a commit to backup...
-    git add .
-    STASHED=1
-    if git stash push | grep 'No local changes' >/dev/null 2>&1; then
-        STASHED=0
-    fi
-    
-    recover() {
-        if ! [ $# -eq 0 ]; then
-            echo "$1" 1>&2
-        fi
-        # try to get back the user's work
-        git checkout "$RETURN_TO" --force --quiet
-        if [ $STASHED -eq 1 ]; then
-            git stash pop --quiet
-        fi
-        rm -f "$DUMMY_DIFF"
-    }
-    
-    # first, create a dummy commit that applies the patch...
-    git checkout "$LOOK_FROM" --quiet || {
-        recover "catastrophic failure: can't checkout $LOOK_FROM"
-        exit 1
-    }
-    git apply "$PATCHFILE" --quiet || {
-        recover "catastrophic failure: can't apply patch"
-        exit 1
-    }
-    
-    git add .
-    git commit --quiet -am "gitftc: dummy commit"
-    DUMMY_COMMIT=$(git rev-parse HEAD)
-    DUMMY_DIFF=$(mktemp)
-    git diff "$LOOK_FROM...$DUMMY_COMMIT" > "$DUMMY_DIFF"
-    git checkout --quiet "$LOOK_FROM" || {
-        recover "catastrophic failure: can't checkout $LOOK_FROM"
-        exit 1
-    }
-    
-    POSSIBLE_FUTURES=$(git rev-list --all --not "$LOOK_FROM"^@ --children | grep "$LOOK_FROM" | sed -E "s/^$LOOK_FROM //")
-    
-    MATCHED=0
-    for FUTURE in $POSSIBLE_FUTURES; do
-        if diff <(git diff "$LOOK_FROM" "$FUTURE") "$DUMMY_DIFF" >/dev/null; then
-            if [ "$MATCHED" -eq 1 ]; then
-                printf " "
-            fi
-            printf "%s" "$FUTURE"
-            MATCHED=1
-        fi
-    done
-    printf "\n"
-    
-    # destroy the dummy commit
-    git checkout --quiet --force "$DUMMY_COMMIT"
-    git reset --quiet --hard "$LOOK_FROM"
-    
-    # clean up
-    recover
-    
-    [ "$MATCHED" -eq 1 ] && return 0 || return 1
+require_repometa() {
+  if ! [ -d "$TEMPF/gitftc/$REPONAME" ]; then
+    printf "${CERROR}✗ No version info for this repo found on the device.${CRST}\n" 1>&2
+    exit 1
+  fi
+  if ! [ -f "$TEMPF/gitftc/$REPONAME/state" ]; then
+    printf "${CERROR}✗ Corrupt version info (no state file?!)${CRST}\n" 1>&2
+    exit 1
+  fi
 }
 
 clearline
@@ -189,134 +127,153 @@ clearline
 # command "status" or no command
 # display system status - connected or not, Git status, etc.
 if [ $# -eq 0 ] || [ "$1" = "status" ]; then
-    printf "System status:\n"
-    if is_connected; then
-        printf "${CSUCCESS}  ✓ Device connected${CRST}\n"
-        pulldown
-        if ! [ -d "$TEMPF/gitftc/$REPONAME" ]; then
-            printf "${CWARN}  ! No version info for this repo found on the device.${CRST}\n"
-            printf "${CHINT}  → '%s deploy' to get started!${CRST}\n" "$0"
-        else
-            printf "${CSUCCESS}    Device's version of this repo:${CRST}\n"
-            # parse out basic version info
-            printf "${CNOTE}  ... processing version info ...${CRST}"
-            REMOTE_DETAIL_FILE="$TEMPF/gitftc/$REPONAME/state"
-            REMOTE_HEAD=$(grep -E '^\[head\] ' "$REMOTE_DETAIL_FILE" | sed -E 's/^\[head\] //')
-            # do we have the REMOTE_HEAD locally?
-            if git rev-parse "$REMOTE_HEAD" >/dev/null 2>&1; then
-                REMOTE_HEAD_LOCAL=1
-                REMOTE_HEAD_COMMIT_MSG=$(git log -1 --format=%s "$REMOTE_HEAD")
-            else
-                REMOTE_HEAD_LOCAL=0
-            fi
-            if grep -q -E '^\[staged\] ' "$REMOTE_DETAIL_FILE"; then
-                REMOTE_PATCH_FILE=$(grep -E '^\[staged\] ' "$REMOTE_DETAIL_FILE" | sed -E 's/^\[staged\] //')
-                REMOTE_PATCH_FILE="$TEMPF/gitftc/$REPONAME/$REMOTE_PATCH_FILE"
-                REMOTE_HAS_PATCH=1
-                PATCH_STATE="unmatched"
-                clearline
-                printf "${CNOTE} ... looking for commits matching patch file ...${CRST}"
-                if PATCH_MATCH=$(find_relevant_commits "$REMOTE_HEAD" "$REMOTE_PATCH_FILE"); then
-                    if [ "$(echo "$PATCH_MATCH" | wc -l)" -gt 1 ]; then
-                        PATCH_STATE="ambiguous"
-                    else
-                        PATCH_STATE="matched"
-                        STAGE_HASH="$PATCH_MATCH"
-                        STAGE_COMMIT_MSG=$(git log -1 --format=%s "$STAGE_HASH")
-                    fi
-                fi
-                clearline
-            else
-                REMOTE_HAS_PATCH=0
-            fi
-            # empty string if not present
-            
-            clearline
-            if [ $REMOTE_HEAD_LOCAL -eq 1 ]; then
-                printf "${CGREEN}      Commit: %s ${CRST}${CHINT}'%s'${CRST}\n" "${REMOTE_HEAD:0:7}" "$REMOTE_HEAD_COMMIT_MSG"
-            else
-                printf "${CWARN}      Commit: %s (not found! fetched recently?)${CRST}\n" "${REMOTE_HEAD:0:7}"
-            fi
-            if [ $REMOTE_HAS_PATCH -eq 1 ]; then
-                case $PATCH_STATE in
-                    "unmatched")
-                        printf "${CGREEN}      staged changes included: ${CRST}${CHINT}%s char${CRST}${CGREEN} patch file${CRST}\n" "$(wc -c <"$REMOTE_PATCH_FILE")"
-                        printf "${CHINT}      (staged changes were not committed in this state)${CRST}"
-                        ;;
-                    "matched")
-                        printf "${CGREEN}      commited additional changes: %s ${CRST}${CHINT}'%s'${CRST}\n" "${STAGE_HASH:0:7}" "$STAGE_COMMIT_MSG"
-                        ;;
-                    "ambiguous")
-                        printf "${CGREEN}      staged changes included: ${CRST}${CHINT}%s char${CRST}${CGREEN} patch file${CRST}\n" "$STAGE_COMMIT_MSG"
-                        printf "${CWARN}      (matches multiple commits)${CRST}"
-                        ;;
-                esac
-            fi
-        fi
-    else
-        printf "${CWARN}  ✗ No device connected${CRST}\n" 1>&2
-    fi
-    exit 0
-    elif [ "$1" = "deploy" ]; then
-    require_connection
+  if is_connected; then
+    printf "${CSUCCESS}✓ Device connected${CRST}\n"
     pulldown
-    
-    # Main deployment process.
     if ! [ -d "$TEMPF/gitftc/$REPONAME" ]; then
-        printf "${CHINT}→ No version info for this repo found on the device.${CRST}\n"
-        mkdir -p "$TEMPF/gitftc/$REPONAME"
+      printf "${CWARN}! No version info for this repo found on the device.${CRST}\n"
+      printf "${CHINT}→ '%s deploy' to get started!${CRST}\n" "$0"
+    else
+      require_repometa # ensure the database isn't corrupted
+      printf "${CSUCCESS}  Device's version of this repo:${CRST}\n"
+      # parse out basic version info
+      printf "${CNOTE}  ... processing version info ...${CRST}"
+      REMOTE_DETAIL_FILE="$TEMPF/gitftc/$REPONAME/state"
+      REMOTE_HEAD=$(grep -E '^\[head\] ' "$REMOTE_DETAIL_FILE" | sed -E 's/^\[head\] //')
+      # do we have the REMOTE_HEAD locally?
+      if git rev-parse "$REMOTE_HEAD" >/dev/null 2>&1; then
+        REMOTE_HEAD_LOCAL=1
+        REMOTE_HEAD_COMMIT_MSG=$(git log -1 --format=%s "$REMOTE_HEAD")
+      else
+        REMOTE_HEAD_LOCAL=0
+      fi
+      if grep -q -E '^\[staged\] ' "$REMOTE_DETAIL_FILE"; then
+        REMOTE_PATCH_FILE=$(grep -E '^\[staged\] ' "$REMOTE_DETAIL_FILE" | sed -E 's/^\[staged\] //')
+        REMOTE_PATCH_FILE="$TEMPF/gitftc/$REPONAME/$REMOTE_PATCH_FILE"
+        REMOTE_HAS_PATCH=1
+      else
+        REMOTE_HAS_PATCH=0
+      fi
+      DEPLOY_BY=$(grep -E '^\[deploy_by\] ' "$REMOTE_DETAIL_FILE" | sed -E 's/^\[deploy_by\] //')
+      if [ -z "$DEPLOY_BY" ]; then
+        DEPLOY_BY="unknown"
+      fi
+      DEPLOY_AT=$(grep -E '^\[deploy_at\] ' "$REMOTE_DETAIL_FILE" | sed -E 's/^\[deploy_at\] //')
+      # convert unix timestamp to local time
+      DEPLOY_AT="$(date -d @"$DEPLOY_AT")"
+
+      clearline
+      if [ $REMOTE_HEAD_LOCAL -eq 1 ]; then
+        printf "${CGREEN}    Commit: %s ${CRST}${CHINT}'%s'${CRST}\n" "${REMOTE_HEAD:0:7}" "$REMOTE_HEAD_COMMIT_MSG"
+      else
+        printf "${CWARN}    Commit: %s (not found! fetched recently?)${CRST}\n" "${REMOTE_HEAD:0:7}"
+      fi
+      if [ $REMOTE_HAS_PATCH -eq 1 ]; then
+        printf "${CGREEN}      (Staged changes included: ${CRST}${CHINT}%'d-byte${CRST}${CGREEN} patch)${CRST}\n" "$(wc -c <"$REMOTE_PATCH_FILE")"
+      fi
+      printf "${CGREEN}    Deployed: ${CRST}${CHINT}%s${CRST}${CGREEN} by ${CRST}${CHINT}%s${CRST}\n" "$DEPLOY_AT" "$DEPLOY_BY"
     fi
-    printf "${CNOTE}  Writing deployment info${CRST}"
-    printf "gitftc:\n" >"$TEMPF/gitftc/$REPONAME/state"
-    {
-        printf "[version] $VERSION\n"
-        printf "[head] $HEAD_AT\n"
-        printf "[deploy_at] $(date +%s)\n"
-        printf "[deploy_by] $(git config user.name)\n"
-    } >>"$TEMPF/gitftc/$REPONAME/state"
-    
+  else
+    printf "${CWARN}  ✗ No device connected${CRST}\n" 1>&2
+  fi
+  exit 0
+elif [ "$1" = "deploy" ]; then
+  require_connection
+  pulldown
+
+  # Main deployment process.
+  if ! [ -d "$TEMPF/gitftc/$REPONAME" ]; then
+    printf "${CHINT}→ No version info for this repo found on the device.${CRST}\n"
+    mkdir -p "$TEMPF/gitftc/$REPONAME"
+  fi
+  printf "${CNOTE}  Writing deployment info${CRST}"
+  printf "gitftc:\n" >"$TEMPF/gitftc/$REPONAME/state"
+  {
+    printf "[version] $VERSION\n"
+    printf "[head] $HEAD_AT\n"
+    printf "[deploy_at] $(date +%s)\n"
+    printf "[deploy_by] $(git config user.name)\n"
+  } >>"$TEMPF/gitftc/$REPONAME/state"
+
+  clearline
+  if ! [ "$(git status --porcelain=v1 | wc -l)" -eq 0 ]; then
+    printf "${CNOTE}  Generating patch for staged changes${CRST}"
+    git add $REPOROOT >/dev/null
+    git --no-pager diff --cached --no-color >"$TEMPF/gitftc/$REPONAME/staged.patch"
+    printf "[staged] staged.patch\n" >>"$TEMPF/gitftc/$REPONAME/state"
     clearline
-    if ! [ "$(git status --porcelain=v1 | wc -l)" -eq 0 ]; then
-        printf "${CNOTE}  Generating patch for staged changes${CRST}"
-        git add . >/dev/null  # TODO: use repository root instead - this doesn't always work
-        STAGING_DIFF=$(git --no-pager diff --cached --no-color)
-        printf "[staged] staged.patch\n" >>"$TEMPF/gitftc/$REPONAME/state"
-        printf "$STAGING_DIFF" >"$TEMPF/gitftc/$REPONAME/staged.patch"
-        clearline
-        DIFFED=1
-    else
-        DIFFED=0
-    fi
-    
-    pushup
-    printf "${CSUCCESS}✓ Deployment successful${CRST}\n"
-    if [ "$DIFFED" -eq 1 ]; then
-        printf "${CHINT}  Deployed commit ${HEAD_AT:0:7} + staged changes${CRST}\n"
-    else
-        printf "${CHINT}  Deployed commit ${HEAD_AT:0:7}${CRST}\n"
-    fi
-    
-    exit 0
-    elif [ "$1" = "delete" ]; then
-    require_connection
-    pulldown
-    printf "${CNOTE}  Cleaning up${CRST}"
-    if [ -d "$TEMPF/gitftc/$REPONAME" ]; then
-        rm -rf "$TEMPF/gitftc/$REPONAME"
-        clearline
-        pushup_overwrite
-        printf "${CSUCCESS}✓ Deleted deployed version data for this repository.${CRST}\n"
-    else
-        clearline
-        printf "${CWARN}  Nothing to delete.${CRST}\n"
-    fi
-    exit 0
-    elif [ "$1" = "checkout" ]; then
-    require_connection
-    printf "checkout\n"
-    exit 0
-else
-    printf "${CERROR}✗ command '$1' not found${CRST}\n" 1>&2
-    usage
+    DIFFED=1
+  else
+    DIFFED=0
+  fi
+
+  pushup
+  printf "${CSUCCESS}✓ Deployment successful${CRST}\n"
+  if [ "$DIFFED" -eq 1 ]; then
+    printf "${CHINT}  Deployed commit ${HEAD_AT:0:7} + staged changes${CRST}\n"
+  else
+    printf "${CHINT}  Deployed commit ${HEAD_AT:0:7}${CRST}\n"
+  fi
+
+  exit 0
+elif [ "$1" = "delete" ]; then
+  require_connection
+  pulldown
+  printf "${CNOTE}  Cleaning up${CRST}"
+  if [ -d "$TEMPF/gitftc/$REPONAME" ]; then
+    rm -rf "$TEMPF/gitftc/$REPONAME"
+    clearline
+    pushup_overwrite
+    printf "${CSUCCESS}✓ Deleted deployed version data for this repository.${CRST}\n"
+  else
+    clearline
+    printf "${CWARN}  Nothing to delete.${CRST}\n"
+  fi
+  exit 0
+elif [ "$1" = "checkout" ]; then
+  require_connection
+  pulldown
+  require_repometa
+
+  if ! [ "$(git status --porcelain=v1 | wc -l)" -eq 0 ]; then
+    printf "${CERROR}✗ You have uncommitted changes. Please commit or stash them before using checkout.${CRST}\n" 1>&2
     exit 1
+  fi
+
+  # pull down the patch file and commit info
+  REMOTE_DETAIL_FILE="$TEMPF/gitftc/$REPONAME/state"
+  REMOTE_HEAD=$(grep -E '^\[head\] ' "$REMOTE_DETAIL_FILE" | sed -E 's/^\[head\] //')
+  # do we have the REMOTE_HEAD locally?
+  if git rev-parse "$REMOTE_HEAD" >/dev/null 2>&1; then
+    REMOTE_HEAD_LOCAL=1
+  else
+    REMOTE_HEAD_LOCAL=0
+    printf "${CWARN}  ✗ Commit ${REMOTE_HEAD:0:7} not found locally, which is required to checkout${CRST}\n" 1>&2
+    exit 1
+  fi
+  if grep -q -E '^\[staged\] ' "$REMOTE_DETAIL_FILE"; then
+    REMOTE_PATCH_FILE=$(grep -E '^\[staged\] ' "$REMOTE_DETAIL_FILE" | sed -E 's/^\[staged\] //')
+    REMOTE_PATCH_FILE="$TEMPF/gitftc/$REPONAME/$REMOTE_PATCH_FILE"
+    REMOTE_HAS_PATCH=1
+  else
+    REMOTE_HAS_PATCH=0
+  fi
+  clearline
+  printf "${CNOTE}  Checking out commit ${REMOTE_HEAD:0:7}${CRST}"
+  git checkout "$REMOTE_HEAD" --quiet >/dev/null
+  if [ $REMOTE_HAS_PATCH -eq 1 ]; then
+    clearline
+    printf "${CNOTE}  Applying staged changes${CRST}"
+    git apply "$REMOTE_PATCH_FILE" >/dev/null
+  fi
+  git add $REPOROOT >/dev/null  # make sure everything's tracked
+  clearline
+  printf "${CSUCCESS}✓ Checked out commit ${REMOTE_HEAD:0:7} successfully${CRST}\n"
+  printf "${CWARN}! Detached HEAD - any commits you create will be discarded when you checkout a branch.${CRST}\n"
+  printf "${CWARN}! Create a new branch (git switch -c <new-branch-name>) to save your work here, if you want.${CRST}\n"
+  exit 0
+else
+  printf "${CERROR}✗ command '$1' not found${CRST}\n" 1>&2
+  usage
+  exit 1
 fi
