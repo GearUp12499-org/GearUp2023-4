@@ -108,6 +108,10 @@ pushup_overwrite() {
   clearline
 }
 
+find_relevant_commits(SRC, PAT) {
+
+}
+
 clearline
 
 # command "status" or no command
