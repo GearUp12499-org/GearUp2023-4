@@ -119,6 +119,7 @@ if [ $# -eq 0 ] || [ "$1" = "status" ]; then
     pulldown
     if ! [ -d "$TEMPF/gitftc/$REPONAME" ]; then
       printf "${CWARN}  ! No version info for this repo found on the device.${CRST}\n"
+      printf "${CHINT}  → '%s deploy' to get started!${CRST}\n" "$0"
     else
       printf "${CSUCCESS}    Device's version of this repo:${CRST}\n"
       # parse out basic version info
