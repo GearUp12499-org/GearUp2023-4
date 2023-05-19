@@ -108,7 +108,21 @@ pushup_overwrite() {
   clearline
 }
 
-find_relevant_commits(SRC, PAT) {
+find_relevant_commits() {
+  LOOK_FROM=$1
+  PATCHFILE=$2
+  # remote HEAD, patch file...
+  RETURN_TO=$(git rev-parse --abbrev-ref HEAD)
+  if [ "$RETURN_TO" -eq "HEAD" ]; then
+    RETURN_TO=$(git rev-parse HEAD)  # detached HEAD
+  fi
+  # first, create a dummy commit that applies the patch...
+  git checkout $LOOK_FROM
+  git apply --quiet $PATCHFILE
+  git add .
+  git commit --quiet -m "gitftc: dummy commit"
+
+  POSSIBLE_FUTURES=$(git rev-list --all --not $1^@ --children | grep $REV | sed -E "s/^$REV //")
 
 }
 
@@ -153,7 +167,7 @@ if [ $# -eq 0 ] || [ "$1" = "status" ]; then
         printf "${CWARN}      Commit: %s (not found! fetched recently?)${CRST}\n" "${REMOTE_HEAD:0:7}"
       fi
       if [ $REMOTE_HAS_PATCH -eq 1 ]; then
-        printf "${CGREEN}      Staged changes included: ${CRST}${CHINT}%s char${CRST}${CGREEN} patch file${CRST}\n" "$(wc -c < "$REMOTE_PATCH_FILE")"
+        printf "${CGREEN}      Staged changes included: ${CRST}${CHINT}%s char${CRST}${CGREEN} patch file${CRST}\n" "$(wc -c <"$REMOTE_PATCH_FILE")"
       fi
     fi
   else
