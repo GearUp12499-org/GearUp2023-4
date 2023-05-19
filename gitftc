@@ -7,6 +7,9 @@ CSUCCESS=$(
   tput setaf 2
   tput bold
 )
+CGREEN=$(
+  tput setaf 2
+)
 CWARN=$(tput setaf 3)
 CHINT=$(tput setaf 4)
 CERROR=$(
@@ -29,15 +32,15 @@ function usage {
   printf "command: one of\n" 1>&2
   printf "  status - display status of system\n" 1>&2
   printf "  deploy - write current version to connected device\n" 1>&2
-  printf "  clean - delete version data on connected device\n" 1>&2
+  printf "  delete - delete version data for this repo on connected device\n" 1>&2
   printf "  checkout - checkout connected device's version of the code\n" 1>&2
 }
 
-function is_connected {
+is_connected() {
   adb get-state >/dev/null 2>&1 && return 0 || return 1
 }
 
-function require_connection {
+require_connection() {
   if is_connected; then
     printf "${CSUCCESS}✓ Device connected${CRST}\n"
   else
@@ -47,7 +50,7 @@ function require_connection {
   fi
 }
 
-function require_libraries {
+require_libraries() {
   ERROR=0
   if ! which git >/dev/null; then
     printf "${CWARN}! missing git${CRST}\n" 1>&2
@@ -82,17 +85,25 @@ fi
 REPONAME=$(git rev-list --max-parents=0 HEAD)
 HEAD_AT=$(git rev-parse HEAD)
 
-function pulldown {
+pulldown() {
   printf "${CNOTE}  downloading files, please wait${CRST}"
   adb pull "/sdcard/gitftc" "$TEMPF" >/dev/null
   mkdir -p "$TEMPF/gitftc"
   clearline
 }
 
-function pushup {
+pushup() {
   printf "${CNOTE}  uploading files, please wait${CRST}"
   mkdir -p "$TEMPF/gitftc"
   touch "$TEMPF/gitftc/.placeholder"
+  adb push "$TEMPF/gitftc" "/sdcard" >/dev/null
+  clearline
+}
+
+pushup_overwrite() {
+  printf "${CNOTE}  uploading files, please wait${CRST}"
+  mkdir -p "$TEMPF/gitftc"
+  adb shell "rm -rf /sdcard/gitftc"
   adb push "$TEMPF/gitftc" "/sdcard" >/dev/null
   clearline
 }
@@ -108,6 +119,37 @@ if [ $# -eq 0 ] || [ "$1" = "status" ]; then
     pulldown
     if ! [ -d "$TEMPF/gitftc/$REPONAME" ]; then
       printf "${CWARN}  ! No version info for this repo found on the device.${CRST}\n"
+    else
+      printf "${CSUCCESS}    Device's version of this repo:${CRST}\n"
+      # parse out basic version info
+      printf "${CNOTE}  ... processing version info ...${CRST}"
+      REMOTE_DETAIL_FILE="$TEMPF/gitftc/$REPONAME/state"
+      REMOTE_HEAD=$(grep -E '^\[head\] ' "$REMOTE_DETAIL_FILE" | sed -E 's/^\[head\] //')
+      # do we have the REMOTE_HEAD locally?
+      if git rev-parse "$REMOTE_HEAD" >/dev/null 2>&1; then
+        REMOTE_HEAD_LOCAL=1
+        REMOTE_HEAD_COMMIT_MSG=$(git log -1 --format=%s "$REMOTE_HEAD")
+      else
+        REMOTE_HEAD_LOCAL=0
+      fi
+      if grep -q -E '^\[staged\] ' "$REMOTE_DETAIL_FILE"; then
+        REMOTE_PATCH_FILE=$(grep -E '^\[staged\] ' "$REMOTE_DETAIL_FILE" | sed -E 's/^\[staged\] //')
+        REMOTE_PATCH_FILE="$TEMPF/gitftc/$REPONAME/$REMOTE_PATCH_FILE"
+        REMOTE_HAS_PATCH=1
+      else
+        REMOTE_HAS_PATCH=0
+      fi
+      # empty string if not present
+
+      clearline
+      if [ $REMOTE_HEAD_LOCAL -eq 1 ]; then
+        printf "${CGREEN}      Commit: %s ${CRST}${CHINT}'%s'${CRST}\n" "${REMOTE_HEAD:0:7}" "$REMOTE_HEAD_COMMIT_MSG"
+      else
+        printf "${CWARN}      Commit: %s (not found! fetched recently?)${CRST}\n" "${REMOTE_HEAD:0:7}"
+      fi
+      if [ $REMOTE_HAS_PATCH -eq 1 ]; then
+        printf "${CGREEN}      Staged changes included: ${CRST}${CHINT}%s char${CRST}${CGREEN} patch file${CRST}\n" "$(wc -c < "$REMOTE_PATCH_FILE")"
+      fi
     fi
   else
     printf "${CWARN}  ✗ No device connected${CRST}\n" 1>&2
@@ -125,10 +167,10 @@ elif [ "$1" = "deploy" ]; then
   printf "${CNOTE}  Writing deployment info${CRST}"
   printf "gitftc:\n" >"$TEMPF/gitftc/$REPONAME/state"
   {
-  printf "[version] $VERSION\n"
-  printf "[head] $HEAD_AT\n"
-  printf "[deploy_at] $(date +%s)\n"
-  printf "[deploy_by] $(git config user.name)\n"
+    printf "[version] $VERSION\n"
+    printf "[head] $HEAD_AT\n"
+    printf "[deploy_at] $(date +%s)\n"
+    printf "[deploy_by] $(git config user.name)\n"
   } >>"$TEMPF/gitftc/$REPONAME/state"
 
   clearline
@@ -153,9 +195,19 @@ elif [ "$1" = "deploy" ]; then
   fi
 
   exit 0
-elif [ "$1" = "clean" ]; then
+elif [ "$1" = "delete" ]; then
   require_connection
-  printf "clean\n"
+  pulldown
+  printf "${CNOTE}  Cleaning up${CRST}"
+  if [ -d "$TEMPF/gitftc/$REPONAME" ]; then
+    rm -rf "$TEMPF/gitftc/$REPONAME"
+    clearline
+    pushup_overwrite
+    printf "${CSUCCESS}✓ Deleted deployed version data for this repository.${CRST}\n"
+  else
+    clearline
+    printf "${CWARN}  Nothing to delete.${CRST}\n"
+  fi
   exit 0
 elif [ "$1" = "checkout" ]; then
   require_connection
