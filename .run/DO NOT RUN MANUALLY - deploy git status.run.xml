@@ -1,6 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="DO NOT RUN MANUALLY - deploy git status" type="PowerShellRunType" factoryName="PowerShell" scriptUrl="C:\Users\miles\Documents\workspace\GearUp2023-4\upload_git_status.ps1" workingDirectory="C:\Users\miles\Documents\workspace\GearUp2023-4" executablePath="$PROJECT_DIR$/../../../../../Windows/System32/WindowsPowerShell/v1.0/powershell.exe">
-    <envs />
-    <method v="2" />
-  </configuration>
-</component>
