@@ -31,10 +31,10 @@ clearline() {
 usage() {
   printf "Usage: %s [command]\n" "$0" 1>&2
   printf "command: one of\n" 1>&2
-  printf "  status - display status of system\n" 1>&2
-  printf "  deploy - write current version to connected device\n" 1>&2
+  printf "  status (or no command) - display status of system\n" 1>&2
+  printf "  deploy, d - write current version to connected device\n" 1>&2
   printf "  delete - delete version data for this repo on connected device\n" 1>&2
-  printf "  checkout - checkout connected device's version of the code\n" 1>&2
+  printf "  checkout, c - checkout connected device's version of the code\n" 1>&2
 }
 
 is_connected() {
@@ -177,7 +177,7 @@ if [ $# -eq 0 ] || [ "$1" = "status" ]; then
     printf "${CWARN}  ✗ No device connected${CRST}\n" 1>&2
   fi
   exit 0
-elif [ "$1" = "deploy" ]; then
+elif [ "$1" = "deploy" ] || [ "$1" = "d" ]; then
   require_connection
   pulldown
 
@@ -198,7 +198,7 @@ elif [ "$1" = "deploy" ]; then
   clearline
   if ! [ "$(git status --porcelain=v1 | wc -l)" -eq 0 ]; then
     printf "${CNOTE}  Generating patch for staged changes${CRST}"
-    git add $REPOROOT >/dev/null
+    git add "$REPOROOT" >/dev/null
     git --no-pager diff --cached --no-color >"$TEMPF/gitftc/$REPONAME/staged.patch"
     printf "[staged] staged.patch\n" >>"$TEMPF/gitftc/$REPONAME/state"
     clearline
@@ -230,7 +230,7 @@ elif [ "$1" = "delete" ]; then
     printf "${CWARN}  Nothing to delete.${CRST}\n"
   fi
   exit 0
-elif [ "$1" = "checkout" ]; then
+elif [ "$1" = "checkout" ] || [ "$1" = "c" ]; then
   require_connection
   pulldown
   require_repometa
@@ -266,7 +266,7 @@ elif [ "$1" = "checkout" ]; then
     printf "${CNOTE}  Applying staged changes${CRST}"
     git apply "$REMOTE_PATCH_FILE" >/dev/null
   fi
-  git add $REPOROOT >/dev/null  # make sure everything's tracked
+  git add "$REPOROOT" >/dev/null  # make sure everything's tracked
   clearline
   printf "${CSUCCESS}✓ Checked out commit ${REMOTE_HEAD:0:7} successfully${CRST}\n"
   printf "${CWARN}! Detached HEAD - any commits you create will be discarded when you checkout a branch.${CRST}\n"
