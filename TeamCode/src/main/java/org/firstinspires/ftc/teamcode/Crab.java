@@ -128,7 +128,8 @@ public class Crab extends LinearOpMode {
         backRight.setMode(baseMode);
         // Reverse the right side motors
         // Reverse left motors if you are using NeveRests
-        // frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         waitForStart();
