@@ -16,9 +16,15 @@ kotlin {
         }
     }
 }
+tasks.test {
+    useJUnitPlatform()
+}
 
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(8))
     }
+}
+dependencies {
+    testImplementation(kotlin("test"))
 }
