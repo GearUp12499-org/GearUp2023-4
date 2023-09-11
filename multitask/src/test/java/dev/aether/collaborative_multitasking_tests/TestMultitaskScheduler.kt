@@ -4,22 +4,28 @@ import dev.aether.collaborative_multitasking.MultitaskScheduler
 import dev.aether.collaborative_multitasking.Task
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.fail
 
 internal class TestMultitaskScheduler {
     @Test
-    fun `test create empty task`() {
+    fun `test create empty task state`() {
         val scheduler = MultitaskScheduler()
         val task = scheduler.task {}
         assertEquals(Task.State.NotStarted, task.state)
     }
 
     @Test
-    fun `test extend task`() {
+    fun `test extend task dependency`() {
         val scheduler = MultitaskScheduler()
         val task = scheduler.task {}
             .runTaskAfter {
                 canStart { -> true }
             }
         assertEquals(task.invokeCanStart(), false, "Task should not be able to start because previous task is not finished")
+    }
+
+    @Test
+    fun `test failing`() {
+        fail("lmao")
     }
 }
