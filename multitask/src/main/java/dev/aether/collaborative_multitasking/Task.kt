@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package dev.aether.collaborative_multitasking
 
 /*
@@ -32,112 +34,159 @@ state Task {
 }
 @enduml
  */
+
+typealias TaskQuery2<T> = (task: Task, scheduler: MultitaskScheduler) -> T
+typealias TaskQuery1<T> = (task: Task) -> T
+typealias Producer<T> = () -> T
+typealias TaskAction2 = TaskQuery2<Unit>
+typealias TaskAction1 = TaskQuery1<Unit>
+typealias Runnable = () -> Unit
+
 class Task constructor(
     private val scheduler: MultitaskScheduler,
 ) {
-    enum class State {
-        NotStarted,
-        Starting,
-        Ticking,
-        Finishing,
-        Finished,
+    enum class State(val order: Int) {
+        NotStarted(0),
+        Starting(1),
+        Ticking(2),
+        Finishing(3),
+        Finished(4),
     }
 
     var state: State = State.NotStarted
         private set
 
-    private var canStart: ((task: Task, scheduler: MultitaskScheduler) -> Boolean) = { _: Task, _: MultitaskScheduler -> true }
-    private var onStart: ((task: Task, scheduler: MultitaskScheduler) -> Unit) = { _: Task, _: MultitaskScheduler -> }
-    private var onTick: ((task: Task, scheduler: MultitaskScheduler) -> Unit) = { _: Task, _: MultitaskScheduler -> }
-    private var isCompleted: ((task: Task, scheduler: MultitaskScheduler) -> Boolean) = { _: Task, _: MultitaskScheduler -> true }
-    private var onFinish: ((task: Task, scheduler: MultitaskScheduler) -> Unit) = { _: Task, _: MultitaskScheduler -> }
-    private var then: ((task: Task, scheduler: MultitaskScheduler) -> Unit) = { _: Task, _: MultitaskScheduler -> }
+    var startedAt: Int? = null
+        private set
 
-    fun canStart(block: (task: Task, scheduler: MultitaskScheduler) -> Boolean) {
+    fun setState(newState: State) {
+        println("task ${myId}: transition: ${state.name} -> ${newState.name}")
+        if (state.order > newState.order) {
+            throw IllegalStateException("cannot move from ${state.name} to ${newState.name}")
+        }
+        if (state == newState) return
+        when (newState) {
+            State.Starting -> startedAt = scheduler.getTicks()
+            else -> {}
+        }
+        state = newState
+    }
+
+    private var requirements: MutableSet<String> = mutableSetOf()
+
+    private var canStart: TaskQuery2<Boolean> = { _: Task, _: MultitaskScheduler -> true }
+    private var onStart: TaskAction2 = { _: Task, _: MultitaskScheduler -> }
+    private var onTick: TaskAction2 = { _: Task, _: MultitaskScheduler -> }
+    private var isCompleted: TaskQuery2<Boolean> = { _: Task, _: MultitaskScheduler -> false }
+    private var onFinish: TaskAction2 = { _: Task, _: MultitaskScheduler -> }
+    private var then: TaskAction2 = { _: Task, _: MultitaskScheduler -> }
+
+    var myId: Int? = null
+        private set
+
+    fun canStart(block: TaskQuery2<Boolean>) {
         canStart = block
     }
-    fun canStart(block: (task: Task) -> Boolean) {
+    fun canStart(block: TaskQuery1<Boolean>) {
         canStart = { that: Task, _: MultitaskScheduler -> block(that) }
     }
-    fun canStart(block: () -> Boolean) {
+    fun canStart(block: Producer<Boolean>) {
         canStart = { _: Task, _: MultitaskScheduler -> block() }
     }
     fun invokeCanStart(): Boolean {
         return canStart(this, scheduler)
     }
 
-    fun onStart(block: (task: Task, scheduler: MultitaskScheduler) -> Unit) {
+    fun onStart(block: TaskAction2) {
         onStart = block
     }
-    fun onStart(block: (task: Task) -> Unit) {
+    fun onStart(block: TaskAction1) {
         onStart = { that: Task, _: MultitaskScheduler -> block(that) }
     }
-    fun onStart(block: () -> Unit) {
+    fun onStart(block: Runnable) {
         onStart = { _: Task, _: MultitaskScheduler -> block() }
     }
     fun invokeOnStart() {
         onStart(this, scheduler)
     }
 
-    fun onTick(block: (task: Task, scheduler: MultitaskScheduler) -> Unit) {
+    fun onTick(block: TaskAction2) {
         onTick = block
     }
-    fun onTick(block: (task: Task) -> Unit) {
+    fun onTick(block: TaskAction1) {
         onTick = { that: Task, _: MultitaskScheduler -> block(that) }
     }
-    fun onTick(block: () -> Unit) {
+    fun onTick(block: Runnable) {
         onTick = { _: Task, _: MultitaskScheduler -> block() }
     }
     fun invokeOnTick() {
         onTick(this, scheduler)
     }
 
-    fun isCompleted(block: (task: Task, scheduler: MultitaskScheduler) -> Boolean) {
+    fun isCompleted(block: TaskQuery2<Boolean>) {
         isCompleted = block
     }
-    fun isCompleted(block: (task: Task) -> Boolean) {
+    fun isCompleted(block: TaskQuery1<Boolean>) {
         isCompleted = { that: Task, _: MultitaskScheduler -> block(that) }
     }
-    fun isCompleted(block: () -> Boolean) {
+    fun isCompleted(block: Producer<Boolean>) {
         isCompleted = { _: Task, _: MultitaskScheduler -> block() }
     }
     fun invokeIsCompleted(): Boolean {
         return isCompleted(this, scheduler)
     }
 
-    fun onFinish(block: (task: Task, scheduler: MultitaskScheduler) -> Unit) {
+    fun onFinish(block: TaskAction2) {
         onFinish = block
     }
-    fun onFinish(block: (task: Task) -> Unit) {
+    fun onFinish(block: TaskAction1) {
         onFinish = { that: Task, _: MultitaskScheduler -> block(that) }
     }
-    fun onFinish(block: () -> Unit) {
+    fun onFinish(block: Runnable) {
         onFinish = { _: Task, _: MultitaskScheduler -> block() }
     }
     fun invokeOnFinish() {
         onFinish(this, scheduler)
     }
 
-    fun then(block: (task: Task, scheduler: MultitaskScheduler) -> Unit) {
+    fun then(block: TaskAction2) {
         then = block
     }
-    fun then(block: (task: Task) -> Unit) {
+    fun then(block: TaskAction1) {
         then = { that: Task, _: MultitaskScheduler -> block(that) }
     }
-    fun then(block: () -> Unit) {
+    fun then(block: Runnable) {
         then = { _: Task, _: MultitaskScheduler -> block() }
     }
     fun invokeThen() {
         then(this, scheduler)
     }
 
-    fun runTaskAfter(configure: Task.() -> Unit): Task {
+    operator fun String.unaryPlus() {
+        require(this)
+    }
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun require(lockName: String) {
+        requirements.add(lockName)
+    }
+
+    fun requirements(): Set<String> {
+        return requirements.toSet()
+    }
+
+    internal fun register() {
+        myId = scheduler.register(this)
+    }
+
+    fun chain(configure: Task.() -> Unit): Task {
         val task = Task(scheduler)
         task.configure()
         val capturedCanStart = task.canStart
         task.canStart = { that: Task, scheduler2: MultitaskScheduler ->
             capturedCanStart(that, scheduler2) && this.state == State.Finished
         }
+        task.register() // ready to go
         return task
     }
 }

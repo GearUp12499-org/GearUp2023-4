@@ -44,6 +44,7 @@ java.testResultsDir = layout.buildDirectory.dir("junit-xml")
 
 dependencies {
     implementation project(':FtcRobotController')
+    implementation project(path: ':multitask')
 //    testImplementation 'junit:junit:4.13.2'
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
 }
