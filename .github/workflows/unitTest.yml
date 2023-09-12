@@ -32,7 +32,7 @@ jobs:
         run: python .github/workflowHelpers/collect_reports.py testReports
       - name: Export artifact
         if: '!cancelled()'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-reports
           path: testReports/
