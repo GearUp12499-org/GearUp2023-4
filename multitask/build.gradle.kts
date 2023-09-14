@@ -20,6 +20,10 @@ tasks.test {
     useJUnitPlatform()
 }
 
+tasks.withType<Jar>().configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(8))

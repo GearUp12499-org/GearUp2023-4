@@ -67,6 +67,7 @@ class Task constructor(
         if (state == newState) return
         when (newState) {
             State.Starting -> startedAt = scheduler.getTicks()
+            State.Finishing -> println("task ${myId}: finishing at ${scheduler.getTicks()} (run for ${scheduler.getTicks() - (startedAt?:0)} ticks)")
             else -> {}
         }
         state = newState
@@ -75,9 +76,9 @@ class Task constructor(
     private var requirements: MutableSet<String> = mutableSetOf()
 
     private var canStart: TaskQuery2<Boolean> = { _: Task, _: MultitaskScheduler -> true }
-    private var onStart: TaskAction2 = { _: Task, _: MultitaskScheduler -> }
+    internal var onStart: TaskAction2 = { _: Task, _: MultitaskScheduler -> }
     private var onTick: TaskAction2 = { _: Task, _: MultitaskScheduler -> }
-    private var isCompleted: TaskQuery2<Boolean> = { _: Task, _: MultitaskScheduler -> false }
+    internal var isCompleted: TaskQuery2<Boolean> = { _: Task, _: MultitaskScheduler -> false }
     private var onFinish: TaskAction2 = { _: Task, _: MultitaskScheduler -> }
     private var then: TaskAction2 = { _: Task, _: MultitaskScheduler -> }
 
@@ -188,5 +189,9 @@ class Task constructor(
         }
         task.register() // ready to go
         return task
+    }
+
+    fun apply(configure: Task.() -> Unit) {
+        this.configure()
     }
 }
