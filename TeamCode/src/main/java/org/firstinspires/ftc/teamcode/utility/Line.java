@@ -1,47 +1,51 @@
 package org.firstinspires.ftc.teamcode.utility;
 
-public class Line {
-    public final double slope;
-    public final double yIntercept;
+public interface Line {
+    double perpendicularSlope();
+    double yFor(double x);
+    double xFor(double y);
+    IntersectionSolution intersection(Line other);
 
-    private Line(double slope, double yIntercept) {
-        this.slope = slope;
-        this.yIntercept = yIntercept;
+    double slope();
+    double yIntercept();
+
+    static Line slopeIntercept(double slope, double yIntercept) {
+        if (Double.isNaN(slope)) return new VerticalLine(0);
+        return new StandardLine(slope, yIntercept);
     }
 
-    public double perpendicularSlope() {
-        if (Double.isNaN(slope)) {
-            return 0;
+    static Line pointSlope(Vector2 point, double slope) {
+        if (Double.isNaN(slope)) return new VerticalLine(point.x);
+        return new StandardLine(slope, point.y - slope * point.x);
+    }
+
+    static Line pointPoint(Vector2 point1, Vector2 point2) {
+        if (point1.x == point2.x) {
+            return new VerticalLine(point1.x);
         }
-        return -1 / slope;
-    }
-
-    public double yFor(double x) {
-        return slope * x + yIntercept;
-    }
-
-    public double xFor(double y) {
-        return (y - yIntercept) / slope;
-    }
-
-    public static Vector2 intersection(Line a, Line b) {
-        // m1x + b1 = m2x + b2
-        // (m1-m2)x = (b2-b1)
-        // x = (b2-b1)/(m1-m2)
-        double x = (b.yIntercept - a.yIntercept) / (a.slope - b.slope);
-        double y = a.yFor(x);
-        return new Vector2(x, y);
-    }
-
-    public static Line slopeIntercept(double slope, double yIntercept) {
-        return new Line(slope, yIntercept);
-    }
-
-    public static Line pointSlope(Vector2 point, double slope) {
-        return new Line(slope, point.y - slope * point.x);
-    }
-
-    public static Line pointPoint(Vector2 point1, Vector2 point2) {
         return pointSlope(point1, (point2.y - point1.y) / (point2.x - point1.x));
+    }
+
+    class IntersectionSolution {
+        enum Type {
+            NONE,
+            POINT,
+            SAME_LINE
+        }
+        public final Type type;
+        public final Vector2 pointValue;
+        private IntersectionSolution(Type type, Vector2 pointValue) {
+            this.type = type;
+            this.pointValue = pointValue;
+        }
+        public static IntersectionSolution point(Vector2 point) {
+            return new IntersectionSolution(Type.POINT, point);
+        }
+        public static IntersectionSolution sameLine() {
+            return new IntersectionSolution(Type.SAME_LINE, null);
+        }
+        public static IntersectionSolution none() {
+            return new IntersectionSolution(Type.NONE, null);
+        }
     }
 }
