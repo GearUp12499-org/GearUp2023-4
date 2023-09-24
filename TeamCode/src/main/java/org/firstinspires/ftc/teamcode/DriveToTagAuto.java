@@ -12,6 +12,9 @@ public class DriveToTagAuto extends LinearOpMode {
         telemetry.addLine("press X to start");
         telemetry.addLine("");
         telemetry.update();
+        while (!gamepad1.x && opModeIsActive()) {
+            sleep(20);
+        }
         backingScript.start(this::opModeIsActive);
         telemetry.addLine("Completed");
         telemetry.update();
