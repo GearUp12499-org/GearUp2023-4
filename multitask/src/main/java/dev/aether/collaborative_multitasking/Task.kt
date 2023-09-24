@@ -82,6 +82,7 @@ class Task constructor(
     private var onFinish: TaskAction2 = { _: Task, _: MultitaskScheduler -> }
     private var then: TaskAction2 = { _: Task, _: MultitaskScheduler -> }
 
+    var daemon = false
     var myId: Int? = null
         private set
 
