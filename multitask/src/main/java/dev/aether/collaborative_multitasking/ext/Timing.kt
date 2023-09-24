@@ -31,6 +31,12 @@ fun Task.minDuration(millis: Int) {
     }
 }
 
+fun Task.minTicks(ticks: Int) {
+    isCompletedAnd { _, scheduler ->
+        scheduler.getTicks() - this.startedAt!! >= ticks
+    }
+}
+
 /**
  * The task will forcibly complete after the given number of milliseconds have passed.
  */

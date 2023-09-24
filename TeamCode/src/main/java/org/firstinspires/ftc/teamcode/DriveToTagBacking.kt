@@ -1,9 +1,12 @@
 package org.firstinspires.ftc.teamcode
 
 import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorSimple
+import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.Range.clip
 import dev.aether.collaborative_multitasking.MultitaskScheduler
+import dev.aether.collaborative_multitasking.ext.minTicks
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName
 import org.firstinspires.ftc.teamcode.utility.typedGet
@@ -12,7 +15,11 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
 import kotlin.math.abs
 
-class DriveToTagBacking(hardwareMap: HardwareMap, private val telemetry: Telemetry) {
+class DriveToTagBacking(
+    hardwareMap: HardwareMap,
+    private val telemetry: Telemetry,
+    private val gamepad1: Gamepad
+) {
     companion object {
         const val DRIVE_MOTOR_LOCK = "driveMotorLock"
         const val TARGET_DISTANCE = 8 //in
@@ -47,6 +54,9 @@ class DriveToTagBacking(hardwareMap: HardwareMap, private val telemetry: Telemet
     init {
         telemetry.addData("state", "Setting up")
         telemetry.update()
+        frontRight.direction = DcMotorSimple.Direction.REVERSE
+        backLeft.direction = DcMotorSimple.Direction.REVERSE
+        backRight.direction = DcMotorSimple.Direction.REVERSE
         var detectionInfo: AprilTagDetection? = null
         var drive: Double
         var turn: Double
@@ -65,17 +75,36 @@ class DriveToTagBacking(hardwareMap: HardwareMap, private val telemetry: Telemet
                 }
                 if (detectionInfo == null) return@onTick
                 val rangeError = detectionInfo!!.ftcPose.range - TARGET_DISTANCE
+                // + rangeError => FORWARD
+                // - rangeError => BACKWARD
                 val headingError = detectionInfo!!.ftcPose.bearing
+                // + bearing => strafe LEFT
+                // - bearing => strafe RIGHT
                 val yawError = detectionInfo!!.ftcPose.yaw
+                telemetry.addData(
+                    "RAW",
+                    "Rng %5.2f Bea %5.2f Yaw %5.2f",
+                    detectionInfo!!.ftcPose.range,
+                    detectionInfo!!.ftcPose.bearing,
+                    detectionInfo!!.ftcPose.yaw
+                )
+
                 drive = clip(rangeError * SPEED_GAIN, -MAX_SPEED, MAX_SPEED)
-                turn = clip(headingError * TURN_GAIN, -MAX_TURN, MAX_TURN)
-                strafe = clip(-yawError * STRAFE_GAIN, -MAX_STRAFE, MAX_STRAFE)
+                strafe = clip(headingError * STRAFE_GAIN, -MAX_TURN, MAX_TURN)
+                turn = clip(-yawError * TURN_GAIN, -MAX_STRAFE, MAX_STRAFE)
                 telemetry.addData(
                     "Auto",
                     "Drive %5.2f, Strafe %5.2f, Turn %5.2f ",
                     drive,
                     strafe,
                     turn
+                )
+                telemetry.addData(
+                    "ERRORS",
+                    "Rng %5.2f Bea %5.2f Yaw %5.2f",
+                    rangeError,
+                    headingError,
+                    yawError
                 )
                 moveRobot(drive, strafe, turn)
                 telemetry.update()
@@ -85,13 +114,14 @@ class DriveToTagBacking(hardwareMap: HardwareMap, private val telemetry: Telemet
                     abs(it.ftcPose.range - TARGET_DISTANCE) < THRESHOLD_DISTANCE &&
                             abs(it.ftcPose.bearing) < THRESHOLD_ANGLE &&
                             abs(it.ftcPose.yaw) < THRESHOLD_ANGLE
-                } ?: false
+                } ?: true
             }
             onFinish { ->
                 arrayOf(frontLeft, frontRight, backLeft, backRight).forEach { motor ->
                     motor.power = 0.0
                 }
             }
+            minTicks(1)
         }
         telemetry.addData("state", "Ready")
         telemetry.update()
@@ -100,10 +130,10 @@ class DriveToTagBacking(hardwareMap: HardwareMap, private val telemetry: Telemet
     private fun moveRobot(drive: Double, strafe: Double, turn: Double) {
 
         // Calculate wheel powers.
-        val leftFrontPower = drive - strafe - turn
-        val rightFrontPower = drive + strafe + turn
-        val leftBackPower = drive + strafe - turn
-        val rightBackPower = drive - strafe + turn
+        var leftFrontPower = drive - strafe - turn
+        var rightFrontPower = drive + strafe + turn
+        var leftBackPower = drive + strafe - turn
+        var rightBackPower = drive - strafe + turn
 
         // Normalize wheel speeds.
         val denominator = maxOf(
@@ -113,20 +143,27 @@ class DriveToTagBacking(hardwareMap: HardwareMap, private val telemetry: Telemet
             abs(rightBackPower)
         )
         if (denominator > 1) {
-            frontLeft.power = leftFrontPower / denominator
-            frontRight.power = rightFrontPower / denominator
-            backLeft.power = leftBackPower / denominator
-            backRight.power = rightBackPower / denominator
-        } else {
-            frontLeft.power = leftFrontPower
-            frontRight.power = rightFrontPower
-            backLeft.power = leftBackPower
-            backRight.power = rightBackPower
+            leftFrontPower /= denominator
+            rightFrontPower /= denominator
+            leftBackPower /= denominator
+            rightBackPower /= denominator
         }
+//        frontLeft.power = leftFrontPower
+//        frontRight.power = rightFrontPower
+//        backLeft.power = leftBackPower
+//        backRight.power = rightBackPower
+        telemetry.addData(
+            "Powers",
+            "FL %5.2f FR %5.2f BL %5.2f BR %5.2f",
+            leftFrontPower,
+            rightFrontPower,
+            leftBackPower,
+            rightBackPower
+        )
     }
 
     fun start(opModeIsActive: () -> Boolean) {
-        while (scheduler.hasJobs() && opModeIsActive()) {
+        while (scheduler.hasJobs() && opModeIsActive() && !gamepad1.b) {
             scheduler.tick()
         }
     }

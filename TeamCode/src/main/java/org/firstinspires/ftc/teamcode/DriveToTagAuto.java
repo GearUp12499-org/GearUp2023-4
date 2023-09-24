@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 public class DriveToTagAuto extends LinearOpMode {
     @Override
     public void runOpMode() {
-        DriveToTagBacking backingScript = new DriveToTagBacking(hardwareMap, telemetry);
+        DriveToTagBacking backingScript = new DriveToTagBacking(hardwareMap, telemetry, gamepad1);
         waitForStart();
         telemetry.addLine("press X to start");
         telemetry.addLine("");
@@ -16,8 +16,6 @@ public class DriveToTagAuto extends LinearOpMode {
             sleep(20);
         }
         backingScript.start(this::opModeIsActive);
-        telemetry.addLine("Completed");
-        telemetry.update();
         while (opModeIsActive()) {
             sleep(20);
         }
