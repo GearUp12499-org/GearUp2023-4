@@ -19,7 +19,7 @@ apply plugin: 'org.jetbrains.kotlin.android'
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
     androidResources {
-        noCompress 'tflite'
+        noCompress += ['tflite']
     }
 
     packagingOptions {
@@ -51,4 +51,5 @@ dependencies {
     implementation project(path: ':multitask')
 //    testImplementation 'junit:junit:4.13.2'
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
 }

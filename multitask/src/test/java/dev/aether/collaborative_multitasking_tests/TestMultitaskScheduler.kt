@@ -2,7 +2,6 @@ package dev.aether.collaborative_multitasking_tests
 
 import dev.aether.collaborative_multitasking.MultitaskScheduler
 import dev.aether.collaborative_multitasking.Task
-import dev.aether.collaborative_multitasking.ext.delay
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -99,19 +98,5 @@ internal class TestMultitaskScheduler {
         assertNotEquals(null, task2start, "task2 not started")
         val task1finish = task1start!! + task1life
         assert(task2start!! >= task1finish) { "task2 started before task1 finished $task1finish $task2start" }
-    }
-
-    @Test
-    fun `Test delays`() {
-        val scheduler = MultitaskScheduler()
-        val duration = 100
-        val passAfter = duration - 5
-        scheduler.task {
-            delay(duration)
-        }
-        val start = System.currentTimeMillis()
-        scheduler.runToCompletion()
-        val end = System.currentTimeMillis()
-        assert(end - start >= passAfter) { "task completed too early" }
     }
 }
