@@ -1,7 +1,8 @@
 package org.firstinspires.ftc.teamcode.odo
 
 abstract class LengthUnit(value: Double) :
-    MeasureUnit<LengthConversionRules, LengthConverter, LengthUnit>(value) {
+    MeasureUnit<LengthUnit>(value) {
+    protected abstract val rules: LengthConversionRules
     override val to: LengthConverter get() = LengthConverter(rules, value)
 }
 
@@ -10,7 +11,8 @@ data class LengthConversionRules(
     val toFeet: Double
 )
 
-class LengthConverter(private val rules: LengthConversionRules, private val value: Double) {
+class LengthConverter(private val rules: LengthConversionRules, private val value: Double) :
+    Converter<LengthUnit>() {
     val inches: InchUnit get() = InchUnit(rules.toInches * value)
     val feet: FootUnit get() = FootUnit(rules.toFeet * value)
 }
@@ -23,6 +25,13 @@ class InchUnit(value: Double) : LengthUnit(value) {
         1.0,
         1.0 / 12.0
     )
+
+    override fun convertOther(other: MeasureUnit<*>): LengthUnit {
+        return when (other) {
+            is LengthUnit -> other.to.inches
+            else -> throw IllegalArgumentException("Cannot convert $other to $this")
+        }
+    }
 }
 
 val Double.inches: InchUnit get() = InchUnit(this)
@@ -36,6 +45,13 @@ class FootUnit(value: Double) : LengthUnit(value) {
         12.0,
         1.0
     )
+
+    override fun convertOther(other: MeasureUnit<*>): LengthUnit {
+        return when (other) {
+            is LengthUnit -> other.to.feet
+            else -> throw IllegalArgumentException("Cannot convert $other to $this")
+        }
+    }
 }
 
 val Double.feet: FootUnit get() = FootUnit(this)

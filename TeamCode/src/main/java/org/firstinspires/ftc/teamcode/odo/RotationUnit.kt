@@ -3,11 +3,9 @@ package org.firstinspires.ftc.teamcode.odo
 import kotlin.math.PI
 
 abstract class RotationUnit(value: Double) :
-    MeasureUnit<RotationConversionRules, RotationConverter, RotationUnit>(value) {
+    MeasureUnit<RotationUnit>(value) {
+    protected abstract val rules: RotationConversionRules
     override val to: RotationConverter get() = RotationConverter(rules, value)
-    override fun convertOther(other: RotationUnit): RotationUnit {
-
-    }
 }
 
 data class RotationConversionRules(
@@ -15,7 +13,8 @@ data class RotationConversionRules(
     val toRadians: Double
 )
 
-class RotationConverter(private val rules: RotationConversionRules, private val value: Double) {
+class RotationConverter(private val rules: RotationConversionRules, private val value: Double) :
+    Converter<RotationUnit>() {
     val degrees: DegreeUnit get() = DegreeUnit(rules.toDegrees * value)
     val radians: RadianUnit get() = RadianUnit(rules.toRadians * value)
 }
@@ -28,6 +27,13 @@ class DegreeUnit(value: Double) : RotationUnit(value) {
         1.0,
         PI / 180.0
     )
+
+    override fun convertOther(other: MeasureUnit<*>): DegreeUnit {
+        return when (other) {
+            is RotationUnit -> other.to.degrees
+            else -> throw IllegalArgumentException("Cannot convert $other to $this")
+        }
+    }
 }
 
 val Double.degrees: DegreeUnit get() = DegreeUnit(this)
@@ -41,6 +47,13 @@ class RadianUnit(value: Double) : RotationUnit(value) {
         180.0 / PI,
         1.0
     )
+
+    override fun convertOther(other: MeasureUnit<*>): RadianUnit {
+        return when (other) {
+            is RotationUnit -> other.to.radians
+            else -> throw IllegalArgumentException("Cannot convert $other to $this")
+        }
+    }
 }
 
 val Double.radians: RadianUnit get() = RadianUnit(this)
