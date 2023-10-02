@@ -16,10 +16,10 @@ class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
         )
     }
 
-    fun right(distance: InchUnit): Pose {
+    fun right(distance: LengthUnit): Pose {
         return Pose(
-            (x.value + distance.value * sin(theta.value)).inches,
-            (y.value - distance.value * cos(theta.value)).inches,
+            (x.value + distance.to.inches.value * sin(theta.value)).inches,
+            (y.value - distance.to.inches.value * cos(theta.value)).inches,
             theta
         )
     }
@@ -27,7 +27,12 @@ class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
     fun turnCounterClockwise(angle: RotationUnit): Pose {
         return Pose(x, y, (theta.value + angle.to.radians.value).radians)
     }
+
     fun turnClockwise(angle: RotationUnit) = turnCounterClockwise(-angle)
+
+    fun transform(forward: LengthUnit, right: LengthUnit, ccw: RotationUnit): Pose =
+        turnCounterClockwise(ccw / 2.0).forward(forward).right(right)
+            .turnCounterClockwise(ccw / 2.0)
 
     companion object {
         val zero = Pose(0.inches, 0.inches, 0.radians)
