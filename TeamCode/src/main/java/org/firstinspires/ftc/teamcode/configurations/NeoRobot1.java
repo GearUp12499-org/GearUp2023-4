@@ -32,12 +32,13 @@ public class NeoRobot1 {
         slideLeft = map.get(DcMotor.class, "slideLeft");
         slideLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slideLeft.setTargetPosition(0);
-        slideLeft.setPower(0.5);
+        slideLeft.setPower(1);
         slideLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slideRight = map.get(DcMotor.class, "slideRight");
         slideRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slideRight.setTargetPosition(0);
-        slideRight.setPower(0.5);
+        slideRight.setPower(1);
         slideRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        reverse(slideRight);
     }
 }
