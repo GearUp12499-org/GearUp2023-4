@@ -29,7 +29,21 @@ android {
     }
 }
 
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    outputs.upToDateWhen {
+        false
+    }
+
+    reports {
+        html.required = true
+    }
+}
+
+java.testResultsDir = layout.buildDirectory.dir("junit-xml")
+
 dependencies {
     implementation project(':FtcRobotController')
+//    testImplementation 'junit:junit:4.13.2'
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
 }
