@@ -1,0 +1,20 @@
+1. read odo as deltas
+2. compute A, B, and Y
+* r1 is forward distance from center of robot to perpendicular odometry
+* d is centerline to parallel odometry (both sides, abs)
+
+[1] cX1 = A + Y * d
+[2] cX2 = A - Y * d
+[3] cY  = B + Y * r1
+
+[1] + [2] => 2A + (Yd) - (Yd) => 2A = cX1 + cX2
+[1] - [2] => (a) - (a) + (Yd) + (Yd) => 2Yd = cX1 - cX2
+to solve for B subst Y and solve [3]
+
+Pseudocode:
+every <interval>:
+	meas odometry wheels
+	convert to deltas cX1, cX2, cY
+	do math above (get A, B, and Y)
+	add to existing pose
+
