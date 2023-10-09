@@ -15,7 +15,7 @@ abstract class MeasureUnit<This: MeasureUnit<This>>(val value: Double) {
     }
 
     abstract val label: String
-    override fun toString(): String = "<$value $label>"
+    override fun toString(): String = String.format("[%.4f %s]", value, label)
 
     protected abstract fun newInstance(n: Double): This
 

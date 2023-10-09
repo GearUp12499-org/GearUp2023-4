@@ -1,7 +1,17 @@
 package org.firstinspires.ftc.teamcode.odo
 
+import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+
+class DeltaPose(forward: LengthUnit, right: LengthUnit, turn: RotationUnit) {
+    val forward = forward.to.inches
+    val right = right.to.inches
+    val turn = turn.to.radians
+
+
+    override fun toString(): String = "DeltaPose[forward=$forward right=$right turn=$turn]"
+}
 
 class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
     val x = x.to.inches
@@ -33,6 +43,23 @@ class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
     fun transform(forward: LengthUnit, right: LengthUnit, ccw: RotationUnit): Pose =
         turnCounterClockwise(ccw / 2.0).forward(forward).right(right)
             .turnCounterClockwise(ccw / 2.0)
+
+    fun to(target: Pose): DeltaPose {
+        val theta = theta.value
+        val alpha =
+            (target.x * cos(theta)) + (target.y * sin(theta)) - (x * cos(theta)) - (y * sin(theta))
+        val beta =
+            (target.x * sin(theta)) - (target.y * cos(theta)) - (x * sin(theta)) + (y * cos(theta))
+        return DeltaPose(
+            alpha,
+            beta,
+            // rem: remainder - keeps the sign of the dividend (first value)
+            // same as (%) operator but more explicit about behavior
+            ((target.theta.value - this.theta.value).rem(2.0 * PI)).radians
+        )
+    }
+
+    override fun toString(): String = "Pose[x=$x y=$y r=${theta.to.degrees}]"
 
     companion object {
         val zero = Pose(0.inches, 0.inches, 0.radians)

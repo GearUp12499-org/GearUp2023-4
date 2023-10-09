@@ -18,3 +18,16 @@ every <interval>:
 	do math above (get A, B, and Y)
 	add to existing pose
 
+
+Balancing motor powers
+Forward =>  1/sqrt(2) proportional
+Right   =>  1/sqrt(2) proportional
+
+Robot is square ::
+Robot dist. center -> wheel (as R) = 10.inches
+distance to turn theta: R * theta
+
+
+// Width of robot (wheel-wheel) 15.5 in
+// Length of robot (wheel-wheel) 13 in
+// Radius: 10.01in

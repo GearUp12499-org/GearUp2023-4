@@ -10,12 +10,14 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.odo.Pose;
 import org.firstinspires.ftc.teamcode.utility.Vector2;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,11 +59,21 @@ public class ExampleMultistageAuto extends LinearOpMode {
 
             if (opModeIsActive()) {
                 while (opModeIsActive()) {
+                    List<AprilTagDetection> detections = aprilTag.getDetections();
+                    telemetry.addData("Visible Tags", Arrays.toString(detections.stream().map(k -> k.id).toArray()));
+                    for (AprilTagDetection detection : detections) {
+                        telemetry.addData("with", detection.id);
+                        Pose solution = AprilTagToPoseKt.detectSingleToPose(detection);
+                        telemetry.addLine(solution.toString());
+                        telemetry.addLine();
+
+                    }
+
                     List<Pair<AprilTagDetection, AprilTagDetection>> pairs = pairs(aprilTag.getDetections());
                     for (Pair<AprilTagDetection, AprilTagDetection> pair : pairs) {
                         telemetry.addData("with", pair.first.id + " and " + pair.second.id);
-                        Vector2 solution = detectionPairToCameraGlobalPos(pair.first, pair.second);
-                        telemetry.addData("i'm at", solution);
+                        Pose solution = AprilTagToPoseKt.detectPairToPose(pair.first, pair.second);
+                        telemetry.addLine(solution.toString());
                         telemetry.addLine();
                     }
                     telemetry.update();
