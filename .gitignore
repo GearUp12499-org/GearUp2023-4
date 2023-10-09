@@ -82,7 +82,5 @@ lint/tmp/
 
 # GHA Test reports
 testReports/
-
-
 # weird unittest scratches
 .attach_pid*
