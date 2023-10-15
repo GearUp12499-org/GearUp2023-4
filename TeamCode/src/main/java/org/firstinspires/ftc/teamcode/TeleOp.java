@@ -30,9 +30,9 @@ public class TeleOp extends LinearOpMode {
     @Override
     public void runOpMode() {
         MultitaskScheduler scheduler = new MultitaskScheduler();
-        Servo clawGrip = hardwareMap.get(Servo.class, "clawGrip");
+        Servo clawGrab = hardwareMap.get(Servo.class, "clawGrab");
         Servo clawRotate = hardwareMap.get(Servo.class, "clawRotate");
-        Claw claw = new Claw(scheduler, clawGrip, clawRotate);
+        Claw claw = new Claw(scheduler, clawGrab, clawRotate);
         NeoRobot1 config = new NeoRobot1(hardwareMap);
         waitForStart();
         int targetLeft = 0;
@@ -97,6 +97,16 @@ public class TeleOp extends LinearOpMode {
             if (targetLeft > SLIDE_LIM) targetLeft = SLIDE_LIM;
             if (targetRight < 0) targetRight = 0;
             if (targetRight > SLIDE_LIM) targetRight = SLIDE_LIM;
+
+            if (gamepad2.a) {
+                claw.attempt();
+            }
+            if (gamepad2.y) {
+                claw.commit();
+            }
+            if (gamepad2.x) {
+                claw.restore();
+            }
 
             config.slideLeft.setTargetPosition(targetLeft);
             config.slideRight.setTargetPosition(targetRight);

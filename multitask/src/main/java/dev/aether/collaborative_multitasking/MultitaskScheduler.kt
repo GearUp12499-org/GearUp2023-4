@@ -1,7 +1,7 @@
 package dev.aether.collaborative_multitasking
 
 class MultitaskScheduler : Scheduler() {
-    private val locks: MutableMap<Loq, Int?> = mutableMapOf()
+    private val locks: MutableMap<String, Int?> = mutableMapOf()
     private val tasks: MutableMap<Int, Task> = mutableMapOf()
     override var nextId: Int = 0
         private set
@@ -12,7 +12,7 @@ class MultitaskScheduler : Scheduler() {
     }
 
     private fun allFreed(requirements: Set<Loq>): Boolean {
-        return requirements.all { locks[it] == null }
+        return requirements.all { locks[it.id] == null }
     }
 
     private fun tickMarkStartable() {
@@ -25,7 +25,8 @@ class MultitaskScheduler : Scheduler() {
                 // acquire locks
                 for (lock in it.requirements()) {
                     println("task ${it.myId} acquired $lock")
-                    locks[lock] = it.myId
+                    println("locks: $locks")
+                    locks[lock.id] = it.myId
                 }
             }
     }
@@ -57,10 +58,10 @@ class MultitaskScheduler : Scheduler() {
             it.setState(Task.State.Finished)
             // release locks
             for (lock in it.requirements()) {
-                if (locks[lock] != it.myId) {
+                if (locks[lock.id] != it.myId) {
                     throw IllegalStateException("task ${it.myId} (which just finished) does not own lock $lock that it is supposed to own")
                 }
-                locks[lock] = null
+                locks[lock.id] = null
                 println("task ${it.myId} released $lock")
             }
         }
@@ -88,15 +89,15 @@ class MultitaskScheduler : Scheduler() {
         val id = nextId++
         tasks[id] = task
         for (lock in task.requirements()) {
-            if (!locks.containsKey(lock)) {
-                locks[lock] = null
+            if (!locks.containsKey(lock.id)) {
+                locks[lock.id] = null
             }
         }
         return id
     }
 
     override fun isResourceInUse(resource: Loq): Boolean {
-        return locks[resource] != null
+        return locks[resource.id] != null
     }
 
     fun hasJobs(): Boolean {

@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.abstractions
 
 import com.qualcomm.robotcore.hardware.Servo
 import dev.aether.collaborative_multitasking.MultitaskScheduler
-import dev.aether.collaborative_multitasking.ext.minDuration
+import dev.aether.collaborative_multitasking.ext.maxDuration
 import org.firstinspires.ftc.teamcode.configurations.RobotLocks
 
 class Claw(
@@ -12,24 +12,26 @@ class Claw(
 ) {
     companion object {
         // massive TODO get actual numbers lmao
-        const val ROTATE_HOVER = 0.1
-        const val ROTATE_CLOSING = 0.0
-        const val ROTATE_FLIP = 0.5
-        const val GRIP_OPEN = 0.5
-        const val GRIP_CLOSED = 0.5
+        const val ROTATE_HOVER = 0.83
+        const val ROTATE_CLOSING = 0.868
+        const val ROTATE_FLIP = 0.255
+        const val ROTATE_STOW = 0.5425
+        const val GRIP_OPEN = 0.57
+        const val GRIP_CLOSED = 0.825
         const val CloseRotateTime = 100 // ms
         const val GripTime = 100 // ms
         const val FlipTime = 1000 // ms
     }
 
     private enum class State {
-        Idle,
+        Ready,
         Closing,
         Closed,
-        Flipping
+        Flipping,
+        Stowed
     }
 
-    private var clawState: State = State.Idle
+    private var clawState: State = State.Ready
 
     fun restore() {
         if (scheduler.isResourceInUse(RobotLocks.claw)) return // don't try to do two things at once
@@ -39,6 +41,10 @@ class Claw(
                 clawState = State.Flipping
                 grip.position = GRIP_OPEN
                 rotate.position = ROTATE_HOVER
+            }
+            maxDuration(FlipTime)
+            onFinish { ->
+                clawState = State.Ready
             }
         }
     }
@@ -51,13 +57,13 @@ class Claw(
                 clawState = State.Closing
                 rotate.position = ROTATE_CLOSING
             }
-            minDuration(CloseRotateTime)
+            maxDuration(CloseRotateTime)
         }.then {
             +RobotLocks.claw
             onStart { ->
                 grip.position = GRIP_CLOSED
             }
-            minDuration(GripTime)
+            maxDuration(GripTime)
             onFinish { ->
                 clawState = State.Closed
             }
@@ -72,21 +78,21 @@ class Claw(
                 clawState = State.Flipping
                 rotate.position = ROTATE_FLIP
             }
-            minDuration(FlipTime)
+            maxDuration(FlipTime)
         }.then {
             +RobotLocks.claw
             onStart { ->
                 grip.position = GRIP_OPEN
             }
-            minDuration(GripTime)
+            maxDuration(GripTime)
         }.then {
             +RobotLocks.claw
             onStart { ->
-                rotate.position = ROTATE_HOVER
+                rotate.position = ROTATE_STOW
             }
-            minDuration(FlipTime)
+            maxDuration(FlipTime)
             onFinish { ->
-                clawState = State.Idle
+                clawState = State.Stowed
             }
         }
     }
