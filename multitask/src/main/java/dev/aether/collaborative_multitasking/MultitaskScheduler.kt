@@ -18,15 +18,17 @@ class MultitaskScheduler : Scheduler() {
     private fun tickMarkStartable() {
         selectState(Task.State.NotStarted)
             .filter {
-                it.invokeCanStart() && allFreed(it.requirements())
+                it.invokeCanStart()
             }
             .forEach {
-                it.setState(Task.State.Starting)
-                // acquire locks
-                for (lock in it.requirements()) {
-                    println("task ${it.myId} acquired $lock")
-                    println("locks: $locks")
-                    locks[lock.id] = it.myId
+                if (allFreed(it.requirements())) {
+                    it.setState(Task.State.Starting)
+                    // acquire locks
+                    for (lock in it.requirements()) {
+                        println("task ${it.myId} acquired $lock")
+                        locks[lock.id] = it.myId
+                        println("locks: $locks")
+                    }
                 }
             }
     }

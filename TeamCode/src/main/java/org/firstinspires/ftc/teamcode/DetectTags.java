@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 @TeleOp()
-public class ExampleMultistageAuto extends LinearOpMode {
+public class DetectTags extends LinearOpMode {
     public static final Map<Integer, Vector2> TAG_POSITION = new HashMap<>();
     // Change this if you switch the angle mode on the AprilTags.
     private static final double APRIL_TAG_ANGLE_CONVERSION_FACTOR = Math.PI / 180.0;
