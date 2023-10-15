@@ -1,5 +1,6 @@
 package dev.aether.collaborative_multitasking_tests
 
+import dev.aether.collaborative_multitasking.Loq
 import dev.aether.collaborative_multitasking.MultitaskScheduler
 import dev.aether.collaborative_multitasking.Task
 import kotlin.test.Test
@@ -18,8 +19,8 @@ internal class TestMultitaskScheduler {
     fun `Create tests in a chain`() {
         val scheduler = MultitaskScheduler()
         val task1 = scheduler.task {}
-        val task2 = task1.chain {}
-        val task3 = task2.chain {}
+        val task2 = task1.then {}
+        val task3 = task2.then {}
         assertNotEquals(null, task1.myId, "task1 not registered")
         assertNotEquals(null, task2.myId, "task2 not registered")
         assertNotEquals(null, task3.myId, "task3 not registered")
@@ -60,13 +61,13 @@ internal class TestMultitaskScheduler {
     @Test
     fun `Run tasks sharing a lock`() {
         val scheduler = MultitaskScheduler()
-        val driveMotorLock = "drive_motor"
+        val fakeLock = Loq("fake")
         val task1life = 512
         var task1start: Int? = null
         val task2life = 128
         var task2start: Int? = null
         scheduler.task {
-            +driveMotorLock
+            +fakeLock
             onStart { ->
                 task1start = scheduler.getTicks()
             }
@@ -82,7 +83,7 @@ internal class TestMultitaskScheduler {
         scheduler.tick() // ensure the first task has started and owns the motor lock...
         assertNotEquals(null, task1start, "task1 not started")
         scheduler.task {
-            +driveMotorLock
+            +fakeLock
             onStart { ->
                 task2start = scheduler.getTicks()
             }

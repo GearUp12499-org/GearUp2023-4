@@ -1,15 +1,18 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.abstractions.Claw;
 import org.firstinspires.ftc.teamcode.configurations.NeoRobot1;
 
 import java.util.concurrent.TimeUnit;
 
-@TeleOp
-public class BasicMec extends LinearOpMode {
+import dev.aether.collaborative_multitasking.MultitaskScheduler;
+
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp
+public class TeleOp extends LinearOpMode {
     private double max(double a, double... others) {
         if (others.length == 0) return a;
         double[] combined = new double[others.length + 1];
@@ -26,6 +29,10 @@ public class BasicMec extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        MultitaskScheduler scheduler = new MultitaskScheduler();
+        Servo clawGrab = hardwareMap.get(Servo.class, "clawGrab");
+        Servo clawRotate = hardwareMap.get(Servo.class, "clawRotate");
+        Claw claw = new Claw(scheduler, clawGrab, clawRotate);
         NeoRobot1 config = new NeoRobot1(hardwareMap);
         waitForStart();
         int targetLeft = 0;
@@ -49,6 +56,7 @@ public class BasicMec extends LinearOpMode {
 
         ElapsedTime timer1 = new ElapsedTime();
         while (opModeIsActive()) {
+            scheduler.tick();
             double dt = timer1.time(TimeUnit.SECONDS);
             timer1.reset();
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
@@ -89,6 +97,16 @@ public class BasicMec extends LinearOpMode {
             if (targetLeft > SLIDE_LIM) targetLeft = SLIDE_LIM;
             if (targetRight < 0) targetRight = 0;
             if (targetRight > SLIDE_LIM) targetRight = SLIDE_LIM;
+
+            if (gamepad2.a) {
+                claw.attempt();
+            }
+            if (gamepad2.y) {
+                claw.commit();
+            }
+            if (gamepad2.x) {
+                claw.restore();
+            }
 
             config.slideLeft.setTargetPosition(targetLeft);
             config.slideRight.setTargetPosition(targetRight);

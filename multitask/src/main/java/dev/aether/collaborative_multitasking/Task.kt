@@ -35,7 +35,7 @@ state Task {
 @enduml
  */
 
-typealias TaskQuery2<T> = (task: Task, scheduler: MultitaskScheduler) -> T
+typealias TaskQuery2<T> = (task: Task, scheduler: Scheduler) -> T
 typealias TaskQuery1<T> = (task: Task) -> T
 typealias Producer<T> = () -> T
 typealias TaskAction2 = TaskQuery2<Unit>
@@ -43,7 +43,7 @@ typealias TaskAction1 = TaskQuery1<Unit>
 typealias Runnable = () -> Unit
 
 class Task constructor(
-    private val scheduler: MultitaskScheduler,
+    internal var scheduler: Scheduler,
 ) {
     enum class State(val order: Int) {
         NotStarted(0),
@@ -73,14 +73,14 @@ class Task constructor(
         state = newState
     }
 
-    private var requirements: MutableSet<String> = mutableSetOf()
+    private var requirements: MutableSet<Loq> = mutableSetOf()
 
-    private var canStart: TaskQuery2<Boolean> = { _: Task, _: MultitaskScheduler -> true }
-    internal var onStart: TaskAction2 = { _: Task, _: MultitaskScheduler -> }
-    private var onTick: TaskAction2 = { _: Task, _: MultitaskScheduler -> }
-    internal var isCompleted: TaskQuery2<Boolean> = { _: Task, _: MultitaskScheduler -> false }
-    private var onFinish: TaskAction2 = { _: Task, _: MultitaskScheduler -> }
-    private var then: TaskAction2 = { _: Task, _: MultitaskScheduler -> }
+    internal var canStart: TaskQuery2<Boolean> = { _: Task, _: Scheduler -> true }
+    internal var onStart: TaskAction2 = { _: Task, _: Scheduler -> }
+    private var onTick: TaskAction2 = { _: Task, _: Scheduler -> }
+    internal var isCompleted: TaskQuery2<Boolean> = { _: Task, _: Scheduler -> false }
+    private var onFinish: TaskAction2 = { _: Task, _: Scheduler -> }
+    private var then: TaskAction2 = { _: Task, _: Scheduler -> }
 
     var daemon = false
     var myId: Int? = null
@@ -90,10 +90,10 @@ class Task constructor(
         canStart = block
     }
     fun canStart(block: TaskQuery1<Boolean>) {
-        canStart = { that: Task, _: MultitaskScheduler -> block(that) }
+        canStart = { that: Task, _: Scheduler -> block(that) }
     }
     fun canStart(block: Producer<Boolean>) {
-        canStart = { _: Task, _: MultitaskScheduler -> block() }
+        canStart = { _: Task, _: Scheduler -> block() }
     }
     fun invokeCanStart(): Boolean {
         return canStart(this, scheduler)
@@ -103,10 +103,10 @@ class Task constructor(
         onStart = block
     }
     fun onStart(block: TaskAction1) {
-        onStart = { that: Task, _: MultitaskScheduler -> block(that) }
+        onStart = { that: Task, _: Scheduler -> block(that) }
     }
     fun onStart(block: Runnable) {
-        onStart = { _: Task, _: MultitaskScheduler -> block() }
+        onStart = { _: Task, _: Scheduler -> block() }
     }
     fun invokeOnStart() {
         onStart(this, scheduler)
@@ -116,10 +116,10 @@ class Task constructor(
         onTick = block
     }
     fun onTick(block: TaskAction1) {
-        onTick = { that: Task, _: MultitaskScheduler -> block(that) }
+        onTick = { that: Task, _: Scheduler -> block(that) }
     }
     fun onTick(block: Runnable) {
-        onTick = { _: Task, _: MultitaskScheduler -> block() }
+        onTick = { _: Task, _: Scheduler -> block() }
     }
     fun invokeOnTick() {
         onTick(this, scheduler)
@@ -129,10 +129,10 @@ class Task constructor(
         isCompleted = block
     }
     fun isCompleted(block: TaskQuery1<Boolean>) {
-        isCompleted = { that: Task, _: MultitaskScheduler -> block(that) }
+        isCompleted = { that: Task, _: Scheduler -> block(that) }
     }
     fun isCompleted(block: Producer<Boolean>) {
-        isCompleted = { _: Task, _: MultitaskScheduler -> block() }
+        isCompleted = { _: Task, _: Scheduler -> block() }
     }
     fun invokeIsCompleted(): Boolean {
         return isCompleted(this, scheduler)
@@ -142,38 +142,46 @@ class Task constructor(
         onFinish = block
     }
     fun onFinish(block: TaskAction1) {
-        onFinish = { that: Task, _: MultitaskScheduler -> block(that) }
+        onFinish = { that: Task, _: Scheduler -> block(that) }
     }
     fun onFinish(block: Runnable) {
-        onFinish = { _: Task, _: MultitaskScheduler -> block() }
+        onFinish = { _: Task, _: Scheduler -> block() }
     }
     fun invokeOnFinish() {
         onFinish(this, scheduler)
     }
 
-    fun then(block: TaskAction2) {
-        then = block
-    }
-    fun then(block: TaskAction1) {
-        then = { that: Task, _: MultitaskScheduler -> block(that) }
-    }
-    fun then(block: Runnable) {
-        then = { _: Task, _: MultitaskScheduler -> block() }
-    }
-    fun invokeThen() {
-        then(this, scheduler)
-    }
-
-    operator fun String.unaryPlus() {
+    operator fun Loq.unaryPlus() {
         require(this)
     }
 
+    private fun unrequire(lockName: Loq) {
+        requirements.remove(lockName)
+    }
+
+//    fun wrap(configure: Scheduler.() -> Task) {
+//        // "Wrapping" discards locks
+//        val extraConfig: Task.() -> Unit = {
+//            for (lock in this@Task.requirements) unrequire(lock)
+//            canStartAnd { ->
+//                this.state == State.Starting || this.state == State.Ticking
+//            }
+//        }
+//        val start = scheduler.nextId
+//        scheduler.configure()
+//        val end = scheduler.nextId
+//        scheduler.configure()
+//        isCompletedAnd { ->
+//            finishRequirements.all { task -> task.state == State.Finished }
+//        }
+//    }
+
     @Suppress("MemberVisibilityCanBePrivate")
-    fun require(lockName: String) {
+    fun require(lockName: Loq) {
         requirements.add(lockName)
     }
 
-    fun requirements(): Set<String> {
+    fun requirements(): Set<Loq> {
         return requirements.toSet()
     }
 
@@ -181,11 +189,11 @@ class Task constructor(
         myId = scheduler.register(this)
     }
 
-    fun chain(configure: Task.() -> Unit): Task {
+    fun then(configure: Task.() -> Unit): Task {
         val task = Task(scheduler)
         task.configure()
         val capturedCanStart = task.canStart
-        task.canStart = { that: Task, scheduler2: MultitaskScheduler ->
+        task.canStart = { that: Task, scheduler2: Scheduler ->
             capturedCanStart(that, scheduler2) && this.state == State.Finished
         }
         task.register() // ready to go

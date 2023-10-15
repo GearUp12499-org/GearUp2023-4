@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import static org.firstinspires.ftc.teamcode.utility.CollectionUtils.pairs;
 
 import android.util.Pair;
+import android.util.Size;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -10,18 +11,20 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.odo.Pose;
 import org.firstinspires.ftc.teamcode.utility.Vector2;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @TeleOp()
-public class ExampleMultistageAuto extends LinearOpMode {
+public class DetectTags extends LinearOpMode {
     public static final Map<Integer, Vector2> TAG_POSITION = new HashMap<>();
     // Change this if you switch the angle mode on the AprilTags.
     private static final double APRIL_TAG_ANGLE_CONVERSION_FACTOR = Math.PI / 180.0;
@@ -57,11 +60,21 @@ public class ExampleMultistageAuto extends LinearOpMode {
 
             if (opModeIsActive()) {
                 while (opModeIsActive()) {
+                    List<AprilTagDetection> detections = aprilTag.getDetections();
+                    telemetry.addData("Visible Tags", Arrays.toString(detections.stream().map(k -> k.id).toArray()));
+                    for (AprilTagDetection detection : detections) {
+                        telemetry.addData("with", detection.id);
+                        Pose solution = AprilTagToPoseKt.detectSingleToPose(detection);
+                        telemetry.addLine(solution.toString());
+                        telemetry.addLine();
+
+                    }
+
                     List<Pair<AprilTagDetection, AprilTagDetection>> pairs = pairs(aprilTag.getDetections());
                     for (Pair<AprilTagDetection, AprilTagDetection> pair : pairs) {
                         telemetry.addData("with", pair.first.id + " and " + pair.second.id);
-                        Vector2 solution = detectionPairToCameraGlobalPos(pair.first, pair.second);
-                        telemetry.addData("i'm at", solution);
+                        Pose solution = AprilTagToPoseKt.detectPairToPose(pair.first, pair.second);
+                        telemetry.addLine(solution.toString());
                         telemetry.addLine();
                     }
                     telemetry.update();
@@ -134,6 +147,7 @@ public class ExampleMultistageAuto extends LinearOpMode {
 
         VisionPortal.Builder visionPortalBuilder = new VisionPortal.Builder();
         visionPortalBuilder.setCamera(webcam);
+//        visionPortalBuilder.setCameraResolution(new Size(1280, 720));
         visionPortalBuilder.addProcessor(aprilTag);
         portal = visionPortalBuilder.build();
     }

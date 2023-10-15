@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.utility.MotorSet;
+
 public class NeoRobot1 {
     public DcMotor frontLeft; // 0
     public DcMotor frontRight; // 1
@@ -40,5 +42,9 @@ public class NeoRobot1 {
         slideRight.setPower(1);
         slideRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         reverse(slideRight);
+    }
+
+    public MotorSet getMotorSet() {
+        return new MotorSet(frontLeft, frontRight, backLeft, backRight);
     }
 }

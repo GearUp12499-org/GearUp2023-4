@@ -1,30 +1,34 @@
 package dev.aether.collaborative_multitasking
 
-class MultitaskScheduler {
+class MultitaskScheduler : Scheduler() {
     private val locks: MutableMap<String, Int?> = mutableMapOf()
     private val tasks: MutableMap<Int, Task> = mutableMapOf()
-    private var nextId = 0
+    override var nextId: Int = 0
+        private set
     private var tickCount = 0
 
     private fun selectState(state: Task.State): List<Task> {
         return tasks.values.filter { it.state == state }
     }
 
-    private fun allFreed(requirements: Set<String>): Boolean {
-        return requirements.all { locks[it] == null }
+    private fun allFreed(requirements: Set<Loq>): Boolean {
+        return requirements.all { locks[it.id] == null }
     }
 
     private fun tickMarkStartable() {
         selectState(Task.State.NotStarted)
             .filter {
-                it.invokeCanStart() && allFreed(it.requirements())
+                it.invokeCanStart()
             }
             .forEach {
-                it.setState(Task.State.Starting)
-                // acquire locks
-                for (lock in it.requirements()) {
-                    println("task ${it.myId} acquired $lock")
-                    locks[lock] = it.myId
+                if (allFreed(it.requirements())) {
+                    it.setState(Task.State.Starting)
+                    // acquire locks
+                    for (lock in it.requirements()) {
+                        println("task ${it.myId} acquired $lock")
+                        locks[lock.id] = it.myId
+                        println("locks: $locks")
+                    }
                 }
             }
     }
@@ -56,19 +60,16 @@ class MultitaskScheduler {
             it.setState(Task.State.Finished)
             // release locks
             for (lock in it.requirements()) {
-                if (locks[lock] != it.myId) {
+                if (locks[lock.id] != it.myId) {
                     throw IllegalStateException("task ${it.myId} (which just finished) does not own lock $lock that it is supposed to own")
                 }
-                locks[lock] = null
+                locks[lock.id] = null
                 println("task ${it.myId} released $lock")
             }
         }
-        candidates.forEach {
-            it.invokeThen()  // after finish, do the next task (maybe)
-        }
     }
 
-    fun tick() {
+    override fun tick() {
         tickMarkStartable()
         tickStartMarked()
         tickTick()
@@ -76,25 +77,29 @@ class MultitaskScheduler {
         tickCount++
     }
 
-    fun getTicks(): Int {
+    override fun getTicks(): Int {
         return tickCount
     }
 
-    fun task(configure: Task.() -> Unit): Task {
+    override fun task(configure: Task.() -> Unit): Task {
         val task = Task(this)
         task.configure()
         task.register()
         return task
     }
-    internal fun register(task: Task): Int {
+    override fun register(task: Task): Int {
         val id = nextId++
         tasks[id] = task
         for (lock in task.requirements()) {
-            if (!locks.containsKey(lock)) {
-                locks[lock] = null
+            if (!locks.containsKey(lock.id)) {
+                locks[lock.id] = null
             }
         }
         return id
+    }
+
+    override fun isResourceInUse(resource: Loq): Boolean {
+        return locks[resource.id] != null
     }
 
     fun hasJobs(): Boolean {
