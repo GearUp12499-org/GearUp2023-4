@@ -8,6 +8,7 @@ import dev.aether.collaborative_multitasking.MultitaskScheduler
 import dev.aether.collaborative_multitasking.ext.minTicks
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName
+import org.firstinspires.ftc.teamcode.configurations.RobotLocks
 import org.firstinspires.ftc.teamcode.utility.typedGet
 import org.firstinspires.ftc.vision.VisionPortal
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection
@@ -89,8 +90,8 @@ class DriveToTagBacking(
                     it.id == TARGET_TAG
                 }
             }
-        }.chain {
-            +DRIVE_MOTOR_LOCK
+        }.then {
+            +RobotLocks.driveMotors
             onTick { ->
                 detectionInfo = aprilTag.detections.firstOrNull {
                     it.id == TARGET_TAG

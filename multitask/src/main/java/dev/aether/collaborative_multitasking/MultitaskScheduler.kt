@@ -1,16 +1,17 @@
 package dev.aether.collaborative_multitasking
 
-class MultitaskScheduler {
-    private val locks: MutableMap<String, Int?> = mutableMapOf()
+class MultitaskScheduler : Scheduler() {
+    private val locks: MutableMap<Loq, Int?> = mutableMapOf()
     private val tasks: MutableMap<Int, Task> = mutableMapOf()
-    private var nextId = 0
+    override var nextId: Int = 0
+        private set
     private var tickCount = 0
 
     private fun selectState(state: Task.State): List<Task> {
         return tasks.values.filter { it.state == state }
     }
 
-    private fun allFreed(requirements: Set<String>): Boolean {
+    private fun allFreed(requirements: Set<Loq>): Boolean {
         return requirements.all { locks[it] == null }
     }
 
@@ -63,12 +64,9 @@ class MultitaskScheduler {
                 println("task ${it.myId} released $lock")
             }
         }
-        candidates.forEach {
-            it.invokeThen()  // after finish, do the next task (maybe)
-        }
     }
 
-    fun tick() {
+    override fun tick() {
         tickMarkStartable()
         tickStartMarked()
         tickTick()
@@ -76,17 +74,17 @@ class MultitaskScheduler {
         tickCount++
     }
 
-    fun getTicks(): Int {
+    override fun getTicks(): Int {
         return tickCount
     }
 
-    fun task(configure: Task.() -> Unit): Task {
+    override fun task(configure: Task.() -> Unit): Task {
         val task = Task(this)
         task.configure()
         task.register()
         return task
     }
-    internal fun register(task: Task): Int {
+    override fun register(task: Task): Int {
         val id = nextId++
         tasks[id] = task
         for (lock in task.requirements()) {
@@ -95,6 +93,10 @@ class MultitaskScheduler {
             }
         }
         return id
+    }
+
+    override fun isResourceInUse(resource: Loq): Boolean {
+        return locks[resource] != null
     }
 
     fun hasJobs(): Boolean {
