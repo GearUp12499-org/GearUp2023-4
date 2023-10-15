@@ -52,5 +52,5 @@ fun detectSingleToPose(detection: AprilTagDetection): Pose {
         ?: throw java.lang.IllegalArgumentException("where is tag#${detection.id}")
     // offset the relative position with the known pos of the tag
     val globalAll = tagPos.add(Vector2(globalX, -globalY))
-    return Pose(globalAll.x.inches, globalAll.y.inches, (detection.ftcPose.yaw + 90.0).degrees)
+    return Pose(globalAll.x.inches, globalAll.y.inches, -(detection.ftcPose.yaw + 90.0).degrees)
 }
