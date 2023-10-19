@@ -1,6 +1,9 @@
+@file:Suppress("unused")
+
 package org.firstinspires.ftc.teamcode.odo
 
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -41,10 +44,12 @@ class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
     fun turnClockwise(angle: RotationUnit) = turnCounterClockwise(-angle)
 
     fun transform(forward: LengthUnit, right: LengthUnit, ccw: RotationUnit): Pose =
+        // TODO: do some integration stuff - ask bill
         turnCounterClockwise(ccw / 2.0).forward(forward).right(right)
             .turnCounterClockwise(ccw / 2.0)
 
     fun to(target: Pose): DeltaPose {
+        // TODO: these equations don't match the Python. why
         val theta = theta.value
         val alpha =
             (target.x * cos(theta)) + (target.y * sin(theta)) - (x * cos(theta)) - (y * sin(theta))
@@ -59,10 +64,30 @@ class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
         )
     }
 
+    override fun equals(other: Any?): Boolean = when (other) {
+        (other == null) -> false
+        is Pose ->
+            if (abs(x.value - other.x.value) > EPSILON_DISTANCE) false
+            else if (abs(y.value - other.y.value) > EPSILON_DISTANCE) false
+            else abs(theta.value - other.theta.value) <= EPSILON_ANGLE
+        else -> false
+    }
+
+    fun copy() = Pose(x, y, theta)
+
     override fun toString(): String = "Pose[x=$x y=$y r=${theta.to.degrees}]"
+    override fun hashCode(): Int {
+        var result = x.hashCode()
+        result = 31 * result + y.hashCode()
+        result = 31 * result + theta.hashCode()
+        return result
+    }
 
     companion object {
         val zero = Pose(0.inches, 0.inches, 0.radians)
+        const val EPSILON_DISTANCE = 0.1 // in
+        const val EPSILON_ANGLE = 0.035 // rad, ~2deg
+
         private val ROBOT_SIZE_X = 17.inches
         private val ROBOT_SIZE_Y = 17.inches
         private val HALF_ROBOT_X = ROBOT_SIZE_X / 2.0

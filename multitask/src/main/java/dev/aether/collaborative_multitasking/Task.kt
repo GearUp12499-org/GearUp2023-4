@@ -192,11 +192,16 @@ class Task constructor(
     fun then(configure: Task.() -> Unit): Task {
         val task = Task(scheduler)
         task.configure()
+        then(task)
+        task.register() // ready to go
+        return task
+    }
+
+    fun then(task: Task): Task {
         val capturedCanStart = task.canStart
         task.canStart = { that: Task, scheduler2: Scheduler ->
             capturedCanStart(that, scheduler2) && this.state == State.Finished
         }
-        task.register() // ready to go
         return task
     }
 

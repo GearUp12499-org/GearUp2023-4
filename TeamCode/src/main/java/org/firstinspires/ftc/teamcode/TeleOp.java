@@ -99,13 +99,13 @@ public class TeleOp extends LinearOpMode {
             if (targetRight > SLIDE_LIM) targetRight = SLIDE_LIM;
 
             if (gamepad2.a) {
-                claw.attempt();
+                claw.grab();
             }
             if (gamepad2.y) {
-                claw.commit();
+                claw.deposit();
             }
             if (gamepad2.x) {
-                claw.restore();
+                claw.reset();
             }
 
             config.slideLeft.setTargetPosition(targetLeft);
