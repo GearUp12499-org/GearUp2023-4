@@ -14,13 +14,13 @@ class Claw(
     private val rotate: Servo
 ) {
     companion object {
-        // massive TODO get actual numbers lmao
         const val ROTATE_HOVER = 0.83
         const val ROTATE_CLOSING = 0.868
         const val ROTATE_FLIP = 0.255
         const val ROTATE_STOW = 0.5425
         const val GRIP_OPEN = 0.57
         const val GRIP_CLOSED = 0.825
+        // TODO trim timings
         const val CloseRotateTime = 100 // ms
         const val GripTime = 100 // ms
         const val FlipTime = 1000 // ms
