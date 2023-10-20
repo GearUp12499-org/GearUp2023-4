@@ -2,16 +2,30 @@
 
 package org.firstinspires.ftc.teamcode.odo
 
+import org.firstinspires.ftc.teamcode.utility.MotorPowers
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
-class DeltaPose(forward: LengthUnit, right: LengthUnit, turn: RotationUnit) {
+const val TAU = 2 * PI
+
+class Move(forward: LengthUnit, right: LengthUnit, turn: RotationUnit) {
     val forward = forward.to.inches
     val right = right.to.inches
     val turn = turn.to.radians
 
+    fun getPowers(robotSize: Double): MotorPowers {
+        val rotationInches = robotSize * turn.value
+        val forward = forward.value
+        val right = right.value
+        return MotorPowers(
+            forward + right - rotationInches,
+            forward - right + rotationInches,
+            forward - right - rotationInches,
+            forward + right + rotationInches
+        )
+    }
 
     override fun toString(): String = "DeltaPose[forward=$forward right=$right turn=$turn]"
 }
@@ -48,14 +62,14 @@ class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
         turnCounterClockwise(ccw / 2.0).forward(forward).right(right)
             .turnCounterClockwise(ccw / 2.0)
 
-    fun to(target: Pose): DeltaPose {
+    fun to(target: Pose): Move {
         // TODO: these equations don't match the Python. why
         val theta = theta.value
         val alpha =
             (target.x * cos(theta)) + (target.y * sin(theta)) - (x * cos(theta)) - (y * sin(theta))
         val beta =
             (target.x * sin(theta)) - (target.y * cos(theta)) - (x * sin(theta)) + (y * cos(theta))
-        return DeltaPose(
+        return Move(
             alpha,
             beta,
             // rem: remainder - keeps the sign of the dividend (first value)
