@@ -19,12 +19,16 @@ class Move(forward: LengthUnit, right: LengthUnit, turn: RotationUnit) {
         val rotationInches = robotSize * turn.value
         val forward = forward.value
         val right = right.value
-        return MotorPowers(
+
+        // TODO: The robot is *not* a square.
+        // TODO: Motion profiling - consider outside this class?
+        val proportions = MotorPowers(
             forward + right - rotationInches,
             forward - right + rotationInches,
             forward - right - rotationInches,
             forward + right + rotationInches
         )
+        return proportions.normalize()
     }
 
     override fun toString(): String = "DeltaPose[forward=$forward right=$right turn=$turn]"
@@ -58,9 +62,10 @@ class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
     fun turnClockwise(angle: RotationUnit) = turnCounterClockwise(-angle)
 
     fun transform(forward: LengthUnit, right: LengthUnit, ccw: RotationUnit): Pose =
-        // TODO: do some integration stuff - ask bill
         turnCounterClockwise(ccw / 2.0).forward(forward).right(right)
             .turnCounterClockwise(ccw / 2.0)
+
+    fun transform(move: Move): Pose = transform(move.forward, move.right, move.turn)
 
     fun to(target: Pose): Move {
         // TODO: these equations don't match the Python. why

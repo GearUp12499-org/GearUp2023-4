@@ -1,10 +1,8 @@
 package org.firstinspires.ftc.teamcode.configurations
 
-import dev.aether.collaborative_multitasking.Loq
+import dev.aether.collaborative_multitasking.SharedResource
 
 object RobotLocks {
-    val driveMotors = Loq("driveMotors")
-    val liftLeft = Loq("driveMotors")
-    val liftRight = Loq("driveMotors")
-    val claw = Loq("claw")
+    @Deprecated("Use a RobotConfiguration's locks for panic support.")
+    val driveMotors = SharedResource("driveMotors")
 }

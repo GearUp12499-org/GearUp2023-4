@@ -1,7 +1,7 @@
 package dev.aether.collaborative_multitasking_tests
 
-import dev.aether.collaborative_multitasking.Loq
 import dev.aether.collaborative_multitasking.MultitaskScheduler
+import dev.aether.collaborative_multitasking.SharedResource
 import dev.aether.collaborative_multitasking.Task
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -61,7 +61,7 @@ internal class TestMultitaskScheduler {
     @Test
     fun `Run tasks sharing a lock`() {
         val scheduler = MultitaskScheduler()
-        val fakeLock = Loq("fake")
+        val fakeLock = SharedResource("fake")
         val task1life = 512
         var task1start: Int? = null
         val task2life = 128

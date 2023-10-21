@@ -1,11 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.abstractions.Claw;
-import org.firstinspires.ftc.teamcode.configurations.NeoRobot1;
+import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
+import org.firstinspires.ftc.teamcode.utility.MotorSet;
 
 import java.util.concurrent.TimeUnit;
 
@@ -30,10 +30,10 @@ public class TeleOp extends LinearOpMode {
     @Override
     public void runOpMode() {
         MultitaskScheduler scheduler = new MultitaskScheduler();
-        Servo clawGrab = hardwareMap.get(Servo.class, "clawGrab");
-        Servo clawRotate = hardwareMap.get(Servo.class, "clawRotate");
-        Claw claw = new Claw(scheduler, clawGrab, clawRotate);
-        NeoRobot1 config = new NeoRobot1(hardwareMap);
+        RobotConfiguration robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
+        if (robot == null) throw new RuntimeException("Robot configuration not found");
+        MotorSet driveMotors = robot.driveMotors();
+        Claw claw = new Claw(scheduler, robot.clawGrab(), robot.clawRotate(), robot.getClawLock());
         waitForStart();
         int targetLeft = 0;
         int targetRight = 0;
@@ -74,10 +74,11 @@ public class TeleOp extends LinearOpMode {
             int SLIDE_LIM = 3000;
             int MOTION_PER_CYCLE = 20;
 
-            config.frontLeft.setPower(frontLeftPower * balFL);
-            config.backLeft.setPower(backLeftPower * balBL);
-            config.frontRight.setPower(frontRightPower * balFR);
-            config.backRight.setPower(backRightPower * balBR);
+
+            driveMotors.frontLeft.setPower(frontLeftPower * balFL);
+            driveMotors.backLeft.setPower(backLeftPower * balBL);
+            driveMotors.frontRight.setPower(frontRightPower * balFR);
+            driveMotors.backRight.setPower(backRightPower * balBR);
 
             if (gamepad2.b) {
                 targetLeft = targets[0];
@@ -108,15 +109,12 @@ public class TeleOp extends LinearOpMode {
                 claw.reset();
             }
 
-            config.slideLeft.setTargetPosition(targetLeft);
-            config.slideRight.setTargetPosition(targetRight);
+            robot.liftLeft().setTargetPosition(targetLeft);
+            robot.liftRight().setTargetPosition(targetRight);
 
             sleep(5);
         }
-
-        config.frontLeft.setPower(0);
-        config.backLeft.setPower(0);
-        config.frontRight.setPower(0);
-        config.backRight.setPower(0);
+        scheduler.panic();
+        driveMotors.setAll(0);
     }
 }

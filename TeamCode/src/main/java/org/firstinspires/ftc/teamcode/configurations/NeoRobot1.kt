@@ -1,50 +1,83 @@
-package org.firstinspires.ftc.teamcode.configurations;
+package org.firstinspires.ftc.teamcode.configurations
 
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorSimple
+import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.hardware.Servo
+import dev.aether.collaborative_multitasking.SharedResource
+import org.firstinspires.ftc.teamcode.utility.MotorSet
+import org.firstinspires.ftc.teamcode.utility.typedGet
 
-import org.firstinspires.ftc.teamcode.utility.MotorSet;
+class NeoRobot1(map: HardwareMap) : RobotConfiguration() {
+    @JvmField
+    var frontLeft // 0
+            : DcMotor = map.typedGet("frontLeft")
 
-public class NeoRobot1 {
-    public DcMotor frontLeft; // 0
-    public DcMotor frontRight; // 1
-    public DcMotor backLeft; // 2
-    public DcMotor backRight; // 3
+    @JvmField
+    var frontRight // 1
+            : DcMotor = map.typedGet("frontRight")
 
-    public DcMotor slideLeft; // 0
-    public DcMotor slideRight; // 1
+    @JvmField
+    var backLeft // 2
+            : DcMotor = map.typedGet("backLeft")
 
-    private static void reverse(DcMotor target) {
-        target.setDirection(DcMotorSimple.Direction.REVERSE);
+    @JvmField
+    var backRight // 3
+            : DcMotor = map.typedGet("backRight")
+
+    @JvmField
+    var liftLeftB // 0
+            : DcMotor = map.typedGet("slideLeft")
+
+    @JvmField
+    var liftRightB // 1
+            : DcMotor = map.typedGet("slideRight")
+
+    @JvmField
+    var clawGrabB
+            : Servo = map.typedGet("clawGrab")
+
+    @JvmField
+    var clawRotateB
+            : Servo = map.typedGet("clawRotate")
+
+
+    override val driveMotors: MotorSet = MotorSet(frontLeft, frontRight, backLeft, backRight)
+    override val driveMotorLock: SharedResource
+        get() = SharedResource("driveMotors") {
+            driveMotors.setAll(
+                0.0
+            )
+        }
+    override val clawGrab: Servo get() = clawGrabB
+    override val clawRotate: Servo get() = clawRotateB
+    override val clawLock: SharedResource = SharedResource("claw")
+    override val liftLeft: DcMotor get() = liftLeftB
+    override val liftRight: DcMotor get() = liftRightB
+
+    init {
+        setReverse(frontLeft)
+        setReverse(backLeft)
+        enableBrakes(frontLeft, frontRight, backLeft, backRight)
+
+        liftLeftB.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        liftLeftB.targetPosition = 0
+        liftLeftB.power = 1.0
+        liftLeftB.mode = DcMotor.RunMode.RUN_TO_POSITION
+        liftRightB.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        liftRightB.targetPosition = 0
+        liftRightB.power = 1.0
+        liftRightB.mode = DcMotor.RunMode.RUN_TO_POSITION
+        setReverse(liftRightB)
     }
-    private static void brake(DcMotor ...targets) {
-        for (DcMotor target : targets ) target.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-    }
 
-    public NeoRobot1(HardwareMap map) {
-        frontLeft = map.get(DcMotor.class, "frontLeft");
-        reverse(frontLeft);
-        frontRight = map.get(DcMotor.class, "frontRight");
-        backLeft = map.get(DcMotor.class, "backLeft");
-        reverse(backLeft);
-        backRight = map.get(DcMotor.class, "backRight");
-        brake(frontLeft, frontRight, backLeft, backRight);
+    companion object {
+        private fun setReverse(target: DcMotor) {
+            target.direction = DcMotorSimple.Direction.REVERSE
+        }
 
-        slideLeft = map.get(DcMotor.class, "slideLeft");
-        slideLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slideLeft.setTargetPosition(0);
-        slideLeft.setPower(1);
-        slideLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slideRight = map.get(DcMotor.class, "slideRight");
-        slideRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slideRight.setTargetPosition(0);
-        slideRight.setPower(1);
-        slideRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        reverse(slideRight);
-    }
-
-    public MotorSet getMotorSet() {
-        return new MotorSet(frontLeft, frontRight, backLeft, backRight);
+        private fun enableBrakes(vararg targets: DcMotor) {
+            for (target in targets) target.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        }
     }
 }
