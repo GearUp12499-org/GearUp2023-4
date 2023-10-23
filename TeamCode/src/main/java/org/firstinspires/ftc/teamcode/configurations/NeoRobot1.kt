@@ -34,12 +34,23 @@ class NeoRobot1(map: HardwareMap) : RobotConfiguration() {
             : DcMotor = map.typedGet("slideRight")
 
     @JvmField
-    var clawGrabB
+    var clawGrabB // 0
             : Servo = map.typedGet("clawGrab")
 
     @JvmField
-    var clawRotateB
+    var clawRotateB // 1
             : Servo = map.typedGet("clawRotate")
+
+    @JvmField
+    var dumperRotateB // 2
+            : Servo = map.typedGet("dumperRotate")
+    @JvmField
+    var dumperLatchB // 3
+            : Servo = map.typedGet("dumperLatch")
+
+    @JvmField
+    var droneB // 2
+            : DcMotor = map.typedGet("drone")
 
 
     override val driveMotors: MotorSet = MotorSet(frontLeft, frontRight, backLeft, backRight)
@@ -54,6 +65,14 @@ class NeoRobot1(map: HardwareMap) : RobotConfiguration() {
     override val clawLock: SharedResource = SharedResource("claw")
     override val liftLeft: DcMotor get() = liftLeftB
     override val liftRight: DcMotor get() = liftRightB
+    override val dumperRotate: Servo
+        get() = dumperRotateB
+    override val dumperLatch: Servo
+        get() = dumperLatchB
+    override val dumperLock: SharedResource = SharedResource("dumper")
+    override val drone: DcMotor
+        get() = droneB
+    override val droneLock: SharedResource = SharedResource("drone")
 
     init {
         setReverse(frontLeft)

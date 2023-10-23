@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import static org.firstinspires.ftc.teamcode.utility.CollectionUtils.pairs;
 
 import android.util.Pair;
+import android.util.Size;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -146,7 +147,10 @@ public class DetectTags extends LinearOpMode {
 
         VisionPortal.Builder visionPortalBuilder = new VisionPortal.Builder();
         visionPortalBuilder.setCamera(webcam);
-//        visionPortalBuilder.setCameraResolution(new Size(1280, 720));
+        // Medium-sized 16:9ish. See-also builtinwebcamcalibrations.xml
+        // Logitech HD Pro Webcam C920
+        // use Search Anything in "include non-project" mode to find
+        visionPortalBuilder.setCameraResolution(new Size(864, 480));
         visionPortalBuilder.addProcessor(aprilTag);
         portal = visionPortalBuilder.build();
     }

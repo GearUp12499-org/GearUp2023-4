@@ -7,6 +7,7 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 const val TAU = 2 * PI
 
@@ -17,16 +18,16 @@ class Move(forward: LengthUnit, right: LengthUnit, turn: RotationUnit) {
 
     fun getPowers(robotSize: Double): MotorPowers {
         val rotationInches = robotSize * turn.value
-        val forward = forward.value
-        val right = right.value
+        val forward = forward.value * sqrt(2.0)
+        val right = right.value * sqrt(2.0)
 
         // TODO: The robot is *not* a square.
         // TODO: Motion profiling - consider outside this class?
         val proportions = MotorPowers(
-            forward + right - rotationInches,
-            forward - right + rotationInches,
-            forward - right - rotationInches,
-            forward + right + rotationInches
+            frontLeft = forward + right - rotationInches,
+            frontRight = forward - right + rotationInches,
+            backLeft = forward - right - rotationInches,
+            backRight = forward + right + rotationInches
         )
         return proportions.normalize()
     }
@@ -70,16 +71,16 @@ class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
     fun to(target: Pose): Move {
         // TODO: these equations don't match the Python. why
         val theta = theta.value
+        val dx = target.x - x
+        val dy = target.y - y
         val alpha =
-            (target.x * cos(theta)) + (target.y * sin(theta)) - (x * cos(theta)) - (y * sin(theta))
+            (dx * cos(theta)) + (dy * sin(theta))
         val beta =
-            (target.x * sin(theta)) - (target.y * cos(theta)) - (x * sin(theta)) + (y * cos(theta))
+            (dx * sin(theta)) - (dy * cos(theta))
         return Move(
             alpha,
             beta,
-            // rem: remainder - keeps the sign of the dividend (first value)
-            // same as (%) operator but more explicit about behavior
-            ((target.theta.value - this.theta.value).rem(2.0 * PI)).radians
+            ((target.theta - this.theta).norm()).to.radians
         )
     }
 

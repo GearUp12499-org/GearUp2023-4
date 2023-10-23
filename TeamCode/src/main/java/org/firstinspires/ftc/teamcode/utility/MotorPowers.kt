@@ -38,7 +38,7 @@ data class MotorPowers(
             abs(backLeft),
             abs(backRight)
         )
-        return this * (den * factor)
+        return (this / den) * factor
     }
 
     operator fun div(den: Double): MotorPowers {
