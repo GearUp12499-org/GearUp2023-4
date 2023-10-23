@@ -67,13 +67,13 @@ class Task constructor(
         if (state == newState) return
         when (newState) {
             State.Starting -> startedAt = scheduler.getTicks()
-            State.Finishing -> println("task ${myId}: finishing at ${scheduler.getTicks()} (run for ${scheduler.getTicks() - (startedAt?:0)} ticks)")
+            State.Finishing -> println("task ${myId}: finishing at ${scheduler.getTicks()} (run for ${scheduler.getTicks() - (startedAt ?: 0)} ticks)")
             else -> {}
         }
         state = newState
     }
 
-    private var requirements: MutableSet<Loq> = mutableSetOf()
+    private var requirements: MutableSet<SharedResource> = mutableSetOf()
 
     internal var canStart: TaskQuery2<Boolean> = { _: Task, _: Scheduler -> true }
     internal var onStart: TaskAction2 = { _: Task, _: Scheduler -> }
@@ -89,12 +89,15 @@ class Task constructor(
     fun canStart(block: TaskQuery2<Boolean>) {
         canStart = block
     }
+
     fun canStart(block: TaskQuery1<Boolean>) {
         canStart = { that: Task, _: Scheduler -> block(that) }
     }
+
     fun canStart(block: Producer<Boolean>) {
         canStart = { _: Task, _: Scheduler -> block() }
     }
+
     fun invokeCanStart(): Boolean {
         return canStart(this, scheduler)
     }
@@ -102,12 +105,15 @@ class Task constructor(
     fun onStart(block: TaskAction2) {
         onStart = block
     }
+
     fun onStart(block: TaskAction1) {
         onStart = { that: Task, _: Scheduler -> block(that) }
     }
+
     fun onStart(block: Runnable) {
         onStart = { _: Task, _: Scheduler -> block() }
     }
+
     fun invokeOnStart() {
         onStart(this, scheduler)
     }
@@ -115,12 +121,15 @@ class Task constructor(
     fun onTick(block: TaskAction2) {
         onTick = block
     }
+
     fun onTick(block: TaskAction1) {
         onTick = { that: Task, _: Scheduler -> block(that) }
     }
+
     fun onTick(block: Runnable) {
         onTick = { _: Task, _: Scheduler -> block() }
     }
+
     fun invokeOnTick() {
         onTick(this, scheduler)
     }
@@ -128,12 +137,15 @@ class Task constructor(
     fun isCompleted(block: TaskQuery2<Boolean>) {
         isCompleted = block
     }
+
     fun isCompleted(block: TaskQuery1<Boolean>) {
         isCompleted = { that: Task, _: Scheduler -> block(that) }
     }
+
     fun isCompleted(block: Producer<Boolean>) {
         isCompleted = { _: Task, _: Scheduler -> block() }
     }
+
     fun invokeIsCompleted(): Boolean {
         return isCompleted(this, scheduler)
     }
@@ -141,47 +153,32 @@ class Task constructor(
     fun onFinish(block: TaskAction2) {
         onFinish = block
     }
+
     fun onFinish(block: TaskAction1) {
         onFinish = { that: Task, _: Scheduler -> block(that) }
     }
+
     fun onFinish(block: Runnable) {
         onFinish = { _: Task, _: Scheduler -> block() }
     }
+
     fun invokeOnFinish() {
         onFinish(this, scheduler)
     }
 
-    operator fun Loq.unaryPlus() {
+    operator fun SharedResource.unaryPlus() {
         require(this)
     }
 
-    private fun unrequire(lockName: Loq) {
+    private fun unrequire(lockName: SharedResource) {
         requirements.remove(lockName)
     }
 
-//    fun wrap(configure: Scheduler.() -> Task) {
-//        // "Wrapping" discards locks
-//        val extraConfig: Task.() -> Unit = {
-//            for (lock in this@Task.requirements) unrequire(lock)
-//            canStartAnd { ->
-//                this.state == State.Starting || this.state == State.Ticking
-//            }
-//        }
-//        val start = scheduler.nextId
-//        scheduler.configure()
-//        val end = scheduler.nextId
-//        scheduler.configure()
-//        isCompletedAnd { ->
-//            finishRequirements.all { task -> task.state == State.Finished }
-//        }
-//    }
-
-    @Suppress("MemberVisibilityCanBePrivate")
-    fun require(lockName: Loq) {
+    fun require(lockName: SharedResource) {
         requirements.add(lockName)
     }
 
-    fun requirements(): Set<Loq> {
+    fun requirements(): Set<SharedResource> {
         return requirements.toSet()
     }
 
@@ -192,11 +189,16 @@ class Task constructor(
     fun then(configure: Task.() -> Unit): Task {
         val task = Task(scheduler)
         task.configure()
+        then(task)
+        task.register() // ready to go
+        return task
+    }
+
+    fun then(task: Task): Task {
         val capturedCanStart = task.canStart
         task.canStart = { that: Task, scheduler2: Scheduler ->
             capturedCanStart(that, scheduler2) && this.state == State.Finished
         }
-        task.register() // ready to go
         return task
     }
 

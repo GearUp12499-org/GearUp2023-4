@@ -3,6 +3,8 @@ package dev.aether.collaborative_multitasking
 class MultitaskScheduler : Scheduler() {
     private val locks: MutableMap<String, Int?> = mutableMapOf()
     private val tasks: MutableMap<Int, Task> = mutableMapOf()
+    private val lockIdName: MutableMap<String, SharedResource> = mutableMapOf()
+
     override var nextId: Int = 0
         private set
     private var tickCount = 0
@@ -11,7 +13,7 @@ class MultitaskScheduler : Scheduler() {
         return tasks.values.filter { it.state == state }
     }
 
-    private fun allFreed(requirements: Set<Loq>): Boolean {
+    private fun allFreed(requirements: Set<SharedResource>): Boolean {
         return requirements.all { locks[it.id] == null }
     }
 
@@ -27,6 +29,7 @@ class MultitaskScheduler : Scheduler() {
                     for (lock in it.requirements()) {
                         println("task ${it.myId} acquired $lock")
                         locks[lock.id] = it.myId
+                        lockIdName[lock.id] = lock
                         println("locks: $locks")
                     }
                 }
@@ -87,6 +90,7 @@ class MultitaskScheduler : Scheduler() {
         task.register()
         return task
     }
+
     override fun register(task: Task): Int {
         val id = nextId++
         tasks[id] = task
@@ -98,8 +102,20 @@ class MultitaskScheduler : Scheduler() {
         return id
     }
 
-    override fun isResourceInUse(resource: Loq): Boolean {
+    override fun isResourceInUse(resource: SharedResource): Boolean {
         return locks[resource.id] != null
+    }
+
+    override fun panic() {
+        for (task in tasks.values) {
+            if (task.state == Task.State.Finished || task.state == Task.State.NotStarted) continue
+            task.invokeOnFinish()
+            task.setState(Task.State.Finished)
+        }
+
+        for (lock in lockIdName.values) {
+            lock.panic()
+        }
     }
 
     fun hasJobs(): Boolean {

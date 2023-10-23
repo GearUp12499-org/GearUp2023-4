@@ -6,6 +6,11 @@ abstract class RotationUnit(value: Double) :
     MeasureUnit<RotationUnit>(value) {
     protected abstract val rules: RotationConversionRules
     override val to: RotationConverter get() = RotationConverter(rules, value)
+
+    /**
+     * Normalize angle to range (-pi, pi] (rads) or equivalent units
+     */
+    abstract fun norm(): RotationUnit
 }
 
 data class RotationConversionRules(
@@ -34,12 +39,25 @@ class DegreeUnit(value: Double) : RotationUnit(value) {
             else -> throw IllegalArgumentException("Cannot convert $other to $this")
         }
     }
+
+    override fun norm(): DegreeUnit {
+        // always positive (mod)
+        val a = value.mod(360.0)
+        return when {
+            a > 180.0 -> DegreeUnit(a - 360.0)
+            else -> DegreeUnit(a)
+        }
+    }
 }
 
 val Double.degrees: DegreeUnit get() = DegreeUnit(this)
 val Int.degrees: DegreeUnit get() = DegreeUnit(this.toDouble())
 
 class RadianUnit(value: Double) : RotationUnit(value) {
+    companion object {
+        const val TAU = 2.0 * PI
+    }
+
     override val label = "rad"
     override fun newInstance(n: Double) = RadianUnit(n)
 
@@ -52,6 +70,15 @@ class RadianUnit(value: Double) : RotationUnit(value) {
         return when (other) {
             is RotationUnit -> other.to.radians
             else -> throw IllegalArgumentException("Cannot convert $other to $this")
+        }
+    }
+
+    override fun norm(): RadianUnit {
+        // always positive (mod)
+        val a = value.mod(TAU)
+        return when {
+            a > PI -> RadianUnit(a - TAU)
+            else -> RadianUnit(a)
         }
     }
 }

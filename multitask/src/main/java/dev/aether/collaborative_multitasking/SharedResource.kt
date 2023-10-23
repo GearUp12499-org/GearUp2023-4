@@ -1,9 +1,9 @@
 package dev.aether.collaborative_multitasking
 
 /**
- * it's a Loq! a "lock" but without any of the atomic magic
+ * it's a SharedResource! a "lock" but without any of the atomic magic
  */
-class Loq(val id: String) {
+class SharedResource @JvmOverloads constructor(val id: String, val panic: () -> Unit = {}) {
     override fun hashCode(): Int {
         return id.hashCode()
     }
@@ -12,7 +12,7 @@ class Loq(val id: String) {
         return when (other) {
             (other == null) -> false
             is String -> id == other
-            is Loq -> id == other.id
+            is SharedResource -> id == other.id
             else -> false
         }
     }

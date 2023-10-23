@@ -1,14 +1,36 @@
+@file:Suppress("unused")
+
 package org.firstinspires.ftc.teamcode.odo
 
+import org.firstinspires.ftc.teamcode.utility.MotorPowers
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.sqrt
 
-class DeltaPose(forward: LengthUnit, right: LengthUnit, turn: RotationUnit) {
+const val TAU = 2 * PI
+
+class Move(forward: LengthUnit, right: LengthUnit, turn: RotationUnit) {
     val forward = forward.to.inches
     val right = right.to.inches
     val turn = turn.to.radians
 
+    fun getPowers(robotSize: Double): MotorPowers {
+        val rotationInches = robotSize * turn.value
+        val forward = forward.value * sqrt(2.0)
+        val right = right.value * sqrt(2.0)
+
+        // TODO: The robot is *not* a square.
+        // TODO: Motion profiling - consider outside this class?
+        val proportions = MotorPowers(
+            frontLeft = forward + right - rotationInches,
+            frontRight = forward - right + rotationInches,
+            backLeft = forward - right - rotationInches,
+            backRight = forward + right + rotationInches
+        )
+        return proportions.normalize()
+    }
 
     override fun toString(): String = "DeltaPose[forward=$forward right=$right turn=$turn]"
 }
@@ -44,25 +66,48 @@ class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
         turnCounterClockwise(ccw / 2.0).forward(forward).right(right)
             .turnCounterClockwise(ccw / 2.0)
 
-    fun to(target: Pose): DeltaPose {
+    fun transform(move: Move): Pose = transform(move.forward, move.right, move.turn)
+
+    fun to(target: Pose): Move {
+        // TODO: these equations don't match the Python. why
         val theta = theta.value
+        val dx = target.x - x
+        val dy = target.y - y
         val alpha =
-            (target.x * cos(theta)) + (target.y * sin(theta)) - (x * cos(theta)) - (y * sin(theta))
+            (dx * cos(theta)) + (dy * sin(theta))
         val beta =
-            (target.x * sin(theta)) - (target.y * cos(theta)) - (x * sin(theta)) + (y * cos(theta))
-        return DeltaPose(
+            (dx * sin(theta)) - (dy * cos(theta))
+        return Move(
             alpha,
             beta,
-            // rem: remainder - keeps the sign of the dividend (first value)
-            // same as (%) operator but more explicit about behavior
-            ((target.theta.value - this.theta.value).rem(2.0 * PI)).radians
+            ((target.theta - this.theta).norm()).to.radians
         )
     }
 
+    override fun equals(other: Any?): Boolean = when (other) {
+        (other == null) -> false
+        is Pose ->
+            if (abs(x.value - other.x.value) > EPSILON_DISTANCE) false
+            else if (abs(y.value - other.y.value) > EPSILON_DISTANCE) false
+            else abs(theta.value - other.theta.value) <= EPSILON_ANGLE
+        else -> false
+    }
+
+    fun copy() = Pose(x, y, theta)
+
     override fun toString(): String = "Pose[x=$x y=$y r=${theta.to.degrees}]"
+    override fun hashCode(): Int {
+        var result = x.hashCode()
+        result = 31 * result + y.hashCode()
+        result = 31 * result + theta.hashCode()
+        return result
+    }
 
     companion object {
         val zero = Pose(0.inches, 0.inches, 0.radians)
+        const val EPSILON_DISTANCE = 0.1 // in
+        const val EPSILON_ANGLE = 0.035 // rad, ~2deg
+
         private val ROBOT_SIZE_X = 17.inches
         private val ROBOT_SIZE_Y = 17.inches
         private val HALF_ROBOT_X = ROBOT_SIZE_X / 2.0

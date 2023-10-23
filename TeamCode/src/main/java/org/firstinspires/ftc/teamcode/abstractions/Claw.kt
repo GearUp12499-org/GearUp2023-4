@@ -1,23 +1,27 @@
+@file:Suppress("unused")
+
 package org.firstinspires.ftc.teamcode.abstractions
 
 import com.qualcomm.robotcore.hardware.Servo
+import dev.aether.collaborative_multitasking.SharedResource
 import dev.aether.collaborative_multitasking.MultitaskScheduler
+import dev.aether.collaborative_multitasking.Task
 import dev.aether.collaborative_multitasking.ext.maxDuration
-import org.firstinspires.ftc.teamcode.configurations.RobotLocks
 
 class Claw(
     private val scheduler: MultitaskScheduler,
-    private val grip: Servo,
-    private val rotate: Servo
+    @JvmField val grip: Servo,
+    @JvmField val rotate: Servo,
+    private val lock: SharedResource,
 ) {
     companion object {
-        // massive TODO get actual numbers lmao
         const val ROTATE_HOVER = 0.83
         const val ROTATE_CLOSING = 0.868
         const val ROTATE_FLIP = 0.255
         const val ROTATE_STOW = 0.5425
         const val GRIP_OPEN = 0.57
         const val GRIP_CLOSED = 0.825
+        // TODO trim timings
         const val CloseRotateTime = 100 // ms
         const val GripTime = 100 // ms
         const val FlipTime = 1000 // ms
@@ -31,68 +35,94 @@ class Claw(
         Stowed
     }
 
-    private var clawState: State = State.Ready
-
-    fun restore() {
-        if (scheduler.isResourceInUse(RobotLocks.claw)) return // don't try to do two things at once
-        scheduler.task {
-            +RobotLocks.claw
-            onStart { ->
-                clawState = State.Flipping
-                grip.position = GRIP_OPEN
-                rotate.position = ROTATE_HOVER
-            }
-            maxDuration(FlipTime)
-            onFinish { ->
-                clawState = State.Ready
-            }
-        }
+    private enum class StateV2 {
+        Hover,
+        Stowed,
+        Active
     }
 
-    fun attempt() {
-        if (scheduler.isResourceInUse(RobotLocks.claw)) return // don't try to do two things at once
-        scheduler.task {
-            +RobotLocks.claw
+    private var clawState: StateV2 = StateV2.Hover
+
+    fun grab() {
+        if (scheduler.isResourceInUse(lock)) return
+        // (dep: hover) open -> grab -> hover
+        var base: Task? = null
+        if (clawState != StateV2.Hover) base = gotoHover()
+        val main = scheduler.task {
+            +lock
             onStart { ->
-                clawState = State.Closing
+                clawState = StateV2.Active
+                grip.position = GRIP_OPEN
                 rotate.position = ROTATE_CLOSING
             }
-            maxDuration(CloseRotateTime)
+            maxDuration(FlipTime)
         }.then {
-            +RobotLocks.claw
+            +lock
             onStart { ->
                 grip.position = GRIP_CLOSED
             }
             maxDuration(GripTime)
-            onFinish { ->
-                clawState = State.Closed
-            }
-        }
+        }.then(gotoHover())
+        base?.then(main)
     }
 
-    fun commit() {
-        if (scheduler.isResourceInUse(RobotLocks.claw)) return // don't try to do two things at once
-        scheduler.task {
-            +RobotLocks.claw
+    fun deposit() {
+        if (scheduler.isResourceInUse(lock)) return
+        // (dep: hover) -> deposit -> stowed
+        var base: Task? = null
+        if (clawState != StateV2.Hover) base = gotoHover()
+        val main = scheduler.task {
+            +lock
             onStart { ->
-                clawState = State.Flipping
+                clawState = StateV2.Active
                 rotate.position = ROTATE_FLIP
             }
             maxDuration(FlipTime)
         }.then {
-            +RobotLocks.claw
+            +lock
             onStart { ->
                 grip.position = GRIP_OPEN
             }
             maxDuration(GripTime)
         }.then {
-            +RobotLocks.claw
+            +lock
             onStart { ->
                 rotate.position = ROTATE_STOW
             }
             maxDuration(FlipTime)
             onFinish { ->
-                clawState = State.Stowed
+                clawState = StateV2.Stowed
+            }
+        }
+        base?.then(main)
+    }
+
+    fun reset() {
+        if (scheduler.isResourceInUse(lock)) return
+        // (hover and open)
+        scheduler.task {
+            +lock
+            onStart { ->
+                clawState = StateV2.Active
+                grip.position = GRIP_OPEN
+                rotate.position = ROTATE_HOVER
+            }
+            maxDuration(FlipTime)
+            onFinish { ->
+                clawState = StateV2.Hover
+            }
+        }
+    }
+
+    private fun gotoHover(): Task {
+        return scheduler.task {
+            +lock
+            onStart { ->
+                rotate.position = ROTATE_HOVER
+            }
+            maxDuration(FlipTime)
+            onFinish { ->
+                clawState = StateV2.Hover
             }
         }
     }

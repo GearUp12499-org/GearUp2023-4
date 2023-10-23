@@ -8,13 +8,13 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.concurrent.TimeUnit;
 
-import dev.aether.collaborative_multitasking.Loq;
+import dev.aether.collaborative_multitasking.SharedResource;
 import dev.aether.collaborative_multitasking.MultitaskScheduler;
 
 @Autonomous
 public class ExampleScheduledAuto extends LinearOpMode {
     MultitaskScheduler scheduler;
-    public static final Loq EXAMPLE_LOCK = new Loq("example");
+    public static final SharedResource EXAMPLE_LOCK = new SharedResource("example");
 
     @Override
     public void runOpMode() {
