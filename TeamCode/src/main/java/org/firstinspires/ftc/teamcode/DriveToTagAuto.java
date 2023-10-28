@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 public class DriveToTagAuto extends LinearOpMode {
     @Override
     public void runOpMode() {
+        // weirdo delegation thing. we're rewriting this anyway
         DriveToTagBacking backingScript = new DriveToTagBacking(hardwareMap, telemetry, gamepad1);
         waitForStart();
         telemetry.addLine("press X to start");
