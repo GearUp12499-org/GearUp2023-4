@@ -13,12 +13,22 @@ import dev.aether.collaborative_multitasking.MultitaskScheduler;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
+    /**
+     * Returns the maximum of all the arguments
+     * @param a the first argument
+     * @param others the other arguments
+     * @return the maximum of all the arguments
+     */
     private double max(double a, double... others) {
         if (others.length == 0) return a;
+        // this is a really scuffed way to say "[a, others...]"
+        // TODO: rewrite this so it's less cursed
         double[] combined = new double[others.length + 1];
         combined[0] = a;
         Double max = null;
         System.arraycopy(others, 0, combined, 1, others.length);
+
+        // compare each element to the next one, and keep the larger one
         for (int i = 0; i < combined.length - 1; i++) {
             double first = max != null ? max : combined[i];
             double second = combined[i + 1];
@@ -29,11 +39,18 @@ public class TeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        // used for semi-auto tasks, like the claw
         MultitaskScheduler scheduler = new MultitaskScheduler();
+        // get the robot configuration container (see RobotConfiguration.java)
         RobotConfiguration robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
         if (robot == null) throw new RuntimeException("Robot configuration not found");
+
+        // we don't want to have to call driveMotors() every time because it gets tedious
         MotorSet driveMotors = robot.driveMotors();
+        // set up the claw
         Claw claw = new Claw(scheduler, robot.clawGrab(), robot.clawRotate(), robot.getClawLock());
+
+
         waitForStart();
         int targetLeft = 0;
         int targetRight = 0;
@@ -59,6 +76,9 @@ public class TeleOp extends LinearOpMode {
             scheduler.tick();
             double dt = timer1.time(TimeUnit.SECONDS);
             timer1.reset();
+
+            // Standard mecanum drive code
+            // Compute the necessary powers to apply to the motors
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
             double rx = gamepad1.right_stick_x;
@@ -71,21 +91,29 @@ public class TeleOp extends LinearOpMode {
             double frontRightPower = (y - x - rx) / denominator * fac;
             double backRightPower = (y + x - rx) / denominator * fac;
 
-            int SLIDE_LIM = 3000;
-            int MOTION_PER_CYCLE = 20;
 
-
+            // Apply the powers to the motors
             driveMotors.frontLeft.setPower(frontLeftPower * balFL);
             driveMotors.backLeft.setPower(backLeftPower * balBL);
             driveMotors.frontRight.setPower(frontRightPower * balFR);
             driveMotors.backRight.setPower(backRightPower * balBR);
 
+            int SLIDE_LIM = 3000;
+            int MOTION_PER_CYCLE = 20;
+
+            // when B is pressed, reset all the lifts to the first preset
+            // none of the other presets are ever used lol
             if (gamepad2.b) {
                 targetLeft = targets[0];
                 targetRight = targets[0];
             }
+
+            // use dpad up and down to move the left lift
             if (gamepad2.dpad_up) targetLeft += MOTION_PER_CYCLE;
             if (gamepad2.dpad_down) targetLeft -= MOTION_PER_CYCLE;
+
+            // gamepad 1 dpad up/down is for endgame truss scaling
+            // moves the right lift, and synchronizes the left lift with it
             if (gamepad1.dpad_up) {
                 targetRight += MOTION_PER_CYCLE;
                 targetLeft = targetRight;
@@ -94,10 +122,16 @@ public class TeleOp extends LinearOpMode {
                 targetRight -= MOTION_PER_CYCLE;
                 targetLeft = targetRight;
             }
+
+            // don't let the lifts go out of bounds
+            // (this will cause the motors to break down)
             if (targetLeft < 0) targetLeft = 0;
             if (targetLeft > SLIDE_LIM) targetLeft = SLIDE_LIM;
             if (targetRight < 0) targetRight = 0;
             if (targetRight > SLIDE_LIM) targetRight = SLIDE_LIM;
+
+            robot.liftLeft().setTargetPosition(targetLeft);
+            robot.liftRight().setTargetPosition(targetRight);
 
             if (gamepad2.a) {
                 claw.grab();
@@ -109,12 +143,14 @@ public class TeleOp extends LinearOpMode {
                 claw.reset();
             }
 
-            robot.liftLeft().setTargetPosition(targetLeft);
-            robot.liftRight().setTargetPosition(targetRight);
-
+            // TODO: really should make this based on deltaTime
+            // make time between refreshes longer to avoid spamming motors with commands
             sleep(5);
         }
+
+        // panic() cleans up 'resources' (Claw, drive motors, etc)
         scheduler.panic();
+        // just in case
         driveMotors.setAll(0);
     }
 }
