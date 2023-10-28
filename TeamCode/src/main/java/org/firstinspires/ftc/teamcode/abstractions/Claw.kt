@@ -3,10 +3,11 @@
 package org.firstinspires.ftc.teamcode.abstractions
 
 import com.qualcomm.robotcore.hardware.Servo
-import dev.aether.collaborative_multitasking.SharedResource
 import dev.aether.collaborative_multitasking.MultitaskScheduler
+import dev.aether.collaborative_multitasking.SharedResource
 import dev.aether.collaborative_multitasking.Task
 import dev.aether.collaborative_multitasking.ext.maxDuration
+import org.firstinspires.ftc.teamcode.ClawVar
 
 class Claw(
     private val scheduler: MultitaskScheduler,
@@ -15,16 +16,18 @@ class Claw(
     private val lock: SharedResource,
 ) {
     companion object {
-        const val ROTATE_HOVER = 0.83
-        const val ROTATE_CLOSING = 0.868
-        const val ROTATE_FLIP = 0.255
-        const val ROTATE_STOW = 0.5425
-        const val GRIP_OPEN = 0.57
-        const val GRIP_CLOSED = 0.825
+        // Try to avoid changing these here. Instead, change them in Variables.kt.
+        const val ROTATE_HOVER = ClawVar.HoverRotation
+        const val ROTATE_CLOSING = ClawVar.ClosingRotation
+        const val ROTATE_FLIP = ClawVar.FlippedRotation
+        const val ROTATE_STOW = ClawVar.StowedRotation
+        const val GRIP_OPEN = ClawVar.ClawOpened
+        const val GRIP_CLOSED = ClawVar.ClawClosed
+
         // TODO trim timings
         const val CloseRotateTime = 100 // ms
-        const val GripTime = 100 // ms
-        const val FlipTime = 1000 // ms
+        const val GripTime = 450 // ms
+        const val FlipTime = 500 // ms
     }
 
     private enum class State {
