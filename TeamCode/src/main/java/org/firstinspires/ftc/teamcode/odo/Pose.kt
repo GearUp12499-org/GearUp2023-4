@@ -3,6 +3,7 @@
 package org.firstinspires.ftc.teamcode.odo
 
 import org.firstinspires.ftc.teamcode.utility.MotorPowers
+import org.firstinspires.ftc.teamcode.utility.Vector2
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -32,10 +33,12 @@ class Move(forward: LengthUnit, right: LengthUnit, turn: RotationUnit) {
         return proportions.normalize()
     }
 
-    override fun toString(): String = "DeltaPose[forward=$forward right=$right turn=$turn]"
+    override fun toString(): String = "DeltaPose[forward=$forward right=$right turn=${turn.to.degrees}]"
 }
 
 class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
+    constructor(x: Vector2, y: RadianUnit) : this(x.x.inches, x.y.inches, y)
+
     val x = x.to.inches
     val y = y.to.inches
     val theta = theta.to.radians
@@ -102,6 +105,12 @@ class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
         result = 31 * result + theta.hashCode()
         return result
     }
+
+    operator fun plus(other: Pose) = Pose(this.x + other.x, this.y + other.y, this.theta + other.theta)
+
+    operator fun div(other: Int) = Pose(this.x / other, this.y / other, this.theta / other)
+    operator fun div(other: Double) = Pose(this.x / other, this.y / other, this.theta / other)
+    operator fun minus(other: Pose) = Pose(this.x - other.x, this.y - other.y, this.theta - other.theta)
 
     companion object {
         val zero = Pose(0.inches, 0.inches, 0.radians)
