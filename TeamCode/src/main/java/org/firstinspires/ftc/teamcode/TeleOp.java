@@ -126,16 +126,16 @@ public class TeleOp extends LinearOpMode {
             }
 
             // use dpad up and down to move the left lift
-            if (gamepad2.dpad_up) targetLeft += MOTION_PER_CYCLE;
-            if (gamepad2.dpad_down) targetLeft -= MOTION_PER_CYCLE;
+//            if (gamepad2.dpad_up) targetLeft += MOTION_PER_CYCLE;
+//            if (gamepad2.dpad_down) targetLeft -= MOTION_PER_CYCLE;
 
             // gamepad 1 dpad up/down is for endgame truss scaling
             // moves the right lift, and synchronizes the left lift with it
-            if (gamepad1.dpad_up) {
+            if (gamepad1.dpad_up || gamepad2.dpad_up) {
                 targetRight += MOTION_PER_CYCLE;
                 targetLeft = targetRight;
             }
-            if (gamepad1.dpad_down) {
+            if (gamepad1.dpad_down || gamepad2.dpad_down) {
                 targetRight -= MOTION_PER_CYCLE;
                 targetLeft = targetRight;
             }
