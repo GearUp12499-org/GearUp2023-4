@@ -8,8 +8,6 @@ import org.firstinspires.ftc.teamcode.abstractions.Claw;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utility.MotorSet;
 
-import java.util.concurrent.TimeUnit;
-
 import dev.aether.collaborative_multitasking.MultitaskScheduler;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
@@ -41,7 +39,7 @@ public class TeleOp extends LinearOpMode {
     public double OdoToInches (double ticks){
         double ticksPerRotation = 8192;
         double radius_inches = 0.69;
-        double num_wheel_rotations = ticks/8192;
+        double num_wheel_rotations = ticks/ticksPerRotation;
         return (num_wheel_rotations * 2 * Math.PI * radius_inches);
     }
 
@@ -60,7 +58,9 @@ public class TeleOp extends LinearOpMode {
 
         //Reset odometry pods
         driveMotors.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        driveMotors.frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         driveMotors.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        driveMotors.backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         waitForStart();
         int targetLeft = 0;
@@ -86,11 +86,12 @@ public class TeleOp extends LinearOpMode {
         DcMotor drone = hardwareMap.get(DcMotor.class, "drone");
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
         intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         ElapsedTime timer1 = new ElapsedTime();
         while (opModeIsActive()) {
             scheduler.tick();
-            double dt = timer1.time(TimeUnit.SECONDS);
+//            double dt = timer1.time(TimeUnit.SECONDS);
             timer1.reset();
 
             // Standard mecanum drive code
@@ -169,7 +170,7 @@ public class TeleOp extends LinearOpMode {
                 drone.setPower(0);
             }
             //Updates the average distance traveled forward: positive is right or forward; negative is backward or left
-            telemetry.addData("Distance Driven Forward:", OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2));
+            telemetry.addData("Distance Driven Forward:", OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2.0));
             telemetry.addData("Inches Strafed: ", OdoToInches(intake.getCurrentPosition()));
             telemetry.update();
         }
