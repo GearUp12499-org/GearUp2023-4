@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.abstractions.Claw;
@@ -15,7 +16,8 @@ import dev.aether.collaborative_multitasking.MultitaskScheduler;
 public class TeleOp extends LinearOpMode {
     /**
      * Returns the maximum of all the arguments
-     * @param a the first argument
+     *
+     * @param a      the first argument
      * @param others the other arguments
      * @return the maximum of all the arguments
      */
@@ -36,6 +38,12 @@ public class TeleOp extends LinearOpMode {
         }
         return max;
     }
+    public double OdoToInches (double ticks){
+        double ticksPerRotation = 8192;
+        double radius_inches = 0.69;
+        double num_wheel_rotations = ticks/8192;
+        return (num_wheel_rotations * 2 * Math.PI * radius_inches);
+    }
 
     @Override
     public void runOpMode() {
@@ -50,6 +58,9 @@ public class TeleOp extends LinearOpMode {
         // set up the claw
         Claw claw = new Claw(scheduler, robot.clawGrab(), robot.clawRotate(), robot.getClawLock());
 
+        //Reset odometry pods
+        driveMotors.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        driveMotors.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         waitForStart();
         int targetLeft = 0;
@@ -70,6 +81,11 @@ public class TeleOp extends LinearOpMode {
         balFR /= balanceDen;
         balBL /= balanceDen;
         balBR /= balanceDen;
+
+        // Creates Drone motor instance
+        DcMotor drone = hardwareMap.get(DcMotor.class, "drone");
+        DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
+        intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         ElapsedTime timer1 = new ElapsedTime();
         while (opModeIsActive()) {
@@ -145,7 +161,17 @@ public class TeleOp extends LinearOpMode {
 
             // TODO: really should make this based on deltaTime
             // make time between refreshes longer to avoid spamming motors with commands
-            sleep(5);
+
+            // Makes drone launcher motor go zoom when the right bumper is pressed on game pad 1
+            if (gamepad1.right_bumper) {
+                drone.setPower(1);
+            } else {
+                drone.setPower(0);
+            }
+            //Updates the average distance traveled forward: positive is right or forward; negative is backward or left
+            telemetry.addData("Distance Driven Forward:", OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2));
+            telemetry.addData("Inches Strafed: ", OdoToInches(intake.getCurrentPosition()));
+            telemetry.update();
         }
 
         // panic() cleans up 'resources' (Claw, drive motors, etc)
