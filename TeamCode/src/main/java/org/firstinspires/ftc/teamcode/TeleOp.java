@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.abstractions.Claw;
+import org.firstinspires.ftc.teamcode.abstractions.Dumper;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utility.MotorSet;
 
@@ -55,6 +56,7 @@ public class TeleOp extends LinearOpMode {
         MotorSet driveMotors = robot.driveMotors();
         // set up the claw
         Claw claw = new Claw(scheduler, robot.clawGrab(), robot.clawRotate(), robot.getClawLock());
+        Dumper dumper = new Dumper(scheduler, robot);
 
         //Reset odometry pods
         driveMotors.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -100,7 +102,7 @@ public class TeleOp extends LinearOpMode {
             double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
             double rx = gamepad1.right_stick_x;
 
-            double fac = gamepad1.left_bumper ? 1 : 0.75;
+            double fac = gamepad1.left_bumper ? 0.75 : 1;
 
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
             double frontLeftPower = (y + x + rx) / denominator * fac;
@@ -123,6 +125,7 @@ public class TeleOp extends LinearOpMode {
             if (gamepad2.b) {
                 targetLeft = targets[0];
                 targetRight = targets[0];
+                dumper.reset();
             }
 
             // use dpad up and down to move the left lift
@@ -157,7 +160,14 @@ public class TeleOp extends LinearOpMode {
                 claw.deposit();
             }
             if (gamepad2.x) {
-                claw.reset();
+                claw.resetTele();
+            }
+            if (gamepad2.left_bumper) {
+                if (dumper.getState() == Dumper.State.Dump) dumper.dumpSecond();
+                else dumper.dump();
+            }
+            if (gamepad2.right_bumper) {
+                dumper.reset();
             }
 
             // TODO: really should make this based on deltaTime
@@ -169,6 +179,8 @@ public class TeleOp extends LinearOpMode {
             } else {
                 drone.setPower(0);
             }
+            robot.tele(telemetry);
+
             //Updates the average distance traveled forward: positive is right or forward; negative is backward or left
             telemetry.addData("Distance Driven Forward:", OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2.0));
             telemetry.addData("Inches Strafed: ", OdoToInches(intake.getCurrentPosition()));

@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import dev.aether.collaborative_multitasking.SharedResource
+import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.utility.MotorSet
 
 abstract class RobotConfiguration {
@@ -37,4 +38,27 @@ abstract class RobotConfiguration {
     protected abstract val drone: DcMotor?
     fun drone(): DcMotor = drone ?: throw NullPointerException("Robot configuration has no drone motor but it was requested")
     abstract val droneLock: SharedResource
+
+    private fun deviceStatus(name: String, device: Any?): String = "$name: " + when (device) {
+        (device == null) -> "DISCONNECTED"
+        is DcMotor -> "${device.mode} P${device.power}"
+        is Servo -> "-> ${device.position}"
+        else -> "${device!!::class.simpleName} READY"
+    }
+
+    fun tele(t: Telemetry) {
+        for (field in mapOf(
+            "driveMotors" to driveMotors,
+            "clawGrab" to clawGrab,
+            "clawRotate" to clawRotate,
+            "liftLeft" to liftLeft,
+            "liftRight" to liftRight,
+            "dumperRotate" to dumperRotate,
+            "dumperLatch" to dumperLatch,
+            "drone" to drone
+        ).entries
+        ) {
+            t.addLine(deviceStatus(field.key, field.value))
+        }
+    }
 }

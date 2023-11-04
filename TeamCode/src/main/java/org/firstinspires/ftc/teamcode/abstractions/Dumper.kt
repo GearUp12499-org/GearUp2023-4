@@ -9,22 +9,25 @@ class Dumper(
     private val scheduler: MultitaskScheduler,
     config: RobotConfiguration
 ) {
-    @JvmField val rotate = config.dumperRotate()
-    @JvmField val latch = config.dumperLatch()
+    @JvmField
+    val rotate = config.dumperRotate()
+    @JvmField
+    val latch = config.dumperLatch()
     private val lock = config.dumperLock
 
     companion object {
         // TODO get values
-        const val ROTATE_IDLE = 0.83
-        const val ROTATE_DUMP = 0.868
-        const val UNLATCHED = 0.825
-        const val LATCHED = 0.57
+        const val ROTATE_IDLE = 0.540
+        const val ROTATE_DUMP = 0.338
+        const val UNLATCHED = 0.4
+        const val LATCHED = 0.78
+
         // TODO trim timings
         const val RotateTime = 1000 // ms
         const val LatchTime = 200 // ms
     }
 
-    private enum class State {
+    enum class State {
         Idle,
         Dump,
         Dump2
@@ -69,4 +72,21 @@ class Dumper(
         }
         base?.then(add)
     }
+
+    fun reset() {
+        if (scheduler.isResourceInUse(lock)) return
+        scheduler.task {
+            +lock
+            onStart { ->
+                dumperState = State.Idle
+                rotate.position = ROTATE_IDLE
+                latch.position = LATCHED
+            }
+            maxDuration(RotateTime)
+        }
+    }
+
+
+    val state: State get() = dumperState
+
 }

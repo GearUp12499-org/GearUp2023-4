@@ -100,10 +100,13 @@ class Claw(
         base?.then(main)
     }
 
-    fun reset() {
+    fun resetTele() {
         if (scheduler.isResourceInUse(lock)) return
         // (hover and open)
-        scheduler.task {
+        reset()
+    }
+    fun reset(): Task {
+        return scheduler.task {
             +lock
             onStart { ->
                 clawState = StateV2.Active
@@ -128,5 +131,19 @@ class Claw(
                 clawState = StateV2.Hover
             }
         }
+    }
+
+    fun release(): Task {
+        var base: Task? = null
+        if (clawState != StateV2.Hover) base = gotoHover()
+        val ext = scheduler.task {
+            +lock
+            onStart { ->
+                grip.position = GRIP_OPEN
+            }
+            maxDuration(GripTime)
+        }
+        base?.then(ext)
+        return base ?: ext
     }
 }
