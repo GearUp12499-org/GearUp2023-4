@@ -68,7 +68,7 @@ public class TeleOp extends LinearOpMode {
         int targetLeft = 0;
         int targetRight = 0;
         int[] targets = {0, 500, 750, 1000};
-
+        int hangTarget = 1340;
         double balanceLeft = 1.00;
         double balanceRight = 1.00;
         double balanceFront = 1.00;
@@ -83,6 +83,9 @@ public class TeleOp extends LinearOpMode {
         balFR /= balanceDen;
         balBL /= balanceDen;
         balBR /= balanceDen;
+        // Creates Slide motor instance
+        DcMotor liftRight = hardwareMap.get(DcMotor.class, "slideRight");
+        DcMotor liftLeft = hardwareMap.get(DcMotor.class, "slideLeft");
 
         // Creates Drone motor instance
         DcMotor drone = hardwareMap.get(DcMotor.class, "drone");
@@ -179,11 +182,28 @@ public class TeleOp extends LinearOpMode {
             } else {
                 drone.setPower(0);
             }
+            // Gets the average ticks of both the slide motors --> Ticks for perfect hang position is 1340 ticks use hangTarget variable
+            double slideTicks = (liftRight.getCurrentPosition() + liftLeft.getCurrentPosition())/2.0;;
+
+            if(gamepad1.y){
+                robot.liftRight().setTargetPosition(hangTarget);
+                robot.liftLeft().setTargetPosition(hangTarget);
+                robot.liftRight().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                robot.liftLeft().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                robot.liftRight().setPower(0.3);
+                robot.liftLeft().setPower(0.3);
+                resetRuntime();
+                while(robot.liftRight().isBusy() && robot.liftLeft().isBusy() || getRuntime() <= 3){
+                }
+            }
+
+
             robot.tele(telemetry);
 
             //Updates the average distance traveled forward: positive is right or forward; negative is backward or left
             telemetry.addData("Distance Driven Forward:", OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2.0));
             telemetry.addData("Inches Strafed: ", OdoToInches(intake.getCurrentPosition()));
+            telemetry.addData("Slide Motor Ticks: ", slideTicks);
             telemetry.update();
         }
 
