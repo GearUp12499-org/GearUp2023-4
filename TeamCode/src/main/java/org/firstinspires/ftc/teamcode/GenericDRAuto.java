@@ -16,7 +16,7 @@ public class GenericDRAuto extends LinearOpMode {
         MultitaskScheduler scheduler = new MultitaskScheduler();
         Claw claw = new Claw(scheduler, robot.clawGrab(), robot.clawRotate(), robot.getClawLock());
 
-        GenericDRAutoB backing = new GenericDRAutoB(robot, scheduler, claw);
+        GenericDRAutoB backing = new GenericDRAutoB(robot, scheduler, claw, null);
 
         while (opModeIsActive()) {
             scheduler.tick();

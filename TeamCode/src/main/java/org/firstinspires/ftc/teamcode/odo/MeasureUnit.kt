@@ -34,5 +34,8 @@ abstract class MeasureUnit<This: MeasureUnit<This>>(val value: Double) {
 
     operator fun times(ticks: Int) = times(ticks.toDouble())
 
+    operator fun compareTo(other: MeasureUnit<*>): Int =
+        this.value.compareTo(convertOther(other).value)
+
     abstract val to: Converter<MeasureUnit<This>>
 }
