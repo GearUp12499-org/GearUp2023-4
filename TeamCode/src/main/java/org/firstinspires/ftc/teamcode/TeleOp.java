@@ -68,7 +68,7 @@ public class TeleOp extends LinearOpMode {
         int targetLeft = 0;
         int targetRight = 0;
         int[] targets = {0, 500, 750, 1000};
-        int hangTarget = 1340;
+        int hangTarget = 1400;
         double balanceLeft = 1.00;
         double balanceRight = 1.00;
         double balanceFront = 1.00;
@@ -83,6 +83,7 @@ public class TeleOp extends LinearOpMode {
         balFR /= balanceDen;
         balBL /= balanceDen;
         balBR /= balanceDen;
+
         // Creates Slide motor instance
         DcMotor liftRight = hardwareMap.get(DcMotor.class, "slideRight");
         DcMotor liftLeft = hardwareMap.get(DcMotor.class, "slideLeft");
@@ -189,12 +190,13 @@ public class TeleOp extends LinearOpMode {
             if(gamepad1.y){
                 robot.liftRight().setTargetPosition(hangTarget);
                 robot.liftLeft().setTargetPosition(hangTarget);
-                robot.liftRight().setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                robot.liftLeft().setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 robot.liftRight().setPower(0.3);
                 robot.liftLeft().setPower(0.3);
+                targetLeft = hangTarget;
+                targetRight = hangTarget;
                 resetRuntime();
                 while(robot.liftRight().isBusy() && robot.liftLeft().isBusy() || getRuntime() <= 3){
+                    telemetry.addData("Slide Motor Ticks: ", slideTicks);
                 }
             }
 
