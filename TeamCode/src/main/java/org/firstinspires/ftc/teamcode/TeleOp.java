@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utility.MotorSet;
 
 import dev.aether.collaborative_multitasking.MultitaskScheduler;
+import kotlin.Unit;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
@@ -84,11 +85,11 @@ public class TeleOp extends LinearOpMode {
         balBL /= balanceDen;
         balBR /= balanceDen;
         // Creates Slide motor instance
-        DcMotor liftRight = hardwareMap.get(DcMotor.class, "slideRight");
-        DcMotor liftLeft = hardwareMap.get(DcMotor.class, "slideLeft");
+        DcMotor liftRight = robot.liftRight();
+        DcMotor liftLeft = robot.liftLeft();
 
         // Creates Drone motor instance
-        DcMotor drone = hardwareMap.get(DcMotor.class, "drone");
+        DcMotor drone = robot.drone();
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
         intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -186,6 +187,13 @@ public class TeleOp extends LinearOpMode {
             double slideTicks = (liftRight.getCurrentPosition() + liftLeft.getCurrentPosition())/2.0;;
 
             if(gamepad1.y){
+                scheduler.task(target -> {
+                    target.onStart(() -> {
+                        return Unit.INSTANCE;
+                    });
+                    return Unit.INSTANCE;
+                });
+
                 robot.liftRight().setTargetPosition(hangTarget);
                 robot.liftLeft().setTargetPosition(hangTarget);
                 robot.liftRight().setMode(DcMotor.RunMode.RUN_TO_POSITION);
