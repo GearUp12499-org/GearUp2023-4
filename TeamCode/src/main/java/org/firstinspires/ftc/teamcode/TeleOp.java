@@ -120,7 +120,8 @@ public class TeleOp extends LinearOpMode {
             driveMotors.frontRight.setPower(frontRightPower * balFR);
             driveMotors.backRight.setPower(backRightPower * balBR);
 
-            int SLIDE_LIM = 3000;
+            int LONG_SLIDE_LIM = 3000;
+            int SHORT_SLIDE_LIM = 1500;
             int MOTION_PER_CYCLE = 20;
 
             // when B is pressed, reset all the lifts to the first preset
@@ -132,16 +133,16 @@ public class TeleOp extends LinearOpMode {
             }
 
             // use dpad up and down to move the left lift
-//            if (gamepad2.dpad_up) targetLeft += MOTION_PER_CYCLE;
-//            if (gamepad2.dpad_down) targetLeft -= MOTION_PER_CYCLE;
+            if (gamepad2.dpad_up) targetLeft += MOTION_PER_CYCLE;
+            if (gamepad2.dpad_down) targetLeft -= MOTION_PER_CYCLE;
 
             // gamepad 1 dpad up/down is for endgame truss scaling
             // moves the right lift, and synchronizes the left lift with it
-            if (gamepad1.dpad_up || gamepad2.dpad_up) {
+            if (gamepad1.dpad_up) {
                 targetRight += MOTION_PER_CYCLE;
                 targetLeft = targetRight;
             }
-            if (gamepad1.dpad_down || gamepad2.dpad_down) {
+            if (gamepad1.dpad_down) {
                 targetRight -= MOTION_PER_CYCLE;
                 targetLeft = targetRight;
             }
@@ -149,9 +150,9 @@ public class TeleOp extends LinearOpMode {
             // don't let the lifts go out of bounds
             // (this will cause the motors to break down)
             if (targetLeft < 0) targetLeft = 0;
-            if (targetLeft > SLIDE_LIM) targetLeft = SLIDE_LIM;
+            if (targetLeft > LONG_SLIDE_LIM) targetLeft = LONG_SLIDE_LIM;
             if (targetRight < 0) targetRight = 0;
-            if (targetRight > SLIDE_LIM) targetRight = SLIDE_LIM;
+            if (targetRight > SHORT_SLIDE_LIM) targetRight = SHORT_SLIDE_LIM;
 
             robot.liftLeft().setTargetPosition(targetLeft);
             robot.liftRight().setTargetPosition(targetRight);
@@ -183,7 +184,7 @@ public class TeleOp extends LinearOpMode {
                 drone.setPower(0);
             }
             // Gets the average ticks of both the slide motors --> Ticks for perfect hang position is 1340 ticks use hangTarget variable
-            double slideTicks = (liftRight.getCurrentPosition() + liftLeft.getCurrentPosition())/2.0;;
+            double slideTicks = (liftRight.getCurrentPosition() + liftLeft.getCurrentPosition())/2.0;
 
             if(gamepad1.y){
                 robot.liftRight().setTargetPosition(hangTarget);

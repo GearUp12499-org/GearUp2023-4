@@ -16,9 +16,8 @@ class Dumper(
     private val lock = config.dumperLock
 
     companion object {
-        // TODO get values
-        const val ROTATE_IDLE = 0.540
-        const val ROTATE_DUMP = 0.338
+        const val ROTATE_IDLE = 0.531
+        const val ROTATE_DUMP = 0.316
         const val UNLATCHED = 0.4
         const val LATCHED = 0.78
 

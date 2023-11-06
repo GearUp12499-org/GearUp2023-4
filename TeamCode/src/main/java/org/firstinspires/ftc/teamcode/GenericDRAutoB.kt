@@ -5,11 +5,12 @@ import dev.aether.collaborative_multitasking.Task
 import dev.aether.collaborative_multitasking.ext.maxDuration
 import org.firstinspires.ftc.teamcode.abstractions.Claw
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration
+import org.firstinspires.ftc.teamcode.utility.MotorPowers
 
 class GenericDRAutoB(
     private val robotConfig: RobotConfiguration,
+    private val scheduler: MultitaskScheduler,
     private val claw: Claw,
-    private val scheduler: MultitaskScheduler
 ) {
     // TODO: INCOMPLETE
     private val driveMotors = robotConfig.driveMotors()
@@ -22,7 +23,7 @@ class GenericDRAutoB(
         const val TurnDuration = 750 // ms
     }
 
-    fun pos1(): Task {
+    private fun forwardPart(): Task {
         return scheduler.task {
             +robotConfig.driveMotorLock
             onStart { ->
@@ -32,12 +33,25 @@ class GenericDRAutoB(
             onFinish { ->
                 driveMotors.setAll(0.0)
             }
-        }.then(claw.release())
+        }
     }
 
-    fun turn(fac: Double): Task {
+    fun left(): Task = forwardPart().then(turn(TurnSpeed)).then(claw.release())
+    fun center(): Task = forwardPart().then(claw.release())
+    fun right(): Task = forwardPart().then(turn(-TurnSpeed)).then(claw.release())
+
+    private fun turn(fac: Double, duration: Int = TurnDuration): Task {
         return scheduler.task {
             +robotConfig.driveMotorLock
+            onStart { ->
+                MotorPowers(
+                    1 * fac,
+                    -1 * fac,
+                    1 * fac,
+                    -1 * fac
+                ).apply(driveMotors)
+            }
+            maxDuration(duration)
         }
     }
 }
