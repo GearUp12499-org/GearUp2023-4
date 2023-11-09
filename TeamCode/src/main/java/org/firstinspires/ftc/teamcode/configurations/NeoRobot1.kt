@@ -2,11 +2,13 @@ package org.firstinspires.ftc.teamcode.configurations
 
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorSimple
+import com.qualcomm.robotcore.hardware.DistanceSensor
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import dev.aether.collaborative_multitasking.SharedResource
 import org.firstinspires.ftc.teamcode.utility.MotorSet
 import org.firstinspires.ftc.teamcode.utility.typedGet
+import org.firstinspires.ftc.teamcode.utility.typedMaybeGet
 
 class NeoRobot1(map: HardwareMap) : RobotConfiguration() {
     @JvmField
@@ -35,22 +37,22 @@ class NeoRobot1(map: HardwareMap) : RobotConfiguration() {
 
     @JvmField
     var clawGrabB // 0
-            : Servo = map.typedGet("clawGrab")
+            : Servo? = map.typedMaybeGet("clawGrab")
 
     @JvmField
     var clawRotateB // 1
-            : Servo = map.typedGet("clawRotate")
+            : Servo? = map.typedMaybeGet("clawRotate")
 
     @JvmField
     var dumperRotateB // 2
-            : Servo = map.typedGet("dumperRotate")
+            : Servo? = map.typedMaybeGet("dumperRotate")
     @JvmField
     var dumperLatchB // 3
-            : Servo = map.typedGet("dumperLatch")
+            : Servo? = map.typedMaybeGet("dumperLatch")
 
     @JvmField
     var droneB // 2
-            : DcMotor = map.typedGet("drone")
+            : DcMotor? = map.typedMaybeGet("drone")
 
 
     override val driveMotors: MotorSet = MotorSet(frontLeft, frontRight, backLeft, backRight)
@@ -60,19 +62,19 @@ class NeoRobot1(map: HardwareMap) : RobotConfiguration() {
                 0.0
             )
         }
-    override val clawGrab: Servo get() = clawGrabB
-    override val clawRotate: Servo get() = clawRotateB
+    override val clawGrab: Servo? get() = clawGrabB
+    override val clawRotate: Servo? get() = clawRotateB
     override val clawLock: SharedResource = SharedResource("claw")
     override val liftLeft: DcMotor get() = liftLeftB
     override val liftRight: DcMotor get() = liftRightB
-    override val dumperRotate: Servo
-        get() = dumperRotateB
-    override val dumperLatch: Servo
-        get() = dumperLatchB
+    override val dumperRotate: Servo? = dumperRotateB
+    override val dumperLatch: Servo? = dumperLatchB
     override val dumperLock: SharedResource = SharedResource("dumper")
-    override val drone: DcMotor
-        get() = droneB
+    override val drone: DcMotor? = droneB
     override val droneLock: SharedResource = SharedResource("drone")
+
+    override val distanceLeft: DistanceSensor? = map.typedMaybeGet("distanceLeft")
+    override val distanceRight: DistanceSensor? = map.typedMaybeGet("distanceRight")
 
     init {
         setReverse(frontLeft)

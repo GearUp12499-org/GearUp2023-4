@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.configurations
 
 import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DistanceSensor
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import dev.aether.collaborative_multitasking.SharedResource
@@ -41,6 +42,11 @@ abstract class RobotConfiguration {
     fun drone(): DcMotor = drone ?: throw NullPointerException("Robot configuration has no drone motor but it was requested")
     abstract val droneLock: SharedResource
 
+    protected abstract val distanceLeft: DistanceSensor?
+    fun distanceLeft(): DistanceSensor = distanceLeft ?: throw NullPointerException("Robot configuration has no left distance sensor but it was requested")
+    protected abstract val distanceRight: DistanceSensor?
+    fun distanceRight(): DistanceSensor = distanceRight ?: throw NullPointerException("Robot configuration has no right distance sensor but it was requested")
+
     private fun deviceStatus(name: String, device: Any?): String = "$name: " + when (device) {
         (device == null) -> "DISCONNECTED"
         is DcMotor -> "${device.mode} P${device.power}"
@@ -57,7 +63,9 @@ abstract class RobotConfiguration {
             "liftRight" to liftRight,
             "dumperRotate" to dumperRotate,
             "dumperLatch" to dumperLatch,
-            "drone" to drone
+            "drone" to drone,
+            "distanceLeft" to distanceLeft,
+            "distanceRight" to distanceRight
         ).entries
         ) {
             t.addLine(deviceStatus(field.key, field.value))
