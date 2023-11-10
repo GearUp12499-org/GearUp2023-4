@@ -17,9 +17,12 @@ class Claw(
 ) {
     companion object {
         // Try to avoid changing these here. Instead, change them in Variables.kt.
+        // Hovers just above the ground
         const val ROTATE_HOVER = ClawVar.HoverRotation
         const val ROTATE_CLOSING = ClawVar.ClosingRotation
+        // Flips all the way back
         const val ROTATE_FLIP = ClawVar.FlippedRotation
+        // Stow is upright
         const val ROTATE_STOW = ClawVar.StowedRotation
         const val GRIP_OPEN = ClawVar.ClawOpened
         const val GRIP_CLOSED = ClawVar.ClawClosed

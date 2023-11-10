@@ -40,7 +40,7 @@ public class SimpleAuto extends LinearOpMode {
 
         while (distance < 30) {
             distance = OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2.0);
-            if (strafeDistance <= 3) {
+            if (strafeDistance <= 5) {
                 strafeDistance = OdoToInches(intake.getCurrentPosition());
                 driveMotors.frontLeft.setPower(0.4);
                 driveMotors.backLeft.setPower(-0.4);
@@ -51,11 +51,16 @@ public class SimpleAuto extends LinearOpMode {
             driveMotors.backLeft.setPower(0.4);
             driveMotors.frontRight.setPower(0.4);
             driveMotors.backRight.setPower(0.4);
-            // Claw scoring code
-
             telemetry.addData("Distance Driven Forward: ", distance);
             telemetry.update();
             }
         }
+        // Sets all motors to have 0 power
+        driveMotors.setAll(0);
+        // Claw scoring codes
+        // Uses the Rotate_Hover variable to hover right above ground to drop pixels
+        claw.rotate.setPosition(Claw.ROTATE_HOVER);
+        claw.grip.setPosition(Claw.GRIP_OPEN);
+        claw.rotate.setPosition(Claw.ROTATE_FLIP);
     }
 }
