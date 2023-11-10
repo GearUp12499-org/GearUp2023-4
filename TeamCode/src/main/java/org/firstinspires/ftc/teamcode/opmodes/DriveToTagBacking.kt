@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode
+package org.firstinspires.ftc.teamcode.opmodes
 
 import android.util.Size
 import com.qualcomm.robotcore.hardware.Gamepad
@@ -8,13 +8,16 @@ import dev.aether.collaborative_multitasking.ext.minTicks
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration
-import org.firstinspires.ftc.teamcode.odo.Pose
-import org.firstinspires.ftc.teamcode.odo.degrees
-import org.firstinspires.ftc.teamcode.odo.inches
-import org.firstinspires.ftc.teamcode.odo.radians
-import org.firstinspires.ftc.teamcode.utility.CollectionUtils.pairs
-import org.firstinspires.ftc.teamcode.utility.MotorSet
-import org.firstinspires.ftc.teamcode.utility.typedGet
+import org.firstinspires.ftc.teamcode.detectPairToPose
+import org.firstinspires.ftc.teamcode.detectSingleToPose
+import org.firstinspires.ftc.teamcode.utilities.Pose
+import org.firstinspires.ftc.teamcode.utilities.degrees
+import org.firstinspires.ftc.teamcode.utilities.inches
+import org.firstinspires.ftc.teamcode.utilities.radians
+import org.firstinspires.ftc.teamcode.tagPositions
+import org.firstinspires.ftc.teamcode.utilities.CollectionUtils.pairs
+import org.firstinspires.ftc.teamcode.utilities.MotorSet
+import org.firstinspires.ftc.teamcode.utilities.typedGet
 import org.firstinspires.ftc.vision.VisionPortal
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
 import kotlin.math.abs

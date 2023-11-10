@@ -1,7 +1,6 @@
-package org.firstinspires.ftc.teamcode.utility
+package org.firstinspires.ftc.teamcode.utilities
 
 import com.qualcomm.robotcore.hardware.HardwareMap
-import java.lang.IllegalArgumentException
 
 inline fun <reified T> HardwareMap.typedGet(name: String): T {
     return this.get(T::class.java, name)

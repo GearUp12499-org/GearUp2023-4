@@ -1,9 +1,7 @@
 @file:Suppress("unused")
 
-package org.firstinspires.ftc.teamcode.odo
+package org.firstinspires.ftc.teamcode.utilities
 
-import org.firstinspires.ftc.teamcode.utility.MotorPowers
-import org.firstinspires.ftc.teamcode.utility.Vector2
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos

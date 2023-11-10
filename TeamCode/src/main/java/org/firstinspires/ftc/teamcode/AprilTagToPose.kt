@@ -1,9 +1,9 @@
 package org.firstinspires.ftc.teamcode
 
-import org.firstinspires.ftc.teamcode.odo.Pose
-import org.firstinspires.ftc.teamcode.odo.degrees
-import org.firstinspires.ftc.teamcode.odo.inches
-import org.firstinspires.ftc.teamcode.utility.Vector2
+import org.firstinspires.ftc.teamcode.utilities.Pose
+import org.firstinspires.ftc.teamcode.utilities.Vector2
+import org.firstinspires.ftc.teamcode.utilities.degrees
+import org.firstinspires.ftc.teamcode.utilities.inches
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection
 import kotlin.math.abs
 import kotlin.math.cos

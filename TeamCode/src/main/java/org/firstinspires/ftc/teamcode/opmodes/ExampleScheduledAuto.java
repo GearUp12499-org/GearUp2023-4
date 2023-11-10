@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.opmodes;
 
 import static dev.aether.collaborative_multitasking.KotlinHelper.kbu;
 
