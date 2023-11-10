@@ -40,7 +40,7 @@ public class SimpleAuto extends LinearOpMode {
 
         while (distance < 30) {
             distance = OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2.0);
-            if (strafeDistance <= 5) {
+            if (strafeDistance <= 6) {
                 strafeDistance = OdoToInches(intake.getCurrentPosition());
                 driveMotors.frontLeft.setPower(0.4);
                 driveMotors.backLeft.setPower(-0.4);
@@ -60,8 +60,11 @@ public class SimpleAuto extends LinearOpMode {
         // Claw scoring codes
         // Uses the Rotate_Hover variable to hover right above ground to drop pixels
         claw.rotate.setPosition(Claw.ROTATE_HOVER);
+        sleep(2000);
         claw.grip.setPosition(Claw.GRIP_OPEN);
+        sleep(2000);
         claw.rotate.setPosition(Claw.ROTATE_FLIP);
+        sleep(2000);
         // Let's code run until we press the stop button
         while(opModeIsActive()){
 
