@@ -1,10 +1,10 @@
 package org.firstinspires.ftc.tests
 
-import org.firstinspires.ftc.teamcode.odo.MeasureUnit
-import org.firstinspires.ftc.teamcode.odo.Pose
-import org.firstinspires.ftc.teamcode.odo.degrees
-import org.firstinspires.ftc.teamcode.odo.feet
-import org.firstinspires.ftc.teamcode.odo.inches
+import org.firstinspires.ftc.teamcode.utilities.MeasureUnit
+import org.firstinspires.ftc.teamcode.utilities.Pose
+import org.firstinspires.ftc.teamcode.utilities.degrees
+import org.firstinspires.ftc.teamcode.utilities.feet
+import org.firstinspires.ftc.teamcode.utilities.inches
 import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlin.test.Test

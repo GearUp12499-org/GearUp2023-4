@@ -1,12 +1,11 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
-import org.firstinspires.ftc.teamcode.utility.MotorSet;
+import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
 @Autonomous
 public class DirtyStrafeToParkingZone extends LinearOpMode {

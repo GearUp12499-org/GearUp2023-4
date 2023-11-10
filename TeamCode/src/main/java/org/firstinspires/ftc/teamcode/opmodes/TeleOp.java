@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.abstractions.Claw;
 import org.firstinspires.ftc.teamcode.abstractions.Dumper;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
-import org.firstinspires.ftc.teamcode.utility.MotorSet;
+import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
 import dev.aether.collaborative_multitasking.MultitaskScheduler;
 

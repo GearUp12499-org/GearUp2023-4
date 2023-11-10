@@ -5,10 +5,10 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import dev.aether.collaborative_multitasking.SharedResource
-import org.firstinspires.ftc.teamcode.utility.MotorSet
-import org.firstinspires.ftc.teamcode.utility.typedGet
+import org.firstinspires.ftc.teamcode.utilities.MotorSet
+import org.firstinspires.ftc.teamcode.utilities.typedGet
 
-class NeoRobot1(map: HardwareMap) : RobotConfiguration() {
+class Robot(map: HardwareMap) : RobotConfiguration() {
     @JvmField
     var frontLeft // 0
             : DcMotor = map.typedGet("frontLeft")
