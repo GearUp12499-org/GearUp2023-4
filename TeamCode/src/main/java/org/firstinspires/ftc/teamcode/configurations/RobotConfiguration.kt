@@ -19,8 +19,10 @@ abstract class RobotConfiguration {
     abstract val driveMotorLock: SharedResource
 
     protected abstract val clawGrab: Servo?
+    // Use this to manually tell it to open and close
     fun clawGrab(): Servo = clawGrab ?: throw NullPointerException("Robot configuration has no claw grab servo but it was requested")
     protected abstract val clawRotate: Servo?
+    // Up and down
     fun clawRotate(): Servo = clawRotate ?: throw NullPointerException("Robot configuration has no claw rotate servo but it was requested")
     abstract val clawLock: SharedResource
 

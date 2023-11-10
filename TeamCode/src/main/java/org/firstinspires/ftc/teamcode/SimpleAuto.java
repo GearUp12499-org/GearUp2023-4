@@ -52,7 +52,7 @@ public class SimpleAuto extends LinearOpMode {
             driveMotors.frontRight.setPower(0.4);
             driveMotors.backRight.setPower(0.4);
             // Claw scoring code
-                claw.
+
             telemetry.addData("Distance Driven Forward: ", distance);
             telemetry.update();
             }
