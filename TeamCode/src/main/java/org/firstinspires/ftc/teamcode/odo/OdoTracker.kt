@@ -3,6 +3,9 @@ package org.firstinspires.ftc.teamcode.odo
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.util.ElapsedTime
 import dev.aether.collaborative_multitasking.Task
+import org.firstinspires.ftc.teamcode.utilities.LengthUnit
+import org.firstinspires.ftc.teamcode.utilities.Pose
+import org.firstinspires.ftc.teamcode.utilities.inches
 import java.util.concurrent.TimeUnit
 
 class OdoTracker(val odoPerp: DcMotor, val odoPara1: DcMotor, val odoPara2: DcMotor, val origin: Pose) {

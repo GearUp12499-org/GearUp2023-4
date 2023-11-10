@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.utility;
+package org.firstinspires.ftc.teamcode.utilities;
 
 public interface Line {
     double perpendicularSlope();

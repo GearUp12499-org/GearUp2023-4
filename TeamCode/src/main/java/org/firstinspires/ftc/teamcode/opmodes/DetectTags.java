@@ -1,6 +1,6 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.opmodes;
 
-import static org.firstinspires.ftc.teamcode.utility.CollectionUtils.pairs;
+import static org.firstinspires.ftc.teamcode.utilities.CollectionUtils.pairs;
 
 import android.util.Pair;
 import android.util.Size;
@@ -11,8 +11,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.odo.Pose;
-import org.firstinspires.ftc.teamcode.utility.Vector2;
+import org.firstinspires.ftc.teamcode.AprilTagToPoseKt;
+import org.firstinspires.ftc.teamcode.utilities.Pose;
+import org.firstinspires.ftc.teamcode.utilities.Vector2;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
