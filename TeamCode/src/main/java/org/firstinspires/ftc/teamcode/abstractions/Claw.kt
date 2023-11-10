@@ -149,4 +149,9 @@ class Claw(
         base?.then(ext)
         return base ?: ext
     }
+
+    fun defaultPos() {
+        grip.position = GRIP_CLOSED
+        rotate.position = ROTATE_STOW
+    }
 }

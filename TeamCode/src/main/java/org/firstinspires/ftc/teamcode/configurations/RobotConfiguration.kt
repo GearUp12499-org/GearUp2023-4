@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
 import dev.aether.collaborative_multitasking.SharedResource
 import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.teamcode.utility.MotorSet
 
 abstract class RobotConfiguration {
@@ -51,6 +52,7 @@ abstract class RobotConfiguration {
         (device == null) -> "DISCONNECTED"
         is DcMotor -> "${device.mode} P${device.power}"
         is Servo -> "-> ${device.position}"
+        is DistanceSensor -> "${device.getDistance(DistanceUnit.INCH)}in"
         else -> "${device!!::class.simpleName} READY"
     }
 

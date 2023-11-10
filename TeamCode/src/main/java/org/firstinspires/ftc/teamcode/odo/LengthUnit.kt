@@ -8,13 +8,20 @@ abstract class LengthUnit(value: Double) :
 
 data class LengthConversionRules(
     val toInches: Double,
-    val toFeet: Double
+    val toFeet: Double,
+    val toMeters: Double,
 )
+
+private const val InchesPerFoot = 12.0
+private const val InchesPerMeter = 39.3701
+private const val FeetPerMeter = 3.28084
+
 
 class LengthConverter(private val rules: LengthConversionRules, private val value: Double) :
     Converter<LengthUnit>() {
     val inches: InchUnit get() = InchUnit(rules.toInches * value)
     val feet: FootUnit get() = FootUnit(rules.toFeet * value)
+    val meters: MeterUnit get() = MeterUnit(rules.toMeters * value)
 }
 
 class InchUnit(value: Double) : LengthUnit(value) {
@@ -23,7 +30,8 @@ class InchUnit(value: Double) : LengthUnit(value) {
 
     override val rules = LengthConversionRules(
         1.0,
-        1.0 / 12.0
+        1.0 / InchesPerFoot,
+        1.0 / InchesPerMeter
     )
 
     override fun convertOther(other: MeasureUnit<*>): LengthUnit {
@@ -42,8 +50,9 @@ class FootUnit(value: Double) : LengthUnit(value) {
     override fun newInstance(n: Double) = FootUnit(n)
 
     override val rules = LengthConversionRules(
-        12.0,
-        1.0
+        InchesPerFoot,
+        1.0,
+        1.0 / FeetPerMeter
     )
 
     override fun convertOther(other: MeasureUnit<*>): LengthUnit {
@@ -56,3 +65,24 @@ class FootUnit(value: Double) : LengthUnit(value) {
 
 val Double.feet: FootUnit get() = FootUnit(this)
 val Int.feet: FootUnit get() = FootUnit(this.toDouble())
+
+class MeterUnit(value: Double) : LengthUnit(value) {
+    override val label: String = "m"
+    override fun newInstance(n: Double) = MeterUnit(n)
+
+    override val rules = LengthConversionRules(
+        InchesPerMeter,
+        FeetPerMeter,
+        1.0
+    )
+
+    override fun convertOther(other: MeasureUnit<*>): LengthUnit {
+        return when (other) {
+            is LengthUnit -> other.to.meters
+            else -> throw IllegalArgumentException("Cannot convert $other to $this")
+        }
+    }
+}
+
+val Double.meters: MeterUnit get() = MeterUnit(this)
+val Int.meters: MeterUnit get() = MeterUnit(this.toDouble())

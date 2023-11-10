@@ -16,10 +16,10 @@ class Dumper(
     private val lock = config.dumperLock
 
     companion object {
-        const val ROTATE_IDLE = 0.531
-        const val ROTATE_DUMP = 0.316
+        const val ROTATE_IDLE = 0.5640
+        const val ROTATE_DUMP = 0.3242
         const val UNLATCHED = 0.4
-        const val LATCHED = 0.78
+        const val LATCHED = 0.031
 
         // TODO trim timings
         const val RotateTime = 1000 // ms
@@ -88,4 +88,8 @@ class Dumper(
 
     val state: State get() = dumperState
 
+    fun defaultPos() {
+        rotate.position = ROTATE_IDLE
+        latch.position = LATCHED
+    }
 }

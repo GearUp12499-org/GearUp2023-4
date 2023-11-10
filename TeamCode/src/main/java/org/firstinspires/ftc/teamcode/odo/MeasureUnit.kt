@@ -5,8 +5,8 @@ abstract class Converter<out R>
 abstract class MeasureUnit<This: MeasureUnit<This>>(val value: Double) {
     operator fun div(other: Double) = newInstance(this.value / other)
     operator fun div(other: Int) = div(other.toDouble())
-    operator fun div(other: MeasureUnit<*>): This {
-        return newInstance(this.value / convertOther(other).value)
+    operator fun div(other: MeasureUnit<*>): Double {
+        return this.value / convertOther(other).value
     }
 
     operator fun times(other: Double) = newInstance(this.value * other)
