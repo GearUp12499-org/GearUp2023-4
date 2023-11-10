@@ -38,9 +38,15 @@ state Task {
 typealias TaskQuery2<T> = (task: Task, scheduler: Scheduler) -> T
 typealias TaskQuery1<T> = (task: Task) -> T
 typealias Producer<T> = () -> T
+typealias JTaskQuery2<T> = java.util.function.BiFunction<Task, Scheduler, T>
+typealias JTaskQuery1<T> = java.util.function.Function<Task, T>
+typealias JProducer<T> = java.util.function.Supplier<T>
 typealias TaskAction2 = TaskQuery2<Unit>
 typealias TaskAction1 = TaskQuery1<Unit>
 typealias Runnable = () -> Unit
+typealias JTaskAction2 = java.util.function.BiConsumer<Task, Scheduler>
+typealias JTaskAction1 = java.util.function.Consumer<Task>
+typealias JRunnable = java.lang.Runnable
 
 class Task constructor(
     internal var scheduler: Scheduler,
@@ -98,6 +104,18 @@ class Task constructor(
         canStart = { _: Task, _: Scheduler -> block() }
     }
 
+    fun canStart(block: JTaskQuery2<Boolean>) {
+        canStart = { that: Task, scheduler2: Scheduler -> block.apply(that, scheduler2) }
+    }
+
+    fun canStart(block: JTaskQuery1<Boolean>) {
+        canStart = { that: Task, _: Scheduler -> block.apply(that) }
+    }
+
+    fun canStart(block: JProducer<Boolean>) {
+        canStart = { _: Task, _: Scheduler -> block.get() }
+    }
+
     fun invokeCanStart(): Boolean {
         return canStart(this, scheduler)
     }
@@ -112,6 +130,18 @@ class Task constructor(
 
     fun onStart(block: Runnable) {
         onStart = { _: Task, _: Scheduler -> block() }
+    }
+
+    fun onStart(block: JTaskAction2) {
+        onStart = { that: Task, scheduler2: Scheduler -> block.accept(that, scheduler2) }
+    }
+
+    fun onStart(block: JTaskAction1) {
+        onStart = { that: Task, _: Scheduler -> block.accept(that) }
+    }
+
+    fun onStart(block: JRunnable) {
+        onStart = { _: Task, _: Scheduler -> block.run() }
     }
 
     fun invokeOnStart() {
@@ -130,6 +160,18 @@ class Task constructor(
         onTick = { _: Task, _: Scheduler -> block() }
     }
 
+    fun onTick(block: JTaskAction2) {
+        onTick = { that: Task, scheduler2: Scheduler -> block.accept(that, scheduler2) }
+    }
+
+    fun onTick(block: JTaskAction1) {
+        onTick = { that: Task, _: Scheduler -> block.accept(that) }
+    }
+
+    fun onTick(block: JRunnable) {
+        onTick = { _: Task, _: Scheduler -> block.run() }
+    }
+
     fun invokeOnTick() {
         onTick(this, scheduler)
     }
@@ -146,6 +188,18 @@ class Task constructor(
         isCompleted = { _: Task, _: Scheduler -> block() }
     }
 
+    fun isCompleted(block: JTaskQuery2<Boolean>) {
+        isCompleted = { that: Task, scheduler2: Scheduler -> block.apply(that, scheduler2) }
+    }
+
+    fun isCompleted(block: JTaskQuery1<Boolean>) {
+        isCompleted = { that: Task, _: Scheduler -> block.apply(that) }
+    }
+
+    fun isCompleted(block: JProducer<Boolean>) {
+        isCompleted = { _: Task, _: Scheduler -> block.get() }
+    }
+
     fun invokeIsCompleted(): Boolean {
         return isCompleted(this, scheduler)
     }
@@ -160,6 +214,18 @@ class Task constructor(
 
     fun onFinish(block: Runnable) {
         onFinish = { _: Task, _: Scheduler -> block() }
+    }
+
+    fun onFinish(block: JTaskAction2) {
+        onFinish = { that: Task, scheduler2: Scheduler -> block.accept(that, scheduler2) }
+    }
+
+    fun onFinish(block: JTaskAction1) {
+        onFinish = { that: Task, _: Scheduler -> block.accept(that) }
+    }
+
+    fun onFinish(block: JRunnable) {
+        onFinish = { _: Task, _: Scheduler -> block.run() }
     }
 
     fun invokeOnFinish() {
