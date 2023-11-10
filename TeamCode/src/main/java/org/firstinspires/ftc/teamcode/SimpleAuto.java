@@ -62,5 +62,9 @@ public class SimpleAuto extends LinearOpMode {
         claw.rotate.setPosition(Claw.ROTATE_HOVER);
         claw.grip.setPosition(Claw.GRIP_OPEN);
         claw.rotate.setPosition(Claw.ROTATE_FLIP);
+        // Let's code run until we press the stop button
+        while(opModeIsActive()){
+
+        }
     }
 }
