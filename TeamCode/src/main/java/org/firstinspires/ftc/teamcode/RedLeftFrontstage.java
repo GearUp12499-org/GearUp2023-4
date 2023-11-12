@@ -31,6 +31,8 @@ public class RedLeftFrontstage extends LinearOpMode {
         intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         double setPoint = 24;
+        claw.rotate.setPosition(Claw.ROTATE_STOW);
+        claw.grip.setPosition(Claw.GRIP_CLOSED);
         waitForStart();
         telemetry.addData("Distance Driven Forward:", OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2.0));
 
