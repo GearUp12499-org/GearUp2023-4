@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utility.MotorSet;
 
 @Autonomous
-public class SimpleAuto extends LinearOpMode {
+public class BlueRightFrontstage extends LinearOpMode {
     public double OdoToInches (double ticks){
         double ticksPerRotation = 8192;
         double radius_inches = 0.69;
@@ -30,30 +30,19 @@ public class SimpleAuto extends LinearOpMode {
         driveMotors.backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
+        double setPoint = 24;
+        claw.rotate.setPosition(Claw.ROTATE_STOW);
+        claw.grip.setPosition(Claw.GRIP_CLOSED);
         waitForStart();
         telemetry.addData("Distance Driven Forward:", OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2.0));
 
         telemetry.update();
         double distance = OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2.0);
-        double strafeDistance = OdoToInches(intake.getCurrentPosition());
-
-        while (distance < 30) {
+        while (distance < setPoint) {
             distance = OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2.0);
-            if (strafeDistance <= 6) {
-                strafeDistance = OdoToInches(intake.getCurrentPosition());
-                driveMotors.frontLeft.setPower(0.4);
-                driveMotors.backLeft.setPower(-0.4);
-                driveMotors.frontRight.setPower(-0.4);
-                driveMotors.backRight.setPower(0.4);
-            } else {
-            driveMotors.frontLeft.setPower(0.4);
-            driveMotors.backLeft.setPower(0.4);
-            driveMotors.frontRight.setPower(0.4);
-            driveMotors.backRight.setPower(0.4);
+            driveMotors.setAll(0.4);
             telemetry.addData("Distance Driven Forward: ", distance);
             telemetry.update();
-            }
         }
         // Sets all motors to have 0 power
         driveMotors.setAll(0);
@@ -62,9 +51,9 @@ public class SimpleAuto extends LinearOpMode {
         claw.rotate.setPosition(Claw.ROTATE_HOVER);
         sleep(2000);
         claw.grip.setPosition(Claw.GRIP_OPEN);
-        sleep(2000);
+        sleep(500);
         claw.rotate.setPosition(Claw.ROTATE_FLIP);
-        sleep(2000);
+        sleep(1000);
         // Let's code run until we press the stop button
         while(opModeIsActive()){
 
