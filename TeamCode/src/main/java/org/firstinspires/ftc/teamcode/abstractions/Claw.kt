@@ -32,8 +32,8 @@ class Claw(
     companion object {
         // TODO trim timings
         const val CloseRotateTime = 100 // ms
-        const val GripTime = 75 // ms
-        const val FlipTime = 250 // ms
+        const val GripTime = 250 // ms
+        const val FlipTime = 450 // ms
     }
 
     private enum class State {
