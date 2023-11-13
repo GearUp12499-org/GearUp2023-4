@@ -43,7 +43,7 @@ public class RedRightBackstage extends LinearOpMode {
 
         while (distance < 30) {
             distance = OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2.0);
-            if (strafeDistance <= -6) {
+            if (strafeDistance >= -6) {
                 strafeDistance = OdoToInches(intake.getCurrentPosition());
                 telemetry.addData("Distance Strafed:", OdoToInches(intake.getCurrentPosition()));
                 telemetry.update();
