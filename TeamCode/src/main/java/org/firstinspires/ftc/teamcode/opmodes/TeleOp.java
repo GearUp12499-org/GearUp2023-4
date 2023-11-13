@@ -75,15 +75,12 @@ public class TeleOp extends LinearOpMode {
         int targetRight = 0;
         int[] targets = {0, 500, 750, 1000};
         int hangTarget = 1400;
-        double balanceLeft = 1.00;
-        double balanceRight = 1.00;
-        double balanceFront = 1.00;
-        double balanceBack = 1.00;
 
-        double balFL = balanceFront * balanceLeft;
-        double balFR = balanceFront * balanceRight;
-        double balBL = balanceBack * balanceLeft;
-        double balBR = balanceBack * balanceRight;
+        double balFL = Var.TeleOp.balanceFront * Var.TeleOp.balanceLeft;
+        double balFR = Var.TeleOp.balanceFront * Var.TeleOp.balanceRight;
+        double balBL = Var.TeleOp.balanceBack * Var.TeleOp.balanceLeft;
+        double balBR = Var.TeleOp.balanceBack * Var.TeleOp.balanceRight;
+
         double balanceDen = max(Math.abs(balFL), Math.abs(balFR), Math.abs(balBL), Math.abs(balBR), 1);
         balFL /= balanceDen;
         balFR /= balanceDen;
@@ -112,7 +109,7 @@ public class TeleOp extends LinearOpMode {
             double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
             double rx = gamepad1.right_stick_x;
 
-            double fac = gamepad1.left_bumper ? Var.TELEOP_THROTTLE_SPEED : 1;
+            double fac = gamepad1.left_bumper ? Var.TeleOp.throttle : 1;
 
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
             double frontLeftPower = (y + x + rx) / denominator * fac;
@@ -131,7 +128,6 @@ public class TeleOp extends LinearOpMode {
 
             int LONG_SLIDE_LIM = 3000;
             int SHORT_SLIDE_LIM = 1500;
-            int MOTION_PER_CYCLE = 20;
 
             // when B is pressed, reset all the lifts to the first preset
             // none of the other presets are ever used lol
@@ -142,17 +138,17 @@ public class TeleOp extends LinearOpMode {
             }
 
             // use dpad up and down to move the left lift
-            if (gamepad2.dpad_up) targetLeft += MOTION_PER_CYCLE;
-            if (gamepad2.dpad_down) targetLeft -= MOTION_PER_CYCLE;
+            if (gamepad2.dpad_up) targetLeft += Var.TeleOp.liftSpeed;
+            if (gamepad2.dpad_down) targetLeft -= Var.TeleOp.liftSpeed;
 
             // gamepad 1 dpad up/down is for endgame truss scaling
             // moves the right lift, and synchronizes the left lift with it
             if (gamepad1.dpad_up) {
-                targetRight += MOTION_PER_CYCLE;
+                targetRight += Var.TeleOp.liftSpeed;
                 targetLeft = targetRight;
             }
             if (gamepad1.dpad_down) {
-                targetRight -= MOTION_PER_CYCLE;
+                targetRight -= Var.TeleOp.liftSpeed;
                 targetLeft = targetRight;
             }
 
@@ -185,7 +181,7 @@ public class TeleOp extends LinearOpMode {
 
             if (gamepad1.x) {
                 // drive close to board
-                approachBackdrop.approachNoStack(Var.TELEOP_APPROACH_DISTANCE);
+                approachBackdrop.approachNoStack(Var.TeleOp.approachDistance);
             }
 
             // Makes drone launcher motor go zoom when the right bumper is pressed on game pad 1

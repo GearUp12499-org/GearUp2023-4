@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode
 import org.firstinspires.ftc.teamcode.Var.ApproachObject
 import org.firstinspires.ftc.teamcode.Var.Box
 import org.firstinspires.ftc.teamcode.Var.Claw
+import org.firstinspires.ftc.teamcode.Var.TeleOp
 import org.firstinspires.ftc.teamcode.utilities.inches
 
 /*
@@ -10,9 +11,10 @@ import org.firstinspires.ftc.teamcode.utilities.inches
  */
 /**
  * All the things that a driver might need to change, in one place.
- * You can Ctrl-Click these:
+ * You can Ctrl-Click these to jump to them:
  * - [Claw] - claw positions (idle, stowed, flipped, closing) & opened, closed
  * - [Box] - box positions (idle, dump) & latched, unlatched
+ * - [TeleOp] - control configuration: how close to get with 'x', lift speed, etc
  * - [ApproachObject] - options for the object approach algorithm, aka the 'x' button
  */
 object Var {
@@ -57,16 +59,43 @@ object Var {
         const val latched = 0.78
     }
 
-    /**
-     * Target distance for approaching objects with the 'x' button on Gamepad 1.
-     */
-    @JvmField
-    val TELEOP_APPROACH_DISTANCE = 3.inches
+    object TeleOp {
+        /**
+         * Target distance for approaching objects with the 'x' button on Gamepad 1.
+         */
+        @JvmField
+        val approachDistance = 3.inches
 
-    /**
-     * Speed when using the left bumper on Gamepad 1 to decrease the driving speed.
-     */
-    const val TELEOP_THROTTLE_SPEED = 0.5
+        /**
+         * Speed when using the left bumper on Gamepad 1 to decrease the driving speed.
+         */
+        const val throttle = 0.5
+
+        /**
+         * Lift speed, encoder counts per main loop cycle.
+         */
+        const val liftSpeed = 50
+
+        /**
+         * Left-side motor fudging
+         */
+        const val balanceLeft = 1.0
+
+        /**
+         * Right-side motor fudging
+         */
+        const val balanceRight = 0.95
+
+        /**
+         * Front motor fudging
+         */
+        const val balanceFront = 1.0
+
+        /**
+         * Back motor fudging
+         */
+        const val balanceBack = 1.0
+    }
 
     object ApproachObject {
         /**
