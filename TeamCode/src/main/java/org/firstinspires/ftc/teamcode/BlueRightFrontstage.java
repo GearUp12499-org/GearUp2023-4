@@ -49,11 +49,11 @@ public class BlueRightFrontstage extends LinearOpMode {
         // Claw scoring codes
         // Uses the Rotate_Hover variable to hover right above ground to drop pixels
         claw.rotate.setPosition(Claw.ROTATE_HOVER);
-        sleep(2000);
+        sleep(1000);
         claw.grip.setPosition(Claw.GRIP_OPEN);
         sleep(500);
         claw.rotate.setPosition(Claw.ROTATE_FLIP);
-        sleep(1000);
+        sleep(500);
         // Let's code run until we press the stop button
         while(opModeIsActive()){
 
