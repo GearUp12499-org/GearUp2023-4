@@ -163,7 +163,7 @@ public class TeleOp extends LinearOpMode {
             if (targetRight < 0) targetRight = 0;
             if (targetRight > SHORT_SLIDE_LIM) targetRight = SHORT_SLIDE_LIM;
 
-            if (scheduler.isResourceInUse(robot.getLiftLock())) {
+            if (!scheduler.isResourceInUse(robot.getLiftLock())) {
                 robot.liftLeft().setTargetPosition(targetLeft);
                 robot.liftRight().setTargetPosition(targetRight);
             }
