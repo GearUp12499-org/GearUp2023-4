@@ -67,6 +67,10 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
     override val clawLock: SharedResource = SharedResource("claw")
     override val liftLeft: DcMotor get() = liftLeftB
     override val liftRight: DcMotor get() = liftRightB
+    override val liftLock: SharedResource = SharedResource("lift") {
+        liftLeft.power = 0.0
+        liftRight.power = 0.0
+    }
     override val dumperRotate: Servo? = dumperRotateB
     override val dumperLatch: Servo? = dumperLatchB
     override val dumperLock: SharedResource = SharedResource("dumper")

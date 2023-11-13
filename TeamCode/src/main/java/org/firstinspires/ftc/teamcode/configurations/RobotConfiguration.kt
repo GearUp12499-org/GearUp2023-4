@@ -32,6 +32,7 @@ abstract class RobotConfiguration {
     fun liftLeft(): DcMotor = liftLeft ?: throw NullPointerException("Robot configuration has no left lift motor but it was requested")
     protected abstract val liftRight: DcMotor?
     fun liftRight(): DcMotor = liftRight ?: throw NullPointerException("Robot configuration has no right lift motor but it was requested")
+    abstract val liftLock: SharedResource
 
     protected abstract val dumperRotate: Servo?
     fun dumperRotate(): Servo = dumperRotate ?: throw NullPointerException("Robot configuration has no dumper rotate servo but it was requested")

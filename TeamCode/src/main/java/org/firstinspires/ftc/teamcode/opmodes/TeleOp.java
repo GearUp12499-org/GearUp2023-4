@@ -12,9 +12,12 @@ import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
 import dev.aether.collaborative_multitasking.MultitaskScheduler;
+import dev.aether.collaborative_multitasking.ext.TimingKt;
+import kotlin.Unit;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
+    public static Unit kvoid = Unit.INSTANCE;
     /**
      * Returns the maximum of all the arguments
      *
@@ -48,6 +51,7 @@ public class TeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+
         // used for semi-auto tasks, like the claw
         MultitaskScheduler scheduler = new MultitaskScheduler();
         // get the robot configuration container (see RobotConfiguration.java)
@@ -159,8 +163,10 @@ public class TeleOp extends LinearOpMode {
             if (targetRight < 0) targetRight = 0;
             if (targetRight > SHORT_SLIDE_LIM) targetRight = SHORT_SLIDE_LIM;
 
-            robot.liftLeft().setTargetPosition(targetLeft);
-            robot.liftRight().setTargetPosition(targetRight);
+            if (scheduler.isResourceInUse(robot.getLiftLock())) {
+                robot.liftLeft().setTargetPosition(targetLeft);
+                robot.liftRight().setTargetPosition(targetRight);
+            }
 
             if (gamepad2.a) {
                 claw.grab();
@@ -194,16 +200,19 @@ public class TeleOp extends LinearOpMode {
             double slideTicks = (liftRight.getCurrentPosition() + liftLeft.getCurrentPosition())/2.0;
 
             if(gamepad1.y){
-                robot.liftRight().setTargetPosition(hangTarget);
-                robot.liftLeft().setTargetPosition(hangTarget);
-                robot.liftRight().setPower(0.3);
-                robot.liftLeft().setPower(0.3);
                 targetLeft = hangTarget;
                 targetRight = hangTarget;
-                resetRuntime();
-                while(robot.liftRight().isBusy() && robot.liftLeft().isBusy() || getRuntime() <= 3){
-                    telemetry.addData("Slide Motor Ticks: ", slideTicks);
-                }
+                scheduler.task(c -> {
+                    c.require(robot.getLiftLock());
+                    c.onStart(() -> {
+                        robot.liftLeft().setTargetPosition(hangTarget);
+                        robot.liftRight().setTargetPosition(hangTarget);
+                        return kvoid;
+                    });
+                    c.isCompleted(() -> !(robot.liftLeft().isBusy() || robot.liftRight().isBusy()));
+                    TimingKt.maxDuration(c, 3000);
+                    return kvoid;
+                });
             }
 
 
