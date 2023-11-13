@@ -6,17 +6,26 @@ import dev.aether.collaborative_multitasking.Task
 import org.firstinspires.ftc.teamcode.utilities.LengthUnit
 import org.firstinspires.ftc.teamcode.utilities.Pose
 import org.firstinspires.ftc.teamcode.utilities.inches
+import org.firstinspires.ftc.teamcode.utilities.radians
 import java.util.concurrent.TimeUnit
 
-class OdoTracker(val odoPerp: DcMotor, val odoPara1: DcMotor, val odoPara2: DcMotor, val origin: Pose) {
-    val r1: LengthUnit = 8.inches
-    val d: LengthUnit = 8.inches
-    val minTimeBetweenReads = 100.0 // ms
+class OdoTracker(
+    private val odoPerp: DcMotor,
+    private val odoPara1: DcMotor,
+    private val odoPara2: DcMotor,
+    private val origin: Pose
+) {
+    private val r1: LengthUnit = 8.inches
+    private val d: LengthUnit = 8.inches
+    private val minTimeBetweenReads = 100.0 // ms
 
     private var poseBacker: Pose = origin
+
     @Suppress("MemberVisibilityCanBePrivate")
     var currentPose: Pose
-        private set(value) {poseBacker = value}
+        private set(value) {
+            poseBacker = value
+        }
         get() = poseBacker
 
     val provisionTask: Task.() -> Unit = {

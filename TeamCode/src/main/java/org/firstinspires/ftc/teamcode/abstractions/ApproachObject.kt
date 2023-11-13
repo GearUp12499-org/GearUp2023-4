@@ -1,22 +1,18 @@
-package org.firstinspires.ftc.teamcode
+package org.firstinspires.ftc.teamcode.abstractions
 
 import dev.aether.collaborative_multitasking.MultitaskScheduler
 import dev.aether.collaborative_multitasking.Task
 import dev.aether.collaborative_multitasking.ext.maxDuration
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
+import org.firstinspires.ftc.teamcode.Var
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration
-import org.firstinspires.ftc.teamcode.odo.LengthUnit
-import org.firstinspires.ftc.teamcode.odo.inches
+import org.firstinspires.ftc.teamcode.utilities.LengthUnit
+import org.firstinspires.ftc.teamcode.utilities.inches
 
 class ApproachObject(
     private val scheduler: MultitaskScheduler?,
     robot: RobotConfiguration
 ) {
-    companion object {
-        const val maximumSpeed = 0.3
-        const val minimumSpeed = 0.1
-        val stoppingDistance = 6.inches
-    }
 
     private val motors = robot.driveMotors()
     private val distanceLeft = robot.distanceLeft()
@@ -26,10 +22,15 @@ class ApproachObject(
     private fun powerFunction(target: LengthUnit, distance: LengthUnit): Double {
         return when {
             distance <= target -> 0.0
-            distance >= (target + stoppingDistance) -> maximumSpeed
+            distance >= (target + Var.ApproachObject.stoppingDistance) -> Var.ApproachObject.maxSpeed
 
-            else ->
-                (maximumSpeed - minimumSpeed) * ((distance - target) / stoppingDistance) + minimumSpeed
+            else -> {
+                (
+                        (Var.ApproachObject.maxSpeed - Var.ApproachObject.minSpeed)
+                                * ((distance - target) / Var.ApproachObject.stoppingDistance)
+                                + Var.ApproachObject.minSpeed
+                        )
+            }
         }
     }
 
@@ -39,12 +40,17 @@ class ApproachObject(
         return scheduler.task {
             +dmLock
             onStart { ->
-                motors.setAll(maximumSpeed)
+                motors.setAll(Var.ApproachObject.maxSpeed)
             }
             onTick { ->
                 val errorLeft = distanceLeft.getDistance(DistanceUnit.INCH) - inches
                 val errorRight = distanceRight.getDistance(DistanceUnit.INCH) - inches
-                println("going Left " + powerFunction(distance, errorLeft.inches) + " ...Right " + powerFunction(distance, errorRight.inches))
+                println(
+                    "going Left " + powerFunction(
+                        distance,
+                        errorLeft.inches
+                    ) + " ...Right " + powerFunction(distance, errorRight.inches)
+                )
                 motors.frontRight.power = -powerFunction(distance, errorRight.inches)
                 motors.frontLeft.power = -powerFunction(distance, errorLeft.inches)
                 motors.backLeft.power = -powerFunction(distance, errorLeft.inches)
@@ -57,7 +63,7 @@ class ApproachObject(
                         (left.inches <= distance)
                                 && (right.inches <= distance))
             }
-            maxDuration(1000)
+            maxDuration(3000)
             onFinish { ->
                 motors.setAll(0.0)
             }

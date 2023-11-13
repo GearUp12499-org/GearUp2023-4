@@ -4,13 +4,15 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import dev.aether.collaborative_multitasking.MultitaskScheduler;
+import org.firstinspires.ftc.teamcode.Var;
 import org.firstinspires.ftc.teamcode.abstractions.Claw;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
+import dev.aether.collaborative_multitasking.MultitaskScheduler;
+
 @Autonomous
-public class BlueLeftBackstage extends LinearOpMode {
+public class RedLeftFrontstage extends LinearOpMode {
     public double OdoToInches (double ticks){
         double ticksPerRotation = 8192;
         double radius_inches = 0.69;
@@ -30,41 +32,28 @@ public class BlueLeftBackstage extends LinearOpMode {
         driveMotors.backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        claw.rotate.setPosition(Claw.ROTATE_STOW);
-        claw.grip.setPosition(Claw.GRIP_CLOSED);
+        double setPoint = 24;
+        claw.defaultPos();
         waitForStart();
-
         telemetry.addData("Distance Driven Forward:", OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2.0));
-        telemetry.addData("Distance Strafed Forward:", OdoToInches(intake.getCurrentPosition()));
+
         telemetry.update();
         double distance = OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2.0);
-        double strafeDistance = OdoToInches(intake.getCurrentPosition());
-
-        while (distance < 30) {
+        while (distance < setPoint) {
             distance = OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2.0);
-            if (strafeDistance <= 6) {
-                strafeDistance = OdoToInches(intake.getCurrentPosition());
-                telemetry.addData("Distance Strafed Forward:", OdoToInches(intake.getCurrentPosition()));
-                telemetry.update();
-                driveMotors.frontLeft.setPower(0.4);
-                driveMotors.backLeft.setPower(-0.4);
-                driveMotors.frontRight.setPower(-0.4);
-                driveMotors.backRight.setPower(0.4);
-            } else {
             driveMotors.setAll(0.4);
             telemetry.addData("Distance Driven Forward: ", distance);
             telemetry.update();
-            }
         }
         // Sets all motors to have 0 power
         driveMotors.setAll(0);
         // Claw scoring codes
         // Uses the Rotate_Hover variable to hover right above ground to drop pixels
-        claw.rotate.setPosition(Claw.ROTATE_HOVER);
+        claw.rotate.setPosition(Var.Claw.hoverRotate);
         sleep(1000);
-        claw.grip.setPosition(Claw.GRIP_OPEN);
+        claw.grip.setPosition(Var.Claw.opened);
         sleep(500);
-        claw.rotate.setPosition(Claw.ROTATE_FLIP);
+        claw.rotate.setPosition(Var.Claw.flippedRotate);
         sleep(500);
         // Let's code run until we press the stop button
         while(opModeIsActive()){

@@ -37,8 +37,8 @@ class Dumper(
             +lock
             onStart { ->
                 dumperState = State.Dump
-                rotate.position = Var.BOX_ROTATE_DUMP
-                latch.position = Var.BOX_LATCH_LATCHED
+                rotate.position = Var.Box.dumpRotate
+                latch.position = Var.Box.latched
             }
             maxDuration(RotateTime)
         }
@@ -51,8 +51,8 @@ class Dumper(
             +lock
             onStart { ->
                 dumperState = State.Dump
-                rotate.position = Var.BOX_ROTATE_DUMP
-                latch.position = Var.BOX_LATCH_LATCHED
+                rotate.position = Var.Box.dumpRotate
+                latch.position = Var.Box.latched
             }
             maxDuration(RotateTime)
         }
@@ -61,7 +61,7 @@ class Dumper(
             +lock
             onStart { ->
                 dumperState = State.Dump2
-                latch.position = Var.BOX_LATCH_UNLATCHED
+                latch.position = Var.Box.unlatched
             }
             maxDuration(LatchTime)
         }
@@ -74,8 +74,8 @@ class Dumper(
             +lock
             onStart { ->
                 dumperState = State.Idle
-                rotate.position = Var.BOX_ROTATE_IDLE
-                latch.position = Var.BOX_LATCH_LATCHED
+                rotate.position = Var.Box.idleRotate
+                latch.position = Var.Box.latched
             }
             maxDuration(RotateTime)
         }
@@ -85,7 +85,7 @@ class Dumper(
     val state: State get() = dumperState
 
     fun defaultPos() {
-        rotate.position = ROTATE_IDLE
-        latch.position = LATCHED
+        rotate.position = Var.Box.idleRotate
+        latch.position = Var.Box.latched
     }
 }

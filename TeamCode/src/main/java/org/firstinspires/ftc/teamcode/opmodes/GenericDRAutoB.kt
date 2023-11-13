@@ -1,19 +1,12 @@
 package org.firstinspires.ftc.teamcode.opmodes
 
-import com.qualcomm.robotcore.hardware.IMU
 import dev.aether.collaborative_multitasking.MultitaskScheduler
 import dev.aether.collaborative_multitasking.Task
 import dev.aether.collaborative_multitasking.ext.maxDuration
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.teamcode.abstractions.Claw
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration
 import org.firstinspires.ftc.teamcode.utilities.MotorPowers
-import org.firstinspires.ftc.teamcode.utilities.RotationUnit
-import org.firstinspires.ftc.teamcode.utilities.degrees
 
-/**
- * @param imu IMU in degrees, reset to 0
- */
 class GenericDRAutoB(
     private val robotConfig: RobotConfiguration,
     private val scheduler: MultitaskScheduler,

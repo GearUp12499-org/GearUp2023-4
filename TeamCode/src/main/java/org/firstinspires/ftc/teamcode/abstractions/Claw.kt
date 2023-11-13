@@ -68,14 +68,14 @@ class Claw(
             +lock
             onStart { ->
                 clawState = StateV2.Active
-                grip.position = Var.CLAW_OPENED
-                rotate.position = Var.CLAW_CLOSING_ROTATION
+                grip.position = Var.Claw.opened
+                rotate.position = Var.Claw.closingRotate
             }
             maxDuration(FlipTime)
         }.then {
             +lock
             onStart { ->
-                grip.position = Var.CLAW_CLOSED
+                grip.position = Var.Claw.closed
             }
             maxDuration(GripTime)
         }.then(gotoHover())
@@ -97,19 +97,19 @@ class Claw(
             +lock
             onStart { ->
                 clawState = StateV2.Active
-                rotate.position = Var.CLAW_FLIPPED_ROTATION
+                rotate.position = Var.Claw.flippedRotate
             }
             maxDuration(FlipTime)
         }.then {
             +lock
             onStart { ->
-                grip.position = Var.CLAW_OPENED
+                grip.position = Var.Claw.opened
             }
             maxDuration(GripTime)
         }.then {
             +lock
             onStart { ->
-                rotate.position = Var.CLAW_STOWED_ROTATION
+                rotate.position = Var.Claw.stowedRotate
             }
             maxDuration(FlipTime)
             onFinish { ->
@@ -141,8 +141,8 @@ class Claw(
             +lock
             onStart { ->
                 clawState = StateV2.Active
-                grip.position = Var.CLAW_OPENED
-                rotate.position = Var.CLAW_HOVER_ROTATION
+                grip.position = Var.Claw.opened
+                rotate.position = Var.Claw.hoverRotate
             }
             maxDuration(FlipTime)
             onFinish { ->
@@ -157,7 +157,7 @@ class Claw(
         return scheduler.task {
             +lock
             onStart { ->
-                rotate.position = Var.CLAW_HOVER_ROTATION
+                rotate.position = Var.Claw.hoverRotate
             }
             maxDuration(FlipTime)
             onFinish { ->
@@ -177,11 +177,16 @@ class Claw(
         val ext = scheduler.task {
             +lock
             onStart { ->
-                grip.position = Var.CLAW_OPENED
+                grip.position = Var.Claw.opened
             }
             maxDuration(GripTime)
         }
         base?.then(ext)
         return base ?: ext
+    }
+
+    fun defaultPos() {
+        grip.position = Var.Claw.closed
+        rotate.position = Var.Claw.stowedRotate
     }
 }

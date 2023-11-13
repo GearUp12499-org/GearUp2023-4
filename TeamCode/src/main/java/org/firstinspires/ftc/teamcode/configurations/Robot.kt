@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo
 import dev.aether.collaborative_multitasking.SharedResource
 import org.firstinspires.ftc.teamcode.utilities.MotorSet
 import org.firstinspires.ftc.teamcode.utilities.typedGet
-import org.firstinspires.ftc.teamcode.utility.typedMaybeGet
+import org.firstinspires.ftc.teamcode.utilities.typedMaybeGet
 
 class Robot(map: HardwareMap) : RobotConfiguration() {
     @JvmField

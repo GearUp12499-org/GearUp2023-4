@@ -4,10 +4,11 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Var;
+import org.firstinspires.ftc.teamcode.abstractions.ApproachObject;
 import org.firstinspires.ftc.teamcode.abstractions.Claw;
 import org.firstinspires.ftc.teamcode.abstractions.Dumper;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
-import org.firstinspires.ftc.teamcode.odo.InchUnit;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
 import dev.aether.collaborative_multitasking.MultitaskScheduler;
@@ -111,7 +112,7 @@ public class TeleOp extends LinearOpMode {
             double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
             double rx = gamepad1.right_stick_x;
 
-            double fac = gamepad1.left_bumper ? 0.5 : 1;
+            double fac = gamepad1.left_bumper ? Var.TELEOP_THROTTLE_SPEED : 1;
 
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
             double frontLeftPower = (y + x + rx) / denominator * fac;
@@ -184,11 +185,8 @@ public class TeleOp extends LinearOpMode {
 
             if (gamepad1.x) {
                 // drive close to board
-                approachBackdrop.approachNoStack(new InchUnit(3));
+                approachBackdrop.approachNoStack(Var.TELEOP_APPROACH_DISTANCE);
             }
-
-            // TODO: really should make this based on deltaTime
-            // make time between refreshes longer to avoid spamming motors with commands
 
             // Makes drone launcher motor go zoom when the right bumper is pressed on game pad 1
             if (gamepad1.right_bumper) {
