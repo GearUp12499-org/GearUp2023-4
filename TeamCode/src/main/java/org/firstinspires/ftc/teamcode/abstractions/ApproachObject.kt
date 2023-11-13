@@ -36,25 +36,26 @@ class ApproachObject(
 
     fun approach(distance: LengthUnit): Task {
         scheduler ?: throw AssertionError("Need scheduler to make task")
-        val inches = distance.to.inches.value
         return scheduler.task {
             +dmLock
             onStart { ->
                 motors.setAll(Var.ApproachObject.maxSpeed)
             }
             onTick { ->
-                val errorLeft = distanceLeft.getDistance(DistanceUnit.INCH) - inches
-                val errorRight = distanceRight.getDistance(DistanceUnit.INCH) - inches
+                val left = distanceLeft.getDistance(DistanceUnit.INCH)
+                val right = distanceRight.getDistance(DistanceUnit.INCH)
                 println(
-                    "going Left " + powerFunction(
-                        distance,
-                        errorLeft.inches
-                    ) + " ...Right " + powerFunction(distance, errorRight.inches)
+                    "going Left ${left.inches} : ${
+                        powerFunction(
+                            distance,
+                            left.inches
+                        )
+                    } ...Right ${right.inches} : ${powerFunction(distance, right.inches)}"
                 )
-                motors.frontRight.power = -powerFunction(distance, errorRight.inches)
-                motors.frontLeft.power = -powerFunction(distance, errorLeft.inches)
-                motors.backLeft.power = -powerFunction(distance, errorLeft.inches)
-                motors.backRight.power = -powerFunction(distance, errorRight.inches)
+                motors.frontRight.power = -powerFunction(distance, right.inches)
+                motors.frontLeft.power = -powerFunction(distance, left.inches)
+                motors.backLeft.power = -powerFunction(distance, left.inches)
+                motors.backRight.power = -powerFunction(distance, right.inches)
             }
             isCompleted { ->
                 val left = distanceLeft.getDistance(DistanceUnit.INCH)

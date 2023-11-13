@@ -40,7 +40,7 @@ object Var {
          * The box is in the idle position when it is not being dumped, and also when the lift
          * is all the way down. Tune (DumperTestBench) with lift at 0 to avoid collisions.
          */
-        const val idleRotate = 0.531
+        const val idleRotate = 0.5705
 
         /**
          * The rotation of the box in the dumping position.
@@ -51,12 +51,12 @@ object Var {
         /**
          * Latch position such that it does not block movement of the bottom pixel in the box.
          */
-        const val unlatched = 0.4
+        const val unlatched = 0.308
 
         /**
          * Latch position such that it blocks movement of the bottom pixel in the box.
          */
-        const val latched = 0.78
+        const val latched = 0.003
     }
 
     object TeleOp {
