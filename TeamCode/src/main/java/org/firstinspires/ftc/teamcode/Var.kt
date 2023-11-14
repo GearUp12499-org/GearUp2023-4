@@ -72,9 +72,19 @@ object Var {
         const val throttle = 0.5
 
         /**
-         * Lift speed, encoder counts per main loop cycle.
+         * Lift speed, encoder counts per second
          */
-        const val liftSpeed = 50
+        const val liftSpeed = 2000
+
+        /**
+         * Lift speed (driver 1), encoder counts per second
+         */
+        const val climbingLiftSpeed = 750
+
+        /**
+         * Lift preset height for scoring, encoder ticks
+         */
+        const val liftScoringPreset = 2700
 
         /**
          * Left-side motor fudging
@@ -108,7 +118,7 @@ object Var {
          * Maximum speed when approaching object, for ramping up when the distance read is
          * more than [stoppingDistance] away from the target distance.
          */
-        const val maxSpeed = 0.3
+        const val maxSpeed = 0.5
 
         /**
          * Distance at which to start ramping down the speed when approaching an object.
@@ -116,6 +126,6 @@ object Var {
          * @see maxSpeed
          */
         @JvmField
-        val stoppingDistance = 6.inches
+        val stoppingDistance = 18.inches
     }
 }

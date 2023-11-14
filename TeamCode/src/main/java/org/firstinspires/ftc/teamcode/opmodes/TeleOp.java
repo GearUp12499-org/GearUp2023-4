@@ -11,6 +11,8 @@ import org.firstinspires.ftc.teamcode.abstractions.Dumper;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
+import java.util.concurrent.TimeUnit;
+
 import dev.aether.collaborative_multitasking.MultitaskScheduler;
 import dev.aether.collaborative_multitasking.ext.TimingKt;
 import kotlin.Unit;
@@ -18,6 +20,7 @@ import kotlin.Unit;
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
     public static Unit kvoid = Unit.INSTANCE;
+
     /**
      * Returns the maximum of all the arguments
      *
@@ -42,10 +45,11 @@ public class TeleOp extends LinearOpMode {
         }
         return max;
     }
-    public double OdoToInches (double ticks){
+
+    public double OdoToInches(double ticks) {
         double ticksPerRotation = 8192;
         double radius_inches = 0.69;
-        double num_wheel_rotations = ticks/ticksPerRotation;
+        double num_wheel_rotations = ticks / ticksPerRotation;
         return (num_wheel_rotations * 2 * Math.PI * radius_inches);
     }
 
@@ -101,11 +105,13 @@ public class TeleOp extends LinearOpMode {
         intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        ElapsedTime timer1 = new ElapsedTime();
+        ElapsedTime deltaTimer = new ElapsedTime();
+        ElapsedTime frameTimer = new ElapsedTime();
         while (opModeIsActive()) {
+            double dt = deltaTimer.time(TimeUnit.MICROSECONDS) / 1_000_000.0;
             scheduler.tick();
-//            double dt = timer1.time(TimeUnit.SECONDS);
-            timer1.reset();
+            frameTimer.reset();
+            deltaTimer.reset();
 
             // Standard mecanum drive code
             // Compute the necessary powers to apply to the motors
@@ -130,6 +136,7 @@ public class TeleOp extends LinearOpMode {
                 driveMotors.backRight.setPower(backRightPower * balBR);
             }
 
+            // 1350
             int LONG_SLIDE_LIM = 3000;
             int SHORT_SLIDE_LIM = 1500;
 
@@ -141,18 +148,26 @@ public class TeleOp extends LinearOpMode {
                 dumper.reset();
             }
 
+            int iLiftSpeed = (int) (Var.TeleOp.liftSpeed * dt);
             // use dpad up and down to move the left lift
-            if (gamepad2.dpad_up) targetLeft += Var.TeleOp.liftSpeed;
-            if (gamepad2.dpad_down) targetLeft -= Var.TeleOp.liftSpeed;
+            if (gamepad2.dpad_up) targetLeft += iLiftSpeed;
+            if (gamepad2.dpad_down) targetLeft -= iLiftSpeed;
 
+            double lsy = -gamepad2.left_stick_y;
+            double lsx = gamepad2.left_stick_x;
+            if (Math.abs(lsy) > 0.5 || Math.abs(lsx) > 0.5) {
+                targetLeft = Var.TeleOp.liftScoringPreset;
+            }
+
+            int cLiftSpeed = (int) (Var.TeleOp.climbingLiftSpeed * dt);
             // gamepad 1 dpad up/down is for endgame truss scaling
             // moves the right lift, and synchronizes the left lift with it
             if (gamepad1.dpad_up) {
-                targetRight += Var.TeleOp.liftSpeed;
+                targetRight += cLiftSpeed;
                 targetLeft = targetRight;
             }
             if (gamepad1.dpad_down) {
-                targetRight -= Var.TeleOp.liftSpeed;
+                targetRight -= cLiftSpeed;
                 targetLeft = targetRight;
             }
 
@@ -197,9 +212,9 @@ public class TeleOp extends LinearOpMode {
                 drone.setPower(0);
             }
             // Gets the average ticks of both the slide motors --> Ticks for perfect hang position is 1340 ticks use hangTarget variable
-            double slideTicks = (liftRight.getCurrentPosition() + liftLeft.getCurrentPosition())/2.0;
+            double slideTicks = (liftRight.getCurrentPosition() + liftLeft.getCurrentPosition()) / 2.0;
 
-            if(gamepad1.y){
+            if (gamepad1.y) {
                 targetLeft = hangTarget;
                 targetRight = hangTarget;
                 scheduler.task(c -> {
@@ -219,10 +234,16 @@ public class TeleOp extends LinearOpMode {
             robot.tele(telemetry);
 
             //Updates the average distance traveled forward: positive is right or forward; negative is backward or left
-            telemetry.addData("Distance Driven Forward:", OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition())/2.0));
+            telemetry.addData("Distance Driven Forward:", OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition()) / 2.0));
             telemetry.addData("Inches Strafed: ", OdoToInches(intake.getCurrentPosition()));
             telemetry.addData("Slide Motor Ticks: ", slideTicks);
+            telemetry.addData("dt", "%.2f ms", dt * 1000);
+            telemetry.addData("Left Target", targetLeft);
+            telemetry.addData("Right Target", targetRight);
             telemetry.update();
+            while (frameTimer.time(TimeUnit.MILLISECONDS) < 5) {
+                sleep(1);
+            }
         }
 
         // panic() cleans up 'resources' (Claw, drive motors, etc)
