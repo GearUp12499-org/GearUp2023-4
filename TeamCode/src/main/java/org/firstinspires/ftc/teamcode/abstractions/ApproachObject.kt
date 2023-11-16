@@ -58,11 +58,13 @@ class ApproachObject(
                 motors.backRight.power = -powerFunction(distance, right.inches)
             }
             isCompleted { ->
-                val left = distanceLeft.getDistance(DistanceUnit.INCH)
-                val right = distanceRight.getDistance(DistanceUnit.INCH)
+                val left = distanceLeft.getDistance(DistanceUnit.INCH).inches
+                val right = distanceRight.getDistance(DistanceUnit.INCH).inches
                 return@isCompleted (
-                        (left.inches <= distance)
-                                && (right.inches <= distance))
+                        ((left <= distance) && (right <= distance))
+                                || left > Var.ApproachObject.panicDistance
+                                || right > Var.ApproachObject.panicDistance
+                        )
             }
             maxDuration(3000)
             onFinish { ->

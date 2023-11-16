@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode
 
 import org.firstinspires.ftc.teamcode.Var.ApproachObject
+import org.firstinspires.ftc.teamcode.Var.Autonomous
 import org.firstinspires.ftc.teamcode.Var.Box
 import org.firstinspires.ftc.teamcode.Var.Claw
 import org.firstinspires.ftc.teamcode.Var.TeleOp
@@ -16,10 +17,11 @@ import org.firstinspires.ftc.teamcode.utilities.inches
  * - [Box] - box positions (idle, dump) & latched, unlatched
  * - [TeleOp] - control configuration: how close to get with 'x', lift speed, etc
  * - [ApproachObject] - options for the object approach algorithm, aka the 'x' button
+ * - [Autonomous] - autonomous program configurations
  */
 object Var {
     object Claw {
-        const val hoverRotate = 0.669
+        const val hoverRotate = 0.65
 
         // 'closing' - touching ground as much as possible without hindering claw operation
         const val closingRotate = 0.720
@@ -84,7 +86,7 @@ object Var {
         /**
          * Lift preset height for scoring, encoder ticks
          */
-        const val liftScoringPreset = 2700
+        const val liftScoringPreset = 2200
 
         /**
          * Left-side motor fudging
@@ -127,5 +129,18 @@ object Var {
          */
         @JvmField
         val stoppingDistance = 18.inches
+
+        /**
+         * If either sensor reads more than this distance, abort!
+         */
+        @JvmField
+        val panicDistance = 24.inches
+    }
+
+    object Autonomous {
+        /**
+         * Distance to travel with front-stage autos (the one where we put the pixel on the spike)
+         */
+        const val frontStageForwardDistance = 23.0
     }
 }
