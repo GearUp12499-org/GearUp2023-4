@@ -193,8 +193,10 @@ public class TeleOp extends LinearOpMode {
                 claw.resetTele();
             }
             if (gamepad2.left_bumper) {
-                if (dumper.getState() == Dumper.State.Dump) dumper.dumpSecond();
-                else dumper.dump();
+                if (targetLeft >= 250) {
+                    if (dumper.getState() == Dumper.State.Dump) dumper.dumpSecond();
+                    else dumper.dump();
+                }
             }
             if (gamepad2.right_bumper) {
                 dumper.reset();

@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.utilities.inches
  */
 object Var {
     object Claw {
-        const val hoverRotate = 0.65
+        const val hoverRotate = 0.669
 
         // 'closing' - touching ground as much as possible without hindering claw operation
         const val closingRotate = 0.720
