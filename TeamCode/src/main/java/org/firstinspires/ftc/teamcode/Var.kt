@@ -66,7 +66,7 @@ object Var {
          * Target distance for approaching objects with the 'x' button on Gamepad 1.
          */
         @JvmField
-        val approachDistance = 3.inches
+        val approachDistance = 3.5.inches
 
         /**
          * Speed when using the left bumper on Gamepad 1 to decrease the driving speed.
