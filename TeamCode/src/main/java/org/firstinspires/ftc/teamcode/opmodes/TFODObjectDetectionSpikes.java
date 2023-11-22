@@ -17,10 +17,10 @@ public class TFODObjectDetectionSpikes extends LinearOpMode {
 
     // TFOD_MODEL_FILE points to a model file stored onboard the Robot Controller's storage,
     // this is used when uploading models directly to the RC using the model upload interface.
-    private static final String TFOD_MODEL_ASSET = "model_20231021_184041.tflite";
+    private static final String TFOD_MODEL_ASSET = "RedCupPrototype.tflite";
     // Define the labels recognized in the model for TFOD (must be in training order!)
     private static final String[] LABELS = {
-            "ShampooBottle",
+            "Red Cup",
     };
 
     /**
@@ -122,7 +122,7 @@ public class TFODObjectDetectionSpikes extends LinearOpMode {
         visionPortal = builder.build();
 
         // Set confidence threshold for TFOD recognitions, at any time.
-        //tfod.setMinResultConfidence(0.75f);
+        tfod.setMinResultConfidence(0.5f);
 
         // Disable or re-enable the TFOD processor at any time.
         //visionPortal.setProcessorEnabled(tfod, true);
