@@ -19,6 +19,11 @@ public class HWTest extends LinearOpMode {
 
     RobotConfiguration robot;
 
+    /**
+     * Ask the user to confirm something with the gamepad.
+     * @param message message to display with the prompt
+     * @return TRUE if the user pressed A, FALSE if the user pressed B
+     */
     boolean confirm(String message) {
         lastA = gamepad1.a;
         lastB = gamepad1.b;
@@ -38,6 +43,10 @@ public class HWTest extends LinearOpMode {
         throw new Panic();
     }
 
+    /**
+     * Displays a message and waits for the user to press A.
+     * @param message message to display
+     */
     void alert(String message) {
         lastA = gamepad1.a;
         lastB = gamepad1.b;

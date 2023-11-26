@@ -14,6 +14,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.AprilTagToPoseKt;
 import org.firstinspires.ftc.teamcode.utilities.Pose;
 import org.firstinspires.ftc.teamcode.utilities.Vector2;
+import org.firstinspires.ftc.teamcode.vision.SphereProcess;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
@@ -43,6 +44,7 @@ public class DetectTags extends LinearOpMode {
     public static final double DISTANCE_THRESHOLD = 0.5;
     private WebcamName webcam;
     private AprilTagProcessor aprilTag;
+    private SphereProcess spheres;
     private VisionPortal portal;
     private FtcDashboard dashboardInstance;
 
@@ -145,6 +147,7 @@ public class DetectTags extends LinearOpMode {
                 .setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
                 //.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
                 .build();
+        spheres = new SphereProcess();
 
         VisionPortal.Builder visionPortalBuilder = new VisionPortal.Builder();
         visionPortalBuilder.setCamera(webcam);
@@ -153,6 +156,7 @@ public class DetectTags extends LinearOpMode {
         // use Search Anything in "include non-project" mode to find
         visionPortalBuilder.setCameraResolution(new Size(864, 480));
         visionPortalBuilder.addProcessor(aprilTag);
+        visionPortalBuilder.addProcessor(spheres);
         portal = visionPortalBuilder.build();
     }
 }
