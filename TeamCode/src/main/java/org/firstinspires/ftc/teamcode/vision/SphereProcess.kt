@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.vision
 
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
+import androidx.annotation.ColorInt
 import com.qualcomm.robotcore.util.RobotLog
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration
 import org.firstinspires.ftc.vision.VisionProcessor
@@ -13,9 +13,18 @@ import org.opencv.core.Scalar
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 
+
+typealias CVRect = org.opencv.core.Rect
+typealias ARect = android.graphics.Rect
+
 class SphereProcess : VisionProcessor {
+    enum class SectionState {
+        None,
+        Red,
+        Blue,
+    }
+
     companion object {
-        private const val BLUR_RADIUS = 11.0
         private const val HSV_MIN_S = 128.0
         private const val HSV_MIN_V = 32.0
         private val redFrom1 = Scalar(175.0, HSV_MIN_S, HSV_MIN_V)
@@ -26,16 +35,23 @@ class SphereProcess : VisionProcessor {
         private val blueFrom = Scalar(95.0, HSV_MIN_S, HSV_MIN_V)
         private val blueTo = Scalar(125.0, 255.0, 255.0)
 
-        private const val circleDP = 1.0
-        private const val circleMinDist = 20.0
-        private const val circleParam1 = 50.0
-        private const val circleParam2 = 40.0
-        private const val circleMinRadius = 0
-        private const val circleMaxRadius = 0
+        /**
+         * at least this many more pixels of one color in a section,
+         * for that section to be considered that color
+         */
+        private const val MAJORITY = 100
+        private const val AreaFillPct = 0.2 // 20%
     }
 
     private var width: Int = 0
     private var height: Int = 0
+
+    var leftSection: SectionState = SectionState.None
+        private set
+    var centerSection: SectionState = SectionState.None
+        private set
+    var rightSection: SectionState = SectionState.None
+        private set
 
     override fun init(width: Int, height: Int, calibration: CameraCalibration?) {
         this.width = width
@@ -52,73 +68,80 @@ class SphereProcess : VisionProcessor {
     private lateinit var red2: Mat
     private lateinit var blue: Mat
 
-    private var redCircles: Mat = Mat()
-    private var blueCircles: Mat = Mat()
-
     override fun processFrame(frame: Mat?, captureTimeNanos: Long): Any? {
         frame ?: throw IllegalStateException("passed a null frame to processFrame")
         val frac = 720.0 / frame.width()
-        RobotLog.ii("SphereProcess", "Resize")
         Imgproc.resize(frame, scratch, Size(), frac, frac)
-        RobotLog.ii("SphereProcess", "Convert")
         Imgproc.cvtColor(scratch, scratch, Imgproc.COLOR_BGR2HSV)
-        RobotLog.ii("SphereProcess", "Filter")
         Core.inRange(scratch, redFrom1, redTo1, red1)
         Core.inRange(scratch, redFrom2, redTo2, red2)
         Core.add(red1, red2, red1)
         Core.inRange(scratch, blueFrom, blueTo, blue)
 
-        RobotLog.ii("SphereProcess", "Blur")
-        Imgproc.GaussianBlur(red1, red1, Size(BLUR_RADIUS, BLUR_RADIUS), 5.0)
-        Imgproc.GaussianBlur(blue, blue, Size(BLUR_RADIUS, BLUR_RADIUS), 5.0)
+        // Chop off the top 1/3 and bottom 1/4
+        val cropFrom = (scratch.height() / 3.0).toInt()
+        val cropTo = (scratch.height() / 4.0).toInt()
+        val third = (scratch.width() / 3.0).toInt()
 
-        RobotLog.ii("SphereProcess", "Circles 1/2")
-        Imgproc.HoughCircles(
-            red1, redCircles, Imgproc.HOUGH_GRADIENT,
-            circleDP,
-            circleMinDist, // min. dist. between circles
-            circleParam1, // Canny edge detection high threshold
-            circleParam2, // minimum number of votes "accumulator threshold"
-            // min and max radius (set these values as you desire)
-            circleMinRadius, circleMaxRadius,
-        )
-        RobotLog.ii("SphereProcess", "Circles 2/2")
-        Imgproc.HoughCircles(
-            blue, blueCircles, Imgproc.HOUGH_GRADIENT,
-            circleDP,
-            circleMinDist, // min. dist. between circles
-            circleParam1, // Canny edge detection high threshold
-            circleParam2, // minimum number of votes "accumulator threshold"
-            // min and max radius (set these values as you desire)
-            circleMinRadius, circleMaxRadius,
-        )
-        RobotLog.ii("SphereProcess", "Pass Done")
-        return null
-    }
+        val firstThirdR =
+            Mat(red1, CVRect(0, cropFrom, third, scratch.height() - cropFrom - cropTo))
+        val secondThirdR =
+            Mat(red1, CVRect(third, cropFrom, third, scratch.height() - cropFrom - cropTo))
+        val thirdThirdR =
+            Mat(red1, CVRect(third * 2, cropFrom, third, scratch.height() - cropFrom - cropTo))
+        val firstThirdB =
+            Mat(blue, CVRect(0, cropFrom, third, scratch.height() - cropFrom - cropTo))
+        val secondThirdB =
+            Mat(blue, CVRect(third, cropFrom, third, scratch.height() - cropFrom - cropTo))
+        val thirdThirdB =
+            Mat(blue, CVRect(third * 2, cropFrom, third, scratch.height() - cropFrom - cropTo))
 
-    private fun draw(canvas: Canvas, scaling: Float, circles: Mat, color: Int) {
-        for (x in 0 until circles.cols()) {
-            val circle = circles.get(0, x)
-            val centerX = circle[0].toFloat() * scaling
-            val centerY = circle[1].toFloat() * scaling
-            val radius = circle[2].toFloat() * scaling
-            canvas.drawPoint(
-                centerX, centerY,
-                Paint().apply {
-                    this.color = color
-                    style = Paint.Style.STROKE
-                    strokeWidth = 5f
-                },
-            )
-            canvas.drawCircle(
-                centerX, centerY, radius,
-                Paint().apply {
-                    this.color = color
-                    style = Paint.Style.STROKE
-                    strokeWidth = 5f
-                }
-            )
+        // i don't know why this happens but they're switched
+        val firstThirdRC = Core.countNonZero(firstThirdR)
+        val secondThirdRC = Core.countNonZero(secondThirdR)
+        val thirdThirdRC = Core.countNonZero(thirdThirdR)
+
+        val firstThirdBC = Core.countNonZero(firstThirdB)
+        val secondThirdBC = Core.countNonZero(secondThirdB)
+        val thirdThirdBC = Core.countNonZero(thirdThirdB)
+
+        leftSection = when {
+            firstThirdRC - firstThirdBC > MAJORITY -> SectionState.Red
+            firstThirdBC - firstThirdRC > MAJORITY -> SectionState.Blue
+            else -> SectionState.None
         }
+        centerSection = when {
+            secondThirdRC - secondThirdBC > MAJORITY -> SectionState.Red
+            secondThirdBC - secondThirdRC > MAJORITY -> SectionState.Blue
+            else -> SectionState.None
+        }
+        rightSection = when {
+            thirdThirdRC - thirdThirdBC > MAJORITY -> SectionState.Red
+            thirdThirdBC - thirdThirdRC > MAJORITY -> SectionState.Blue
+            else -> SectionState.None
+        }
+
+        RobotLog.ii(
+            "SphereProcess",
+            String.format("Red : %5d %5d %5d", firstThirdRC, secondThirdRC, thirdThirdRC)
+        )
+        RobotLog.ii(
+            "SphereProcess",
+            String.format("Blue: %5d %5d %5d", firstThirdBC, secondThirdBC, thirdThirdBC)
+        )
+
+        firstThirdR.release()
+        secondThirdR.release()
+        thirdThirdR.release()
+        firstThirdB.release()
+        secondThirdB.release()
+        thirdThirdB.release()
+
+        RobotLog.ii(
+            "SphereProcess",
+            "All done: ${leftSection.name} ${centerSection.name} ${rightSection.name}"
+        )
+        return null
     }
 
     /**
@@ -133,9 +156,46 @@ class SphereProcess : VisionProcessor {
         userContext: Any?,
     ) {
         canvas ?: return
-        RobotLog.ii("SphereProcess", "${redCircles.size()} red, ${blueCircles.size()} blue")
-        draw(canvas, scaleBmpPxToCanvasPx, redCircles, Color.RED)
-        draw(canvas, scaleBmpPxToCanvasPx, blueCircles, Color.BLUE)
+
+        val third = (onscreenWidth / 3.0).toInt()
+        val stripeSize = ((height / 4.0) * scaleBmpPxToCanvasPx).toInt()
+        val stripeTop = onscreenHeight - stripeSize
+
+        @ColorInt val leftCol: Int = when (leftSection) {
+            SectionState.Red -> 0x80FF0000.toInt()
+            SectionState.Blue -> 0x800080FF.toInt()
+            else -> 0x80B0B0B0.toInt()
+        }
+        val leftColR: ARect = ARect(0, stripeTop, third, onscreenHeight)
+        canvas.drawRect(leftColR, Paint().apply {
+            color = leftCol
+            strokeWidth = 0f
+            style = Paint.Style.FILL
+        })
+
+        @ColorInt val centerCol: Int = when (centerSection) {
+            SectionState.Red -> 0x80FF0000.toInt()
+            SectionState.Blue -> 0x800080FF.toInt()
+            else -> 0x80B0B0B0.toInt()
+        }
+        val centerColR: ARect = ARect(third, stripeTop, third * 2, onscreenHeight)
+        canvas.drawRect(centerColR, Paint().apply {
+            color = centerCol
+            strokeWidth = 0f
+            style = Paint.Style.FILL
+        })
+
+        @ColorInt val rightCol: Int = when (rightSection) {
+            SectionState.Red -> 0x80FF0000.toInt()
+            SectionState.Blue -> 0x800080FF.toInt()
+            else -> 0x80B0B0B0.toInt()
+        }
+        val rightColR: ARect = ARect(third * 2, stripeTop, third * 3, onscreenHeight)
+        canvas.drawRect(rightColR, Paint().apply {
+            color = rightCol
+            strokeWidth = 0f
+            style = Paint.Style.FILL
+        })
     }
 
 }

@@ -16,6 +16,13 @@ public class DriveForward extends LinearOpMode {
         DriveForwardPID pidDrive = new DriveForwardPID(robot);
 
         waitForStart();
-        pidDrive.DriveForward(24.0);
+        pidDrive.DriveForward(24.0, telemetry);
+
+        while (opModeIsActive()) {
+            telemetry.addData("LEFT  ", pidDrive.LeftOdoDist());
+            telemetry.addData("RIGHT", pidDrive.RightOdoDist());
+            telemetry.update();
+            sleep(20);
+        }
     }
 }
