@@ -1,16 +1,19 @@
 package org.firstinspires.ftc.teamcode.vision
 
+import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import androidx.annotation.ColorInt
 import com.qualcomm.robotcore.util.RobotLog
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.firstinspires.ftc.vision.VisionProcessor
 import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.Scalar
 import org.opencv.core.Size
+import org.opencv.imgcodecs.Imgcodecs.imwrite
 import org.opencv.imgproc.Imgproc
 
 
@@ -18,6 +21,9 @@ typealias CVRect = org.opencv.core.Rect
 typealias ARect = android.graphics.Rect
 
 class SphereProcess : VisionProcessor {
+    private var spewControl = 0
+    private val maxSpewage = 5
+
     enum class SectionState {
         None,
         Red,
@@ -57,19 +63,29 @@ class SphereProcess : VisionProcessor {
         this.width = width
         this.height = height
         this.scratch = Mat(width, height, CvType.CV_8UC4)
+        this.lastKnown = Mat(width, height, CvType.CV_8UC4)
         // We need to do a bitwise OR to look at reddish objects...
         this.red1 = Mat(width, height, CvType.CV_8U)
         this.red2 = Mat(width, height, CvType.CV_8U)
         this.blue = Mat(width, height, CvType.CV_8U)
     }
 
+    private lateinit var lastKnown: Mat
     private lateinit var scratch: Mat
     private lateinit var red1: Mat
     private lateinit var red2: Mat
     private lateinit var blue: Mat
 
+    private fun log(text: String) {
+        if (spewControl < maxSpewage) {
+            RobotLog.ii("SphereProcess", text)
+        }
+    }
+
     override fun processFrame(frame: Mat?, captureTimeNanos: Long): Any? {
         frame ?: throw IllegalStateException("passed a null frame to processFrame")
+        Imgproc.cvtColor(frame, lastKnown, Imgproc.COLOR_BGR2RGB)
+        lastKnown = frame.clone()
         val frac = 720.0 / frame.width()
         Imgproc.resize(frame, scratch, Size(), frac, frac)
         Imgproc.cvtColor(scratch, scratch, Imgproc.COLOR_BGR2HSV)
@@ -96,14 +112,17 @@ class SphereProcess : VisionProcessor {
         val thirdThirdB =
             Mat(blue, CVRect(third * 2, cropFrom, third, scratch.height() - cropFrom - cropTo))
 
-        // i don't know why this happens but they're switched
-        val firstThirdRC = Core.countNonZero(firstThirdR)
-        val secondThirdRC = Core.countNonZero(secondThirdR)
-        val thirdThirdRC = Core.countNonZero(thirdThirdR)
+        log("red1 @ %x".format(red1.dataAddr()))
+        log("blue @ %x".format(blue.dataAddr()))
 
-        val firstThirdBC = Core.countNonZero(firstThirdB)
-        val secondThirdBC = Core.countNonZero(secondThirdB)
-        val thirdThirdBC = Core.countNonZero(thirdThirdB)
+        // i don't know why this happens but they're switched
+        val firstThirdBC = Core.countNonZero(firstThirdR)
+        val secondThirdBC = Core.countNonZero(secondThirdR)
+        val thirdThirdBC = Core.countNonZero(thirdThirdR)
+
+        val firstThirdRC = Core.countNonZero(firstThirdB)
+        val secondThirdRC = Core.countNonZero(secondThirdB)
+        val thirdThirdRC = Core.countNonZero(thirdThirdB)
 
         leftSection = when {
             firstThirdRC - firstThirdBC > MAJORITY -> SectionState.Red
@@ -121,12 +140,10 @@ class SphereProcess : VisionProcessor {
             else -> SectionState.None
         }
 
-        RobotLog.ii(
-            "SphereProcess",
+        log(
             String.format("Red : %5d %5d %5d", firstThirdRC, secondThirdRC, thirdThirdRC)
         )
-        RobotLog.ii(
-            "SphereProcess",
+        log(
             String.format("Blue: %5d %5d %5d", firstThirdBC, secondThirdBC, thirdThirdBC)
         )
 
@@ -137,10 +154,10 @@ class SphereProcess : VisionProcessor {
         secondThirdB.release()
         thirdThirdB.release()
 
-        RobotLog.ii(
-            "SphereProcess",
+        log(
             "All done: ${leftSection.name} ${centerSection.name} ${rightSection.name}"
         )
+        spewControl++
         return null
     }
 
@@ -198,4 +215,15 @@ class SphereProcess : VisionProcessor {
         })
     }
 
+    fun write() {
+        val application: Context = AppUtil.getInstance().application
+        application.getExternalFilesDir(null)?.let {
+            val path = it.absolutePath
+            RobotLog.ii("SphereProcess", "Writing to $path")
+            imwrite("$path/base.png", lastKnown)
+            imwrite("$path/red1.png", red1)
+            imwrite("$path/red2.png", red2)
+            imwrite("$path/blue.png", blue)
+        }
+    }
 }

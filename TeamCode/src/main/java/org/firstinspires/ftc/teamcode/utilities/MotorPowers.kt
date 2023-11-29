@@ -67,4 +67,10 @@ data class MotorSet(
     @JvmField val backRight: DcMotor
 ) {
     fun setAll(p: Double) = MotorPowers(p, p, p, p).apply(this)
+    fun each(function: DcMotor.() -> Unit) {
+        frontLeft.function()
+        frontRight.function()
+        backLeft.function()
+        backRight.function()
+    }
 }

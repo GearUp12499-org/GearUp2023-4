@@ -7,6 +7,23 @@ import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
 public class DriveForwardPID {
+    public static final double MAX_SPEED = 0.4;
+    public static final double RAMPS_UP = 6; // in
+    public static final double RAMPS_DOWN = 18; // in
+    public static final double MIN_SPEED = 0.2;
+
+    double rampDown(double distToTarget) {
+        if (distToTarget <= 0) return 0.0;
+        if (distToTarget >= RAMPS_DOWN) return MAX_SPEED;
+        else return (MAX_SPEED - MIN_SPEED) * (distToTarget / RAMPS_DOWN) + MIN_SPEED;
+    }
+
+    double rampUp(double distTravel) {
+        if (distTravel <= 0) return MIN_SPEED;
+        if (distTravel >= RAMPS_UP) return MAX_SPEED;
+        return (MAX_SPEED - MIN_SPEED) * (distTravel / RAMPS_UP) + MIN_SPEED;
+    }
+
     public DriveForwardPID(RobotConfiguration robot) {
         this.robot = robot;
         this.driveMotors = robot.driveMotors();
@@ -30,10 +47,10 @@ public class DriveForwardPID {
     DcMotor.RunMode baseMode = DcMotor.RunMode.RUN_WITHOUT_ENCODER;
 
     public void DriveForward(double target, Telemetry telemetry){
-        double reifiedTarget = target + (RightOdoDist() + LeftOdoDist()) / 2.0;
+        double base = (RightOdoDist() + LeftOdoDist()) / 2.0;
+        double reifiedTarget = target + base;
         double rdist = RightOdoDist();
         double ldist = LeftOdoDist();
-        double speed = 0.3;
 
         while(ldist < reifiedTarget && rdist < reifiedTarget) {
             rdist = RightOdoDist();
@@ -41,6 +58,8 @@ public class DriveForwardPID {
             double e = rdist - ldist;
             double kp = 0.1;
             double u = kp * e;
+            double avg = (rdist + ldist) / 2.0;
+            double speed = Math.min(rampUp(avg - base), rampDown(reifiedTarget - avg));
             driveMotors.frontLeft.setPower(speed + u);
             driveMotors.backLeft.setPower(speed + u);
             driveMotors.frontRight.setPower(speed - u);
@@ -49,6 +68,8 @@ public class DriveForwardPID {
             telemetry.addData("ldist", ldist);
             telemetry.addData("u", u);
             telemetry.addData("target", reifiedTarget);
+            telemetry.addData("dt", reifiedTarget - avg);
+            telemetry.addData("speeed", speed);
             telemetry.update();
         }
         driveMotors.setAll(0);
