@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode.configurations
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.DistanceSensor
 import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.hardware.IMU
 import com.qualcomm.robotcore.hardware.Servo
 import dev.aether.collaborative_multitasking.SharedResource
 import org.firstinspires.ftc.teamcode.utilities.MotorSet
@@ -80,6 +82,9 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
     override val distanceLeft: DistanceSensor? = map.typedMaybeGet("distanceLeft")
     override val distanceRight: DistanceSensor? = map.typedMaybeGet("distanceRight")
 
+    // Retrieve the IMU from the hardware map
+    val imu = map.get(IMU::class.java, "imu");
+
     init {
         setReverse(frontLeft)
         setReverse(backLeft)
@@ -94,6 +99,12 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
         liftRightB.power = 1.0
         liftRightB.mode = DcMotor.RunMode.RUN_TO_POSITION
         setReverse(liftRightB)
+        // Adjust the orientation parameters to match your robot
+        val parameters = IMU.Parameters(RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
+        imu.initialize(parameters);
     }
 
     companion object {

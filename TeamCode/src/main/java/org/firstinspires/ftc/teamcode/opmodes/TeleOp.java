@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.Var;
 import org.firstinspires.ftc.teamcode.abstractions.ApproachObject;
 import org.firstinspires.ftc.teamcode.abstractions.Claw;
 import org.firstinspires.ftc.teamcode.abstractions.Dumper;
+import org.firstinspires.ftc.teamcode.configurations.Robot;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
@@ -59,8 +60,7 @@ public class TeleOp extends LinearOpMode {
         // used for semi-auto tasks, like the claw
         MultitaskScheduler scheduler = new MultitaskScheduler();
         // get the robot configuration container (see RobotConfiguration.java)
-        RobotConfiguration robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
-        if (robot == null) throw new RuntimeException("Robot configuration not found");
+        Robot robot = new Robot(hardwareMap);
 
         // we don't want to have to call driveMotors() every time because it gets tedious
         MotorSet driveMotors = robot.driveMotors();
