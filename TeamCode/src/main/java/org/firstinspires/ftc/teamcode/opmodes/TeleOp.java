@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Var;
 import org.firstinspires.ftc.teamcode.abstractions.ApproachObject;
 import org.firstinspires.ftc.teamcode.abstractions.Claw;
@@ -232,6 +233,12 @@ public class TeleOp extends LinearOpMode {
                 });
             }
 
+            if (gamepad1.options) {
+                robot.imu.resetYaw();
+            }
+
+            double botHeading = robot.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+
 
             robot.tele(telemetry);
 
@@ -242,6 +249,7 @@ public class TeleOp extends LinearOpMode {
             telemetry.addData("dt", "%.2f ms", dt * 1000);
             telemetry.addData("Left Target", targetLeft);
             telemetry.addData("Right Target", targetRight);
+            telemetry.addData("Robot Heading", botHeading);
             telemetry.update();
             while (frameTimer.time(TimeUnit.MILLISECONDS) < 5) {
                 sleep(1);
