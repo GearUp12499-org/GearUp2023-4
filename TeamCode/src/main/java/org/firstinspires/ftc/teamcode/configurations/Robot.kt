@@ -83,7 +83,8 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
     override val distanceRight: DistanceSensor? = map.typedMaybeGet("distanceRight")
 
     // Retrieve the IMU from the hardware map
-    val imu = map.get(IMU::class.java, "imu");
+    @JvmField
+    val imu = map.get(IMU::class.java, "imu")
 
     init {
         setReverse(frontLeft)
@@ -102,9 +103,9 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
         // Adjust the orientation parameters to match your robot
         val parameters = IMU.Parameters(RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD))
         // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
-        imu.initialize(parameters);
+        imu.initialize(parameters)
     }
 
     companion object {
