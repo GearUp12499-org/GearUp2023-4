@@ -48,6 +48,7 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
     @JvmField
     var dumperRotateB // 2
             : Servo? = map.typedMaybeGet("dumperRotate")
+
     @JvmField
     var dumperLatchB // 3
             : Servo? = map.typedMaybeGet("dumperLatch")
@@ -79,12 +80,17 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
     override val drone: DcMotor? = droneB
     override val droneLock: SharedResource = SharedResource("drone")
 
+    private val intakeB: DcMotor? = map.typedMaybeGet("intake")
+    override val intake: DcMotor? get() = intakeB
+
     override val distanceLeft: DistanceSensor? = map.typedMaybeGet("distanceLeft")
     override val distanceRight: DistanceSensor? = map.typedMaybeGet("distanceRight")
 
     // Retrieve the IMU from the hardware map
     @JvmField
-    val imu = map.get(IMU::class.java, "imu")
+    val imuB: IMU = map.typedGet("imu")
+    override val imu: IMU get() = imuB
+
 
     init {
         setReverse(frontLeft)
@@ -101,11 +107,24 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
         liftRightB.mode = DcMotor.RunMode.RUN_TO_POSITION
         setReverse(liftRightB)
         // Adjust the orientation parameters to match your robot
-        val parameters = IMU.Parameters(RevHubOrientationOnRobot(
+        val parameters = IMU.Parameters(
+            RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD))
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+            )
+        )
         // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
         imu.initialize(parameters)
+    }
+
+    override fun clearEncoders() {
+        clearEncoder(
+            liftLeft,
+            liftRight,
+            frontLeft,
+            backRight,
+            intake
+        )
     }
 
     companion object {
@@ -113,8 +132,20 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
             target.direction = DcMotorSimple.Direction.REVERSE
         }
 
-        private fun enableBrakes(vararg targets: DcMotor) {
-            for (target in targets) target.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        private fun enableBrakes(vararg targets: DcMotor?) {
+            for (target in targets) {
+                target ?: continue
+                target.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+            }
+        }
+
+        private fun clearEncoder(vararg targets: DcMotor?) {
+            for (target in targets) {
+                target ?: continue
+                val lastMode = target.mode
+                target.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+                target.mode = lastMode
+            }
         }
     }
 }

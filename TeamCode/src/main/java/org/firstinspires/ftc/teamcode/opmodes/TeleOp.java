@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -61,7 +60,7 @@ public class TeleOp extends LinearOpMode {
         // used for semi-auto tasks, like the claw
         MultitaskScheduler scheduler = new MultitaskScheduler();
         // get the robot configuration container (see RobotConfiguration.java)
-        Robot robot = new Robot(hardwareMap);
+        RobotConfiguration robot = new Robot(hardwareMap);
 
         // we don't want to have to call driveMotors() every time because it gets tedious
         MotorSet driveMotors = robot.driveMotors();
@@ -74,10 +73,7 @@ public class TeleOp extends LinearOpMode {
         dumper.defaultPos();
 
         //Reset odometry pods
-        driveMotors.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        driveMotors.frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        driveMotors.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        driveMotors.backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.clearEncoders();
 
         waitForStart();
         int targetLeft = 0;
@@ -96,15 +92,7 @@ public class TeleOp extends LinearOpMode {
         balBL /= balanceDen;
         balBR /= balanceDen;
 
-        // Creates Slide motor instance
-        DcMotor liftRight = hardwareMap.get(DcMotor.class, "slideRight");
-        DcMotor liftLeft = hardwareMap.get(DcMotor.class, "slideLeft");
-
-        // Creates Drone motor instance
-        DcMotor drone = hardwareMap.get(DcMotor.class, "drone");
-        DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
-        intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.clearEncoders();
 
         ElapsedTime deltaTimer = new ElapsedTime();
         ElapsedTime frameTimer = new ElapsedTime();
@@ -210,12 +198,12 @@ public class TeleOp extends LinearOpMode {
 
             // Makes drone launcher motor go zoom when the right bumper is pressed on game pad 1
             if (gamepad1.right_bumper) {
-                drone.setPower(1);
+                robot.drone().setPower(1);
             } else {
-                drone.setPower(0);
+                robot.drone().setPower(0);
             }
             // Gets the average ticks of both the slide motors --> Ticks for perfect hang position is 1340 ticks use hangTarget variable
-            double slideTicks = (liftRight.getCurrentPosition() + liftLeft.getCurrentPosition()) / 2.0;
+            double slideTicks = (robot.liftRight().getCurrentPosition() + robot.liftLeft().getCurrentPosition()) / 2.0;
 
             if (gamepad1.y) {
                 targetLeft = hangTarget;
@@ -234,17 +222,23 @@ public class TeleOp extends LinearOpMode {
             }
 
             if (gamepad1.options) {
-                robot.imu.resetYaw();
+                robot.imu().resetYaw();
             }
 
-            double botHeading = robot.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+            if (gamepad2.left_trigger > Var.TeleOp.triggerPct) {
+                robot.intake().setPower(Var.TeleOp.intakePower);
+            } else if (gamepad1.right_trigger > Var.TeleOp.triggerPct) {
+                robot.intake().setPower(-Var.TeleOp.intakePower);
+            }
+
+            double botHeading = robot.imu().getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
 
             robot.tele(telemetry);
 
             //Updates the average distance traveled forward: positive is right or forward; negative is backward or left
             telemetry.addData("Distance Driven Forward:", OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition()) / 2.0));
-            telemetry.addData("Inches Strafed: ", OdoToInches(intake.getCurrentPosition()));
+            telemetry.addData("Inches Strafed: ", OdoToInches(robot.intake().getCurrentPosition()));
             telemetry.addData("Slide Motor Ticks: ", slideTicks);
             telemetry.addData("dt", "%.2f ms", dt * 1000);
             telemetry.addData("Left Target", targetLeft);

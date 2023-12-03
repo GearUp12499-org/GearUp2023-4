@@ -107,6 +107,16 @@ object Var {
          * Back motor fudging
          */
         const val balanceBack = 1.0
+
+        /**
+         * How much (%) do you have to push the trigger to activate it?
+         */
+        const val triggerPct = 0.25
+
+        /**
+         * How hard we spin the intake?
+         */
+        const val intakePower = 1.0
     }
 
     object ApproachObject {

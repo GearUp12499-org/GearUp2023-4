@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.configurations
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DistanceSensor
 import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.hardware.IMU
 import com.qualcomm.robotcore.hardware.Servo
 import dev.aether.collaborative_multitasking.SharedResource
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -44,10 +45,17 @@ abstract class RobotConfiguration {
     fun drone(): DcMotor = drone ?: throw NullPointerException("Robot configuration has no drone motor but it was requested")
     abstract val droneLock: SharedResource
 
+    protected abstract val intake: DcMotor?
+    fun intake(): DcMotor = intake ?: throw NullPointerException("Robot configuration has no intake motor.")
+
+
     protected abstract val distanceLeft: DistanceSensor?
     fun distanceLeft(): DistanceSensor = distanceLeft ?: throw NullPointerException("Robot configuration has no left distance sensor but it was requested")
     protected abstract val distanceRight: DistanceSensor?
     fun distanceRight(): DistanceSensor = distanceRight ?: throw NullPointerException("Robot configuration has no right distance sensor but it was requested")
+
+    protected abstract val imu: IMU?
+    fun imu(): IMU = imu ?: throw NullPointerException("Robot configuration has no IMU (for some reason) but it was requested")
 
     private fun deviceStatus(name: String, device: Any?): String = "$name: " + when (device) {
         (device == null) -> "DISCONNECTED"
@@ -74,4 +82,6 @@ abstract class RobotConfiguration {
             t.addLine(deviceStatus(field.key, field.value))
         }
     }
+
+    abstract fun clearEncoders()
 }
