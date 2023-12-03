@@ -85,9 +85,9 @@ class SphereProcess : VisionProcessor {
     override fun processFrame(frame: Mat?, captureTimeNanos: Long): Any? {
         frame ?: throw IllegalStateException("passed a null frame to processFrame")
         Imgproc.cvtColor(frame, lastKnown, Imgproc.COLOR_BGR2RGB)
-        lastKnown = frame.clone()
-        val frac = 720.0 / frame.width()
-        Imgproc.resize(frame, scratch, Size(), frac, frac)
+        val frac = 720.0 / lastKnown.width()
+        Imgproc.resize(lastKnown, scratch, Size(), frac, frac)
+        lastKnown = scratch.clone()
         Imgproc.cvtColor(scratch, scratch, Imgproc.COLOR_BGR2HSV)
         Core.inRange(scratch, redFrom1, redTo1, red1)
         Core.inRange(scratch, redFrom2, redTo2, red2)
