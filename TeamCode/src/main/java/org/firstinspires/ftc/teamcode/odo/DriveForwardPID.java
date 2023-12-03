@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.odo;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
@@ -8,9 +9,10 @@ import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
 public class DriveForwardPID {
     public static final double MAX_SPEED = 0.4;
-    public static final double RAMPS_UP = 6; // in
-    public static final double RAMPS_DOWN = 18; // in
+    public static final double RAMPS_UP = 6; // in - too slow to go, make it lower
+    public static final double RAMPS_DOWN = 18; // in -
     public static final double MIN_SPEED = 0.2;
+    public static ElapsedTime loopStopwatch = new ElapsedTime();
 
     double rampDown(double distToTarget) {
         if (distToTarget <= 0) return 0.0;
@@ -70,9 +72,12 @@ public class DriveForwardPID {
             telemetry.addData("target", reifiedTarget);
             telemetry.addData("dt", reifiedTarget - avg);
             telemetry.addData("speeed", speed);
+            telemetry.addData("Time inside loop: ", loopStopwatch.time());
             telemetry.update();
         }
         driveMotors.setAll(0);
+        //loopStopwatch.reset();
+
     }
 }
 
