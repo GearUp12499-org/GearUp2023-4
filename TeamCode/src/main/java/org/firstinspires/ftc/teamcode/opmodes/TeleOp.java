@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.Var;
 import org.firstinspires.ftc.teamcode.abstractions.ApproachObject;
 import org.firstinspires.ftc.teamcode.abstractions.Claw;
 import org.firstinspires.ftc.teamcode.abstractions.Dumper;
+import org.firstinspires.ftc.teamcode.abstractions.ServoPowerManager;
 import org.firstinspires.ftc.teamcode.configurations.Robot;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
@@ -67,6 +68,7 @@ public class TeleOp extends LinearOpMode {
         // set up the claw
         Claw claw = new Claw(scheduler, robot.clawGrab(), robot.clawRotate(), robot.getClawLock());
         Dumper dumper = new Dumper(scheduler, robot);
+        ServoPowerManager dumperPowerManager = new ServoPowerManager(robot.dumperRotate());
         ApproachObject approachBackdrop = new ApproachObject(scheduler, robot);
 
         claw.defaultPos();
@@ -227,8 +229,10 @@ public class TeleOp extends LinearOpMode {
 
             if (gamepad2.left_trigger > Var.TeleOp.triggerPct) {
                 robot.intake().setPower(Var.TeleOp.intakePower);
-            } else if (gamepad1.right_trigger > Var.TeleOp.triggerPct) {
+            } else if (gamepad2.right_trigger > Var.TeleOp.triggerPct) {
                 robot.intake().setPower(-Var.TeleOp.intakePower);
+            } else {
+                robot.intake().setPower(0);
             }
 
             double botHeading = robot.imu().getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
