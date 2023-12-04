@@ -23,7 +23,7 @@ public class MoveSlidesToHang extends LinearOpMode {
         while (opModeIsActive()) {
             telemetry.addData("Slide Motor Ticks: ", hangTarget);
             telemetry.update();
-            if(gamepad1.right_trigger > 0.9) {
+            if (gamepad1.right_trigger > 0.9) {
                 hangTarget = 1400;
             } else if (gamepad1.left_trigger > 0.8) {
                 hangTarget = 0;

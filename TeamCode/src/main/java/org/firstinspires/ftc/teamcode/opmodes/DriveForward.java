@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 @Autonomous
 public class DriveForward extends LinearOpMode {
     @Override
-    public void runOpMode(){
+    public void runOpMode() {
         RobotConfiguration robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
         MotorSet driveMotors = robot.driveMotors();
         DriveForwardPID pidDrive = new DriveForwardPID(robot);

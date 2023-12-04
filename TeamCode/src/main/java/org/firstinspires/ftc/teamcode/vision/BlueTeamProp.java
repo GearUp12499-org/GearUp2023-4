@@ -1,23 +1,11 @@
 package org.firstinspires.ftc.teamcode.vision;
-import android.graphics.Canvas;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.HashMap;
+import android.graphics.Canvas;
 
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
 import org.firstinspires.ftc.vision.VisionProcessor;
-import org.opencv.features2d.FastFeatureDetector;
-import org.opencv.core.*;
-import org.opencv.core.Core.*;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.*;
-import org.opencv.objdetect.*;
+import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 
 public class BlueTeamProp implements VisionProcessor {
 

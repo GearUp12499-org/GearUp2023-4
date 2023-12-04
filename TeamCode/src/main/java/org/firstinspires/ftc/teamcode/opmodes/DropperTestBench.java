@@ -8,11 +8,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp
-public class ClawTestBench extends LinearOpMode {
+public class DropperTestBench extends LinearOpMode {
     @Override
     public void runOpMode() {
-        Servo clawRotate = hardwareMap.get(Servo.class, "clawRotate");
-        Servo clawGrab = hardwareMap.get(Servo.class, "clawGrab");
+        Servo purpleDropper = hardwareMap.get(Servo.class, "purpleDropper");
         ElapsedTime timer = new ElapsedTime();
         final double SPEED_PER_SECOND = 0.25;
         waitForStart();
@@ -40,10 +39,9 @@ public class ClawTestBench extends LinearOpMode {
             }
             rG = clamp(rG, 0, 1);
 
-            clawRotate.setPosition(rR);
-            clawGrab.setPosition(rG);
-            telemetry.addData("rotate", rR);
-            telemetry.addData("grab", rG);
+            purpleDropper.setPosition(rR);
+            telemetry.addData("dropper", rR);
+            telemetry.addData("Not Used", rG);
             telemetry.update();
         }
     }

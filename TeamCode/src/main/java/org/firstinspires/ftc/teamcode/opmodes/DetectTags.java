@@ -14,7 +14,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.AprilTagToPoseKt;
 import org.firstinspires.ftc.teamcode.utilities.Pose;
 import org.firstinspires.ftc.teamcode.utilities.Vector2;
-import org.firstinspires.ftc.teamcode.vision.SphereProcess;
+import org.firstinspires.ftc.teamcode.vision.AdvSphereProcess;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
@@ -44,7 +44,7 @@ public class DetectTags extends LinearOpMode {
     public static final double DISTANCE_THRESHOLD = 0.5;
     private WebcamName webcam;
     private AprilTagProcessor aprilTag;
-    private SphereProcess spheres;
+    private AdvSphereProcess spheres;
     private VisionPortal portal;
     private FtcDashboard dashboardInstance;
 
@@ -115,8 +115,10 @@ public class DetectTags extends LinearOpMode {
         telemetry.addData("Kb (range)", Kb);
         Vector2 onePosition = TAG_POSITION.get(one.id);
         Vector2 twoPosition = TAG_POSITION.get(two.id);
-        if (onePosition == null) throw new IllegalArgumentException("i don't know where tag#" + one.id + " is");
-        if (twoPosition == null) throw new IllegalArgumentException("i don't know where tag#" + two.id + " is");
+        if (onePosition == null)
+            throw new IllegalArgumentException("i don't know where tag#" + one.id + " is");
+        if (twoPosition == null)
+            throw new IllegalArgumentException("i don't know where tag#" + two.id + " is");
 
         // let D = half the distance between the two tags...
         double d2 = Math.abs(onePosition.x - twoPosition.x);
@@ -147,7 +149,7 @@ public class DetectTags extends LinearOpMode {
                 .setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
                 //.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
                 .build();
-        spheres = new SphereProcess();
+        spheres = new AdvSphereProcess(AdvSphereProcess.Mode.Red);
 
         VisionPortal.Builder visionPortalBuilder = new VisionPortal.Builder();
         visionPortalBuilder.setCamera(webcam);

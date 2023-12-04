@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Var;
 import org.firstinspires.ftc.teamcode.abstractions.ApproachObject;
-import org.firstinspires.ftc.teamcode.abstractions.Claw;
 import org.firstinspires.ftc.teamcode.abstractions.Dumper;
 import org.firstinspires.ftc.teamcode.abstractions.ServoPowerManager;
 import org.firstinspires.ftc.teamcode.configurations.Robot;
@@ -62,16 +61,14 @@ public class TeleOp extends LinearOpMode {
         MultitaskScheduler scheduler = new MultitaskScheduler();
         // get the robot configuration container (see RobotConfiguration.java)
         RobotConfiguration robot = new Robot(hardwareMap);
+        robot.purpleDropper().setPosition(Var.PixelDropper.start);
 
         // we don't want to have to call driveMotors() every time because it gets tedious
         MotorSet driveMotors = robot.driveMotors();
-        // set up the claw
-        Claw claw = new Claw(scheduler, robot.clawGrab(), robot.clawRotate(), robot.getClawLock());
         Dumper dumper = new Dumper(scheduler, robot);
         ServoPowerManager dumperPowerManager = new ServoPowerManager(robot.dumperRotate());
         ApproachObject approachBackdrop = new ApproachObject(scheduler, robot);
 
-        claw.defaultPos();
         dumper.defaultPos();
 
         //Reset odometry pods
@@ -173,16 +170,6 @@ public class TeleOp extends LinearOpMode {
                 robot.liftLeft().setTargetPosition(targetLeft);
                 robot.liftRight().setTargetPosition(targetRight);
             }
-
-            if (gamepad2.a) {
-                claw.grab();
-            }
-            if (gamepad2.y) {
-                claw.deposit();
-            }
-            if (gamepad2.x) {
-                claw.resetTele();
-            }
             if (gamepad2.left_bumper) {
                 if (targetLeft >= 250) {
                     if (dumper.getState() == Dumper.State.Dump) dumper.dumpSecond();
@@ -191,6 +178,13 @@ public class TeleOp extends LinearOpMode {
             }
             if (gamepad2.right_bumper) {
                 dumper.reset();
+            }
+
+            if (gamepad2.x) {
+                robot.purpleDropper().setPosition(Var.PixelDropper.stowed);
+            }
+            if (gamepad2.y) {
+                robot.purpleDropper().setPosition(Var.PixelDropper.up);
             }
 
             if (gamepad1.x) {

@@ -2,11 +2,15 @@ package org.firstinspires.ftc.teamcode.utilities;
 
 public interface Line {
     double perpendicularSlope();
+
     double yFor(double x);
+
     double xFor(double y);
+
     IntersectionSolution intersection(Line other);
 
     double slope();
+
     double yIntercept();
 
     static Line slopeIntercept(double slope, double yIntercept) {
@@ -32,18 +36,23 @@ public interface Line {
             POINT,
             SAME_LINE
         }
+
         public final Type type;
         public final Vector2 pointValue;
+
         private IntersectionSolution(Type type, Vector2 pointValue) {
             this.type = type;
             this.pointValue = pointValue;
         }
+
         public static IntersectionSolution point(Vector2 point) {
             return new IntersectionSolution(Type.POINT, point);
         }
+
         public static IntersectionSolution sameLine() {
             return new IntersectionSolution(Type.SAME_LINE, null);
         }
+
         public static IntersectionSolution none() {
             return new IntersectionSolution(Type.NONE, null);
         }

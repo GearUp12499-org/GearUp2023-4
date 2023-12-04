@@ -30,6 +30,7 @@ public class DriveForwardPID {
         this.robot = robot;
         this.driveMotors = robot.driveMotors();
     }
+
     public double ticksToInches(int ticks) {
         double ticksPerRotation = 8192.0;
         double radius_Inches = 0.69;
@@ -37,9 +38,11 @@ public class DriveForwardPID {
         return num_wheel_rotation * 2 * 3.14 * radius_Inches;
         // inches = (ticks/8192.0) * 0.69 * 6.28
     }
+
     public double RightOdoDist() {
         return ticksToInches(driveMotors.backRight.getCurrentPosition());
     }
+
     public double LeftOdoDist() {
         return ticksToInches(driveMotors.frontLeft.getCurrentPosition());
     }
@@ -48,13 +51,13 @@ public class DriveForwardPID {
     MotorSet driveMotors;
     DcMotor.RunMode baseMode = DcMotor.RunMode.RUN_WITHOUT_ENCODER;
 
-    public void DriveForward(double target, Telemetry telemetry){
+    public void DriveForward(double target, Telemetry telemetry) {
         double base = (RightOdoDist() + LeftOdoDist()) / 2.0;
         double reifiedTarget = target + base;
         double rdist = RightOdoDist();
         double ldist = LeftOdoDist();
 
-        while(ldist < reifiedTarget && rdist < reifiedTarget) {
+        while (ldist < reifiedTarget && rdist < reifiedTarget) {
             rdist = RightOdoDist();
             ldist = LeftOdoDist();
             double e = rdist - ldist;

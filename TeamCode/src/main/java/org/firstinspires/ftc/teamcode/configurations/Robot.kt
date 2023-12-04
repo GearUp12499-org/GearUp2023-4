@@ -38,20 +38,16 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
             : DcMotor = map.typedGet("slideRight")
 
     @JvmField
-    var clawGrabB // 0
-            : Servo? = map.typedMaybeGet("clawGrab")
-
-    @JvmField
-    var clawRotateB // 1
-            : Servo? = map.typedMaybeGet("clawRotate")
-
-    @JvmField
     var dumperRotateB // 2
             : Servo? = map.typedMaybeGet("dumperRotate")
 
     @JvmField
     var dumperLatchB // 3
             : Servo? = map.typedMaybeGet("dumperLatch")
+
+    @JvmField
+    var purpleDropperB // 1
+            : Servo? = map.typedMaybeGet("purpleDropper")
 
     @JvmField
     var droneB // 2
@@ -65,9 +61,6 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
                 0.0
             )
         }
-    override val clawGrab: Servo? get() = clawGrabB
-    override val clawRotate: Servo? get() = clawRotateB
-    override val clawLock: SharedResource = SharedResource("claw")
     override val liftLeft: DcMotor get() = liftLeftB
     override val liftRight: DcMotor get() = liftRightB
     override val liftLock: SharedResource = SharedResource("lift") {
@@ -82,6 +75,7 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
 
     private val intakeB: DcMotor? = map.typedMaybeGet("intake")
     override val intake: DcMotor? get() = intakeB
+    override val purpleDropper: Servo? get() = purpleDropperB
 
     override val distanceLeft: DistanceSensor? = map.typedMaybeGet("distanceLeft")
     override val distanceRight: DistanceSensor? = map.typedMaybeGet("distanceRight")

@@ -12,6 +12,7 @@ class Dumper(
 ) {
     @JvmField
     val rotate = config.dumperRotate()
+
     @JvmField
     val latch = config.dumperLatch()
     private val lock = config.dumperLock

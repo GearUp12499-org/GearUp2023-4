@@ -10,13 +10,13 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration
 import org.firstinspires.ftc.teamcode.detectPairToPose
 import org.firstinspires.ftc.teamcode.detectSingleToPose
+import org.firstinspires.ftc.teamcode.tagPositions
+import org.firstinspires.ftc.teamcode.utilities.CollectionUtils.pairs
+import org.firstinspires.ftc.teamcode.utilities.MotorSet
 import org.firstinspires.ftc.teamcode.utilities.Pose
 import org.firstinspires.ftc.teamcode.utilities.degrees
 import org.firstinspires.ftc.teamcode.utilities.inches
 import org.firstinspires.ftc.teamcode.utilities.radians
-import org.firstinspires.ftc.teamcode.tagPositions
-import org.firstinspires.ftc.teamcode.utilities.CollectionUtils.pairs
-import org.firstinspires.ftc.teamcode.utilities.MotorSet
 import org.firstinspires.ftc.teamcode.utilities.typedGet
 import org.firstinspires.ftc.vision.VisionPortal
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor

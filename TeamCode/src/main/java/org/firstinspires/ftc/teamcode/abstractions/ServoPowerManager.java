@@ -10,6 +10,7 @@ public class ServoPowerManager {
     LynxServoController controller;
     int portNo;
     private static final Method internalSetPwmEnable;
+
     static {
         try {
             internalSetPwmEnable = LynxServoController.class.getDeclaredMethod("internalSetPwmEnable", int.class, boolean.class);

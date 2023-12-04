@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.utilities
 
 abstract class Converter<out R>
 
-abstract class MeasureUnit<This: MeasureUnit<This>>(val value: Double) {
+abstract class MeasureUnit<This : MeasureUnit<This>>(val value: Double) {
     operator fun div(other: Double) = newInstance(this.value / other)
     operator fun div(other: Int) = div(other.toDouble())
     operator fun div(other: MeasureUnit<*>): Double {
@@ -22,6 +22,7 @@ abstract class MeasureUnit<This: MeasureUnit<This>>(val value: Double) {
     operator fun plus(other: MeasureUnit<*>): This {
         return newInstance(this.value + convertOther(other).value)
     }
+
     abstract fun convertOther(other: MeasureUnit<*>): This
 
     operator fun minus(other: MeasureUnit<*>): This {

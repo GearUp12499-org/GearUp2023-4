@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode
 import org.firstinspires.ftc.teamcode.Var.ApproachObject
 import org.firstinspires.ftc.teamcode.Var.Autonomous
 import org.firstinspires.ftc.teamcode.Var.Box
-import org.firstinspires.ftc.teamcode.Var.Claw
 import org.firstinspires.ftc.teamcode.Var.TeleOp
 import org.firstinspires.ftc.teamcode.utilities.inches
 
@@ -13,52 +12,41 @@ import org.firstinspires.ftc.teamcode.utilities.inches
 /**
  * All the things that a driver might need to change, in one place.
  * You can Ctrl-Click these to jump to them:
- * - [Claw] - claw positions (idle, stowed, flipped, closing) & opened, closed
  * - [Box] - box positions (idle, dump) & latched, unlatched
  * - [TeleOp] - control configuration: how close to get with 'x', lift speed, etc
  * - [ApproachObject] - options for the object approach algorithm, aka the 'x' button
  * - [Autonomous] - autonomous program configurations
  */
 object Var {
-    object Claw {
-        const val hoverRotate = 0.669
-
-        // 'closing' - touching ground as much as possible without hindering claw operation
-        const val closingRotate = 0.720
-
-        // 'flipped' - pixel drop-off location
-        const val flippedRotate = 0.069
-
-        // 'stowed' - straight up or otherwise out of the way
-        const val stowedRotate = 0.370
-
-        const val opened = 0.109
-        const val closed = 0.432
-    }
-
     object Box {
         /**
          * The rotation of the box in the idle position.
          * The box is in the idle position when it is not being dumped, and also when the lift
          * is all the way down. Tune (DumperTestBench) with lift at 0 to avoid collisions.
          */
-        const val idleRotate = 0.5705
+        const val idleRotate = 0.6069
 
         /**
          * The rotation of the box in the dumping position.
          * Tune with the lift raised by hand.
          */
-        const val dumpRotate = 0.316
+        const val dumpRotate = 0.367
 
         /**
          * Latch position such that it does not block movement of the bottom pixel in the box.
          */
-        const val unlatched = 0.308
+        const val unlatched = 0.35
 
         /**
          * Latch position such that it blocks movement of the bottom pixel in the box.
          */
-        const val latched = 0.003
+        const val latched = 0.029
+    }
+
+    object PixelDropper {
+        const val stowed = 0.177
+        const val start = 0.67
+        const val up = 1.0
     }
 
     object TeleOp {

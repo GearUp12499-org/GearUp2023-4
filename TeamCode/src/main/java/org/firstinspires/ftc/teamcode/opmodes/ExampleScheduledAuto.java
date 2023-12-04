@@ -8,8 +8,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.concurrent.TimeUnit;
 
-import dev.aether.collaborative_multitasking.SharedResource;
 import dev.aether.collaborative_multitasking.MultitaskScheduler;
+import dev.aether.collaborative_multitasking.SharedResource;
 
 @Autonomous
 public class ExampleScheduledAuto extends LinearOpMode {

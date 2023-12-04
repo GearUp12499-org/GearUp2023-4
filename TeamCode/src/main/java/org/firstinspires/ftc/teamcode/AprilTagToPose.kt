@@ -11,7 +11,7 @@ import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-private const val DISTANCE_FROM_FRONT = (142.0-10.75)
+private const val DISTANCE_FROM_FRONT = (142.0 - 10.75)
 val tagPositions = mapOf(
     1 to Vector2(29.5, DISTANCE_FROM_FRONT),
     3 to Vector2(41.5, DISTANCE_FROM_FRONT),
@@ -21,8 +21,10 @@ val tagPositions = mapOf(
 fun detectPairToPose(first: AprilTagDetection, second: AprilTagDetection): Pose {
     val kA = first.ftcPose.range
     val kB = second.ftcPose.range
-    val firstPosition = tagPositions[first.id] ?: throw IllegalArgumentException("where is tag#${first.id}")
-    val secondPosition = tagPositions[second.id] ?: throw IllegalArgumentException("where is tag#${second.id}")
+    val firstPosition =
+        tagPositions[first.id] ?: throw IllegalArgumentException("where is tag#${first.id}")
+    val secondPosition =
+        tagPositions[second.id] ?: throw IllegalArgumentException("where is tag#${second.id}")
     val avgPose = firstPosition.add(secondPosition).scale(0.5)
 
     // d = half distance between the two tags
@@ -38,7 +40,11 @@ fun detectPairToPose(first: AprilTagDetection, second: AprilTagDetection): Pose 
     // val y4 = sqrt(kB.pow(2.0) - (x - d).pow(2.0))
     // add to the midpoint between the two tags (tag 1 + D or tag 2 - D)
 
-    return Pose((x+avgPose.x).inches, (avgPose.y-y1).inches, ((first.ftcPose.yaw + second.ftcPose.yaw) / -2.0 + 90.0).degrees)
+    return Pose(
+        (x + avgPose.x).inches,
+        (avgPose.y - y1).inches,
+        ((first.ftcPose.yaw + second.ftcPose.yaw) / -2.0 + 90.0).degrees
+    )
 }
 
 fun detectSingleToPose(detection: AprilTagDetection): Pose {

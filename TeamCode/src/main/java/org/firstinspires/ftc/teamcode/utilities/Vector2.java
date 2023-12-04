@@ -17,6 +17,7 @@ public class Vector2 {
     public Vector2 scale(double scalar) {
         return new Vector2(x * scalar, y * scalar);
     }
+
     public Vector2 scale(double xScale, double yScale) {
         return new Vector2(x * xScale, y * yScale);
     }

@@ -21,6 +21,7 @@ public class HWTest extends LinearOpMode {
 
     /**
      * Ask the user to confirm something with the gamepad.
+     *
      * @param message message to display with the prompt
      * @return TRUE if the user pressed A, FALSE if the user pressed B
      */
@@ -45,6 +46,7 @@ public class HWTest extends LinearOpMode {
 
     /**
      * Displays a message and waits for the user to press A.
+     *
      * @param message message to display
      */
     void alert(String message) {
