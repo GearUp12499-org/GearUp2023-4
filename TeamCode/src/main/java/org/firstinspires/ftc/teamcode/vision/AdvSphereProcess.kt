@@ -1,8 +1,11 @@
 package org.firstinspires.ftc.teamcode.vision
 
+import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import com.qualcomm.robotcore.util.RobotLog
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.firstinspires.ftc.teamcode.utilities.toInt
 import org.firstinspires.ftc.vision.VisionProcessor
 import org.opencv.core.Core
@@ -10,6 +13,7 @@ import org.opencv.core.Mat
 import org.opencv.core.Rect
 import org.opencv.core.Scalar
 import org.opencv.core.Size
+import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import kotlin.math.max
 import kotlin.math.min
@@ -49,7 +53,9 @@ class AdvSphereProcess(private val mode: Mode) : VisionProcessor {
                 SizeRelativeTo.Shorter -> min(w, h) * size
                 SizeRelativeTo.Longer -> max(w, h) * size
             }.toInt()
-            return Rect((w * left).toInt(), (h * top).toInt(), size, size)
+            val top = (h * top).toInt()
+            val left = (w * left).toInt()
+            return Rect(left, top, min(w - left, size), min(h - top, size))
         }
     }
 
@@ -64,9 +70,9 @@ class AdvSphereProcess(private val mode: Mode) : VisionProcessor {
         private val blueFrom = Scalar(95.0, HSV_MIN_S, HSV_MIN_V)
         private val blueTo = Scalar(125.0, 255.0, 255.0)
 
-        val Position1 = PctSquare(.07, .35, .25, PctSquare.SizeRelativeTo.Width)
-        val Position2 = PctSquare(.38, .30, .25, PctSquare.SizeRelativeTo.Width)
-        val Position3 = PctSquare(.72, .35, .25, PctSquare.SizeRelativeTo.Width)
+        val Position1 = PctSquare(.07, .60, .25, PctSquare.SizeRelativeTo.Width)
+        val Position2 = PctSquare(.38, .55, .25, PctSquare.SizeRelativeTo.Width)
+        val Position3 = PctSquare(.72, .60, .25, PctSquare.SizeRelativeTo.Width)
 
         // at least X times more than other columns to confidently vote here
         private const val ClearMajorityFactor = 2.0
@@ -92,8 +98,13 @@ class AdvSphereProcess(private val mode: Mode) : VisionProcessor {
     private var red1 = Mat()
     private var red2 = Mat()
     private var blue = Mat()
+    private var left = Mat()
+    private var center = Mat()
+    private var right = Mat()
 
     var result: Result = Result.None
+        private set
+    var strategy: String = ""
         private set
 
     override fun processFrame(frame: Mat?, captureTimeNanos: Long): Any? {
@@ -110,6 +121,10 @@ class AdvSphereProcess(private val mode: Mode) : VisionProcessor {
         Core.inRange(recolor, redFrom2, redTo2, red2)
         Core.add(red1, red2, red1)
         Core.inRange(recolor, blueFrom, blueTo, blue)
+
+        left = Mat(red1, pos1)
+        center = Mat(red1, pos2)
+        right = Mat(red1, pos3)
 
         val redLeft = Mat(red1, pos1)
         val redCenter = Mat(red1, pos2)
@@ -138,7 +153,7 @@ class AdvSphereProcess(private val mode: Mode) : VisionProcessor {
             )
             val leftPassed = votesLeft > max(votesCenter, votesRight) * ClearMajorityFactor
             val centerPassed = votesCenter > max(votesLeft, votesRight) * ClearMajorityFactor
-            val rightPassed = votesCenter > max(votesLeft, votesCenter) * ClearMajorityFactor
+            val rightPassed = votesRight > max(votesLeft, votesCenter) * ClearMajorityFactor
             if (leftPassed.toInt() + centerPassed.toInt() + rightPassed.toInt() == 1) {
                 result = when {
                     leftPassed -> Result.Left
@@ -146,6 +161,11 @@ class AdvSphereProcess(private val mode: Mode) : VisionProcessor {
                     rightPassed -> Result.Right
                     else -> throw IllegalStateException("What the hell happened here? One is true but none are true for some reason idk")
                 }
+                strategy = "PixelCount"
+                return null
+            } else if (leftPassed.toInt() + centerPassed.toInt() + rightPassed.toInt() > 1) {
+                result = Result.None
+                strategy = "CataFailure!"
                 return null
             }
         } finally {
@@ -198,6 +218,7 @@ class AdvSphereProcess(private val mode: Mode) : VisionProcessor {
                 // min and max radius (set these values as you desire)
                 circleMinRadius, circleMaxRadius,
             )
+            strategy = "Circles"
         } finally {
             left.release()
             center.release()
@@ -206,6 +227,17 @@ class AdvSphereProcess(private val mode: Mode) : VisionProcessor {
         // I give up.
         result = Result.None
         return null
+    }
+
+    fun capture() {
+        val application: Context = AppUtil.getInstance().application
+        application.getExternalFilesDir(null)?.let {
+            val path = it.absolutePath
+            RobotLog.ii("SphereProcess", "Writing to $path")
+            Imgcodecs.imwrite("$path/left.png", left)
+            Imgcodecs.imwrite("$path/center.png", center)
+            Imgcodecs.imwrite("$path/right.png", right)
+        }
     }
 
     override fun onDrawFrame(
@@ -225,7 +257,14 @@ class AdvSphereProcess(private val mode: Mode) : VisionProcessor {
             Result.Right -> "Right"
         }
 
+        canvas.drawRect(0f, 0f, onscreenWidth * 0.25f, 64f, Paint().apply {
+            style = Paint.Style.FILL
+            color = 0xc0ffffff.toInt()
+        })
         canvas.drawText(name, 10F, 30F, Paint().apply {
+            textSize = 28F
+        })
+        canvas.drawText(strategy, 10F, 60F, Paint().apply {
             textSize = 28F
         })
     }

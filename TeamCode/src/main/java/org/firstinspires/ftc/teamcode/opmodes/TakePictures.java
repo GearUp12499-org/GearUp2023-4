@@ -6,14 +6,14 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.vision.SphereProcess;
+import org.firstinspires.ftc.teamcode.vision.AdvSphereProcess;
 import org.firstinspires.ftc.vision.VisionPortal;
 
 @TeleOp
 public class TakePictures extends LinearOpMode {
     WebcamName webcam;
     VisionPortal portal;
-    SphereProcess spheres;
+    AdvSphereProcess spheres;
 
 
     @Override
@@ -26,14 +26,14 @@ public class TakePictures extends LinearOpMode {
             telemetry.addLine("Press A to take pictures");
             telemetry.update();
             if (gamepad1.a && !lastABtn) {
-                spheres.write();
+                spheres.capture();
             }
             lastABtn = gamepad1.a;
         }
     }
 
     private void initVisionPortal() {
-        spheres = new SphereProcess();
+        spheres = new AdvSphereProcess(AdvSphereProcess.Mode.Red);
 
         VisionPortal.Builder visionPortalBuilder = new VisionPortal.Builder();
         visionPortalBuilder.setCamera(webcam);
