@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.odo.DriveForwardPID;
+import org.firstinspires.ftc.teamcode.odo.TurnPID;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
 @Autonomous
