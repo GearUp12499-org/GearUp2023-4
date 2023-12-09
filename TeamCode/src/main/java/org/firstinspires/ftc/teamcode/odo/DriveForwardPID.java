@@ -1,14 +1,10 @@
 package org.firstinspires.ftc.teamcode.odo;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DriveForwardPID {
     public static final double MAX_SPEED = 0.4;
@@ -16,6 +12,7 @@ public class DriveForwardPID {
     public static final double RAMPS_DOWN = 24; // in -
     public static final double MIN_SPEED_INITIAL = 0.25;
     public static final double MIN_SPEED_FINAL = 0.15;
+    private static final double acceptableError = 0.25; // in
 
     double rampDown(double distToTarget) {
         if (distToTarget <= 0) return 0.0;
@@ -52,7 +49,6 @@ public class DriveForwardPID {
 
     RobotConfiguration robot;
     MotorSet driveMotors;
-    DcMotor.RunMode baseMode = DcMotor.RunMode.RUN_WITHOUT_ENCODER;
 
     // top-speed = 0.4
     public static final double fudgery = 0.5;
@@ -67,30 +63,31 @@ public class DriveForwardPID {
             DriveReverse(-target, telemetry);
             return;
         }
-        double base = (RightOdoDist() + LeftOdoDist()) / 2.0;
-        double reifiedTarget = target + base;
-        double rdist = RightOdoDist();
-        double ldist = LeftOdoDist();
+        double rbase = RightOdoDist();
+        double lbase = LeftOdoDist();
         ElapsedTime stopwatch = new ElapsedTime();
-        List<Double> arr = new ArrayList<>();
         double overall_error = 0.0;
+        double previousTime = stopwatch.time();
 
-        while (ldist < reifiedTarget && rdist < reifiedTarget) {
-            rdist = RightOdoDist();
-            ldist = LeftOdoDist();
-            double error = rdist - ldist;
-            double correction = kp * error + ki * overall_error;
+        while (true) {
+            double rdist = RightOdoDist() - rbase;
+            double ldist = LeftOdoDist() - lbase;
             double avg = (rdist + ldist) / 2.0;
-            double speed = Math.min(rampUp(avg - base), rampDown(reifiedTarget - avg));
+
+            if (avg > target - acceptableError) break;
+            double error = rdist - ldist;
+
+            double currentTime = stopwatch.time();
+            double dt = currentTime - previousTime;
+            overall_error += error * dt;
+            previousTime = currentTime;
+
+            double correction = kp * error + ki * overall_error;
+            double speed = Math.min(rampUp(avg), rampDown(target - avg));
             driveMotors.frontLeft.setPower(speed + correction);
             driveMotors.backLeft.setPower(speed + correction);
             driveMotors.frontRight.setPower(speed - correction);
             driveMotors.backRight.setPower(speed - correction);
-
-            double dt = stopwatch.time();
-            stopwatch.reset();
-            arr.add(dt);
-            overall_error += error * dt;
         }
 
         driveMotors.setAll(0);
@@ -104,30 +101,30 @@ public class DriveForwardPID {
             return;
         }
         target -= fudgery;
-        final double base = (RightOdoDist() + LeftOdoDist()) / 2.0;
-        final double relativeTarget = base - target;
-        double rdist = RightOdoDist();
-        double ldist = LeftOdoDist();
+        double rbase = RightOdoDist();
+        double lbase = LeftOdoDist();
         ElapsedTime stopwatch = new ElapsedTime();
-        List<Double> arr = new ArrayList<>();
         double overall_error = 0.0;
 
-        while (ldist > relativeTarget && rdist > relativeTarget) {
-            rdist = RightOdoDist();
-            ldist = LeftOdoDist();
-            double error = rdist - ldist;
-            double correction = kp * error + ki * overall_error;
+        while (true) {
+            double rdist = rbase - RightOdoDist();
+            double ldist = lbase - LeftOdoDist();
             double avg = (rdist + ldist) / 2.0;
-            double speed = -Math.min(rampUp(Math.abs(avg - base)), rampDown(Math.abs(relativeTarget - avg)));
+
+            if (avg > target - acceptableError) break;
+
+            double error = rdist - ldist;
+
+            double dt = stopwatch.time();
+            stopwatch.reset();
+            overall_error += error * dt;
+
+            double correction = kp * error + ki * overall_error;
+            double speed = -Math.min(rampUp(avg), rampDown(target - avg));
             driveMotors.frontLeft.setPower(speed + correction);
             driveMotors.backLeft.setPower(speed + correction);
             driveMotors.frontRight.setPower(speed - correction);
             driveMotors.backRight.setPower(speed - correction);
-
-            double dt = stopwatch.time();
-            stopwatch.reset();
-            arr.add(dt);
-            overall_error += error * dt;
         }
 
         driveMotors.setAll(0);
