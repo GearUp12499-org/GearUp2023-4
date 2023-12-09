@@ -117,6 +117,7 @@ class AdvSphereProcess(private val mode: Mode) : VisionProcessor {
         pos3 = Position3.toRect(scratch)
 
         Imgproc.cvtColor(scratch, recolor, Imgproc.COLOR_BGR2HSV)
+        //Core contains basic image operations like masking
         Core.inRange(recolor, redFrom1, redTo1, red1)
         Core.inRange(recolor, redFrom2, redTo2, red2)
         Core.add(red1, red2, red1)

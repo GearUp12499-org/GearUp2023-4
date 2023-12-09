@@ -56,8 +56,16 @@ public class DriveForwardPID {
         double reifiedTarget = target + base;
         double rdist = RightOdoDist();
         double ldist = LeftOdoDist();
+        double direction;
 
-        while (ldist < reifiedTarget && rdist < reifiedTarget) {
+        if(target < 0.0){
+            direction = -1.0;
+            target =- target;
+        } else {
+            direction = 1.0;
+        }
+
+        while ((direction > 0 && ldist < reifiedTarget && rdist < reifiedTarget) || (direction < 0 && ldist > reifiedTarget && rdist > reifiedTarget)) {
             rdist = RightOdoDist();
             ldist = LeftOdoDist();
             double e = rdist - ldist;
@@ -65,10 +73,10 @@ public class DriveForwardPID {
             double u = kp * e;
             double avg = (rdist + ldist) / 2.0;
             double speed = Math.min(rampUp(avg - base), rampDown(reifiedTarget - avg));
-            driveMotors.frontLeft.setPower(speed + u);
-            driveMotors.backLeft.setPower(speed + u);
-            driveMotors.frontRight.setPower(speed - u);
-            driveMotors.backRight.setPower(speed - u);
+            driveMotors.frontLeft.setPower(direction * (speed + u));
+            driveMotors.backLeft.setPower(direction * (speed + u));
+            driveMotors.frontRight.setPower(direction * (speed - u));
+            driveMotors.backRight.setPower(direction * (speed - u));
             telemetry.addData("rdist", rdist);
             telemetry.addData("ldist", ldist);
             telemetry.addData("u", u);

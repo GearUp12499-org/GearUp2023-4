@@ -37,7 +37,6 @@ class SphereProcess : VisionProcessor {
         private val redTo1 = Scalar(180.0, 255.0, 255.0)
         private val redFrom2 = Scalar(0.0, HSV_MIN_S, HSV_MIN_V)
         private val redTo2 = Scalar(5.0, 255.0, 255.0)
-
         private val blueFrom = Scalar(95.0, HSV_MIN_S, HSV_MIN_V)
         private val blueTo = Scalar(125.0, 255.0, 255.0)
 

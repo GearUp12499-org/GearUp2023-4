@@ -14,13 +14,14 @@ public class DriveForward extends LinearOpMode {
         RobotConfiguration robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
         MotorSet driveMotors = robot.driveMotors();
         DriveForwardPID pidDrive = new DriveForwardPID(robot);
-
+        TurnPID pidTurn = new TurnPID(robot);
+        robot.clearEncoders();
         waitForStart();
-        pidDrive.DriveForward(48.0, telemetry);
-
+        //pidDrive.DriveForward(-27.0, telemetry);
+        //pidTurn.TurnRobot(180);
         while (opModeIsActive()) {
-            telemetry.addData("LEFT  ", pidDrive.LeftOdoDist());
-            telemetry.addData("RIGHT", pidDrive.RightOdoDist());
+            telemetry.addData("LEFT  ", pidTurn.LeftOdoDist());
+            telemetry.addData("RIGHT", pidTurn.RightOdoDist());
             telemetry.update();
             sleep(20);
         }
