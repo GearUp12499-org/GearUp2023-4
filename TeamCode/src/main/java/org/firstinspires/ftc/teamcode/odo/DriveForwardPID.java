@@ -12,7 +12,7 @@ public class DriveForwardPID {
     public static final double RAMPS_DOWN = 24; // in -
     public static final double MIN_SPEED_INITIAL = 0.25;
     public static final double MIN_SPEED_FINAL = 0.15;
-    private static final double acceptableError = 0.25; // in
+    public static final double acceptableError = 0.25; // in
 
     double rampDown(double distToTarget) {
         if (distToTarget <= 0) return 0.0;
@@ -47,18 +47,18 @@ public class DriveForwardPID {
         return ticksToInches(driveMotors.frontLeft.getCurrentPosition());
     }
 
+    public double StrafeOdoDist() {
+        return ticksToInches(robot.intake().getCurrentPosition());
+    }
+
     RobotConfiguration robot;
     MotorSet driveMotors;
-
-    // top-speed = 0.4
-    public static final double fudgery = 0.5;
 
     public double sumOfError = 0;
     public static final double kp = 0.1;
     public static final double ki = 0.1;
 
     public void DriveForward(double target, Telemetry telemetry) {
-        target -= fudgery;
         if (target < 0) {
             DriveReverse(-target, telemetry);
             return;
@@ -100,7 +100,6 @@ public class DriveForwardPID {
             DriveForward(-target, telemetry);
             return;
         }
-        target -= fudgery;
         double rbase = RightOdoDist();
         double lbase = LeftOdoDist();
         ElapsedTime stopwatch = new ElapsedTime();
@@ -129,6 +128,76 @@ public class DriveForwardPID {
 
         driveMotors.setAll(0);
         sumOfError = overall_error;
+    }
+
+    public void strafeRight(double target, Telemetry telemetry) {
+        if (target < 0) {
+            strafeLeft(-target, telemetry);
+            return;
+        }
+        double s_base = StrafeOdoDist();
+        double l_base = LeftOdoDist();
+        double r_base = RightOdoDist();
+        ElapsedTime stopwatch = new ElapsedTime();
+        double overall_left = 0.0;
+        double overall_right = 0.0;
+
+        while (true) {
+            double s_dist = StrafeOdoDist() - s_base;
+            double l_err = LeftOdoDist() - l_base;
+            double r_err = RightOdoDist() - r_base;
+
+            if (s_dist > target - acceptableError) break;
+
+            double dt = stopwatch.time();
+            stopwatch.reset();
+            overall_left += l_err * dt;
+            overall_right += r_err * dt;
+
+            double left_correct = kp * l_err + ki * overall_left;
+            double right_correct = kp * r_err + ki * overall_right;
+            double speed = Math.min(rampUp(s_dist), rampDown(target - s_dist));
+
+            driveMotors.frontLeft.setPower(speed + left_correct);
+            driveMotors.frontRight.setPower(-speed + right_correct);
+            driveMotors.backLeft.setPower(-speed + left_correct);
+            driveMotors.backRight.setPower(speed + right_correct);
+        }
+    }
+
+    public void strafeLeft(double target, Telemetry telemetry) {
+        if (target < 0) {
+            strafeRight(-target, telemetry);
+            return;
+        }
+        double s_base = StrafeOdoDist();
+        double l_base = LeftOdoDist();
+        double r_base = RightOdoDist();
+        ElapsedTime stopwatch = new ElapsedTime();
+        double overall_left = 0.0;
+        double overall_right = 0.0;
+
+        while (true) {
+            double s_dist = s_base - StrafeOdoDist();
+            double l_err = l_base - LeftOdoDist();
+            double r_err = r_base - RightOdoDist();
+
+            if (s_dist > target - acceptableError) break;
+
+            double dt = stopwatch.time();
+            stopwatch.reset();
+            overall_left += l_err * dt;
+            overall_right += r_err * dt;
+
+            double left_correct = kp * l_err + ki * overall_left;
+            double right_correct = kp * r_err + ki * overall_right;
+            double speed = Math.min(rampUp(s_dist), rampDown(target - s_dist));
+
+            driveMotors.frontLeft.setPower(-speed + left_correct);
+            driveMotors.frontRight.setPower(speed + right_correct);
+            driveMotors.backLeft.setPower(speed + left_correct);
+            driveMotors.backRight.setPower(-speed + right_correct);
+        }
     }
 }
 
