@@ -44,9 +44,9 @@ object Var {
     }
 
     object PixelDropper {
-        const val stowed = 0.177
-        const val start = 0.67
-        const val up = 1.0
+        const val down = 0.177
+        const val up = 0.67
+        const val back = 1.0
     }
 
     object TeleOp {
