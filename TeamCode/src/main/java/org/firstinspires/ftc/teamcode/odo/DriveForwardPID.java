@@ -7,6 +7,9 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DriveForwardPID {
     public static final double MAX_SPEED = 0.4;
     public static final double RAMPS_UP = 6; // in - too slow to go, make it lower
