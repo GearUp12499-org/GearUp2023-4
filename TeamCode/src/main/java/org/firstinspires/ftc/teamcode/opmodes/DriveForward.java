@@ -18,7 +18,7 @@ public class DriveForward extends LinearOpMode {
         robot.clearEncoders();
         waitForStart();
         //pidDrive.DriveForward(-27.0, telemetry);
-        //pidTurn.TurnRobot(180);
+        pidTurn.TurnRobot(180, telemetry);
         while (opModeIsActive()) {
             telemetry.addData("LEFT  ", pidTurn.LeftOdoDist());
             telemetry.addData("RIGHT", pidTurn.RightOdoDist());
