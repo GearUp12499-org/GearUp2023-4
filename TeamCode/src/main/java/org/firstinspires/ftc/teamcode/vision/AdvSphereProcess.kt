@@ -18,7 +18,7 @@ import org.opencv.imgproc.Imgproc
 import kotlin.math.max
 import kotlin.math.min
 
-class AdvSphereProcess(private val mode: Mode) : VisionProcessor {
+class AdvSphereProcess(var mode: Mode) : VisionProcessor {
     enum class Mode {
         Red,
         Blue
@@ -89,6 +89,10 @@ class AdvSphereProcess(private val mode: Mode) : VisionProcessor {
     private var pos1 = Rect(0, 0, 0, 0)
     private var pos2 = Rect(0, 0, 0, 0)
     private var pos3 = Rect(0, 0, 0, 0)
+
+    fun changeMode(newMode: Mode) {
+        mode = newMode;
+    }
 
     override fun init(width: Int, height: Int, calibration: CameraCalibration?) {
     }
