@@ -77,8 +77,7 @@ public class TeleOp extends LinearOpMode {
         waitForStart();
         int targetLeft = 0;
         int targetRight = 0;
-        int[] targets = {0, 500, 750, 1000};
-        int hangTarget = 1400;
+        int hangTarget = Var.TeleOp.liftHangingPreset;
 
         double balFL = Var.TeleOp.balanceFront * Var.TeleOp.balanceLeft;
         double balFR = Var.TeleOp.balanceFront * Var.TeleOp.balanceRight;
@@ -125,14 +124,14 @@ public class TeleOp extends LinearOpMode {
             }
 
             // 1350
-            int LONG_SLIDE_LIM = 3000;
-            int SHORT_SLIDE_LIM = 1500;
+            int LONG_SLIDE_LIM = Var.TeleOp.longSlideLimit;
+            int SHORT_SLIDE_LIM = Var.TeleOp.shortSlideLimit;
 
             // when B is pressed, reset all the lifts to the first preset
             // none of the other presets are ever used lol
             if (gamepad2.b) {
-                targetLeft = targets[0];
-                targetRight = targets[0];
+                targetLeft = 0;
+                targetRight = 0;
                 dumper.reset();
             }
 
@@ -212,7 +211,7 @@ public class TeleOp extends LinearOpMode {
                         return kvoid;
                     });
                     c.isCompleted(() -> !(robot.liftLeft().isBusy() || robot.liftRight().isBusy()));
-                    TimingKt.maxDuration(c, 3000);
+                    TimingKt.maxDuration(c, Var.TeleOp.cancelApproachDuration);
                     return kvoid;
                 });
             }

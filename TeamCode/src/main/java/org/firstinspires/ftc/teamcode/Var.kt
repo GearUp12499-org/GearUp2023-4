@@ -57,9 +57,24 @@ object Var {
         val approachDistance = 3.5.inches
 
         /**
+         * Cancel approaching object task after this duration (milliseconds)
+         */
+        const val cancelApproachDuration = 3000
+
+        /**
          * Speed when using the left bumper on Gamepad 1 to decrease the driving speed.
          */
         const val throttle = 0.5
+
+        /**
+         * Scoring (long) lift maximum, encoder counts
+         */
+        const val longSlideLimit = 3000
+
+        /**
+         * Hanging (short) lift maximum, encoder counts
+         */
+        const val shortSlideLimit = 1500
 
         /**
          * Lift speed, encoder counts per second
@@ -67,7 +82,7 @@ object Var {
         const val liftSpeed = 2000
 
         /**
-         * Lift speed (driver 1), encoder counts per second
+         * Lift speed (driver 1 / hanging lift), encoder counts per second
          */
         const val climbingLiftSpeed = 750
 
@@ -75,6 +90,11 @@ object Var {
          * Lift preset height for scoring, encoder ticks
          */
         const val liftScoringPreset = 2200
+
+        /**
+         * Lift preset height for hanging, encoder ticks
+         */
+        const val liftHangingPreset = 1400
 
         /**
          * Left-side motor fudging
