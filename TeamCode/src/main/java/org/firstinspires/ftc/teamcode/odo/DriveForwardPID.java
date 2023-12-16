@@ -12,7 +12,7 @@ public class DriveForwardPID {
     public static final double RAMPS_DOWN = 24; // in -
     public static final double MIN_SPEED_INITIAL = 0.25;
     public static final double MIN_SPEED_FINAL = 0.15;
-    public static final double acceptableError = 0.25; // in
+    public static final double acceptableError = .50; // in
 
     double rampDown(double distToTarget) {
         if (distToTarget <= 0) return 0.0;
@@ -56,7 +56,7 @@ public class DriveForwardPID {
 
     public double sumOfError = 0;
     public static final double kp = 0.1;
-    public static final double ki = 0.1;
+    public static final double ki = 0.0;
 
     public void DriveForward(double target, Telemetry telemetry) {
         if (target < 0) {
@@ -120,10 +120,10 @@ public class DriveForwardPID {
 
             double correction = kp * error + ki * overall_error;
             double speed = -Math.min(rampUp(avg), rampDown(target - avg));
-            driveMotors.frontLeft.setPower(speed + correction);
-            driveMotors.backLeft.setPower(speed + correction);
-            driveMotors.frontRight.setPower(speed - correction);
-            driveMotors.backRight.setPower(speed - correction);
+            driveMotors.frontLeft.setPower(speed - correction);
+            driveMotors.backLeft.setPower(speed - correction);
+            driveMotors.frontRight.setPower(speed + correction);
+            driveMotors.backRight.setPower(speed + correction);
         }
 
         driveMotors.setAll(0);

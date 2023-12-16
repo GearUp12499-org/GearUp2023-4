@@ -36,15 +36,14 @@ public class TurnPID {
         double radius = 7.5;
         double l_base = LeftOdoDist();
         double r_base = RightOdoDist();
+
+        // Every 45 degrees the error increases by about 2.5 degrees --> at power 0.6
+        // The error for 45 degrees is 9 degrees
+        double errorFix = (Math.abs(degrees) / 25.0) * (2.0) /*+ 9.0*/;
+        // If positive degrees, turn left according to the unit circle degrees
+        // 2 * pi * r * degrees/360
+        double turnDist = 2 * Math.PI * radius * ((degrees - errorFix) / 360.0);
         if (degrees > 0) {
-            // If positive degrees, turn left according to the unit circle degrees
-            // 2 * pi * r * degrees/360
-            double turnDist = 2 * Math.PI * radius * (degrees / 360.0);
-            // Every 45 degrees the error increases by about 2.5 degrees --> at power 0.6
-            // The error for 45 degrees is 9 degrees
-//            double errorFix = (degrees / 45.0) * (2.0) + 9.0;
-            // We have to subtract the extra degrees the robot turns from where we want to go
-//            double actualTurnDist = turnDist - errorFix;
 
             while (true) {
                 // TURNING COUNTER-CLOCKWISE:
@@ -65,9 +64,8 @@ public class TurnPID {
             }
             driveMotors.setAll(0);
         } else {
-            double turnDist = 2 * Math.PI * radius * (degrees / 360.0);
             while (true) {
-                // TURNING COUNTER-CLOCKWISE:
+                // TURNING CLOCKWISE:
                 //  Left Encoder  : POSITIVE
                 //  Right Encoder : NEGATIVE
                 double l_dist = LeftOdoDist() - l_base;
