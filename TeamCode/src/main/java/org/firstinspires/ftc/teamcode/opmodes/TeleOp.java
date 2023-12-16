@@ -8,7 +8,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Var;
 import org.firstinspires.ftc.teamcode.abstractions.ApproachObject;
 import org.firstinspires.ftc.teamcode.abstractions.Dumper;
-import org.firstinspires.ftc.teamcode.abstractions.ServoPowerManager;
 import org.firstinspires.ftc.teamcode.configurations.Robot;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
@@ -68,7 +67,6 @@ public class TeleOp extends LinearOpMode {
         // we don't want to have to call driveMotors() every time because it gets tedious
         MotorSet driveMotors = robot.driveMotors();
         Dumper dumper = new Dumper(scheduler, robot);
-        ServoPowerManager dumperPowerManager = new ServoPowerManager(robot.dumperRotate());
         ApproachObject approachBackdrop = new ApproachObject(scheduler, robot);
 
         dumper.defaultPos();
@@ -196,6 +194,7 @@ public class TeleOp extends LinearOpMode {
             double slideTicks = (robot.liftRight().getCurrentPosition() + robot.liftLeft().getCurrentPosition()) / 2.0;
 
             if (gamepad1.y) {
+                dumper.dump();
                 targetLeft = hangTarget;
                 targetRight = hangTarget;
                 scheduler.task(c -> {
