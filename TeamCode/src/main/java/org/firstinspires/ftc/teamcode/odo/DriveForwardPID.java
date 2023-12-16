@@ -56,7 +56,7 @@ public class DriveForwardPID {
 
     public double sumOfError = 0;
     public static final double kp = 0.1;
-    public static final double ki = 0.0;
+    public static final double ki = 0.05;
 
     public void DriveForward(double target, Telemetry telemetry) {
         if (target < 0) {

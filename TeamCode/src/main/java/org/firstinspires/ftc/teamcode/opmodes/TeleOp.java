@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -61,6 +62,7 @@ public class TeleOp extends LinearOpMode {
         MultitaskScheduler scheduler = new MultitaskScheduler();
         // get the robot configuration container (see RobotConfiguration.java)
         RobotConfiguration robot = new Robot(hardwareMap);
+        CRServo intakeAssist = hardwareMap.get(CRServo.class, "intakeAssist");
         robot.purpleDropper().setPosition(Var.PixelDropper.up);
 
         // we don't want to have to call driveMotors() every time because it gets tedious
@@ -222,10 +224,13 @@ public class TeleOp extends LinearOpMode {
 
             if (gamepad2.left_trigger > Var.TeleOp.triggerPct) {
                 robot.intake().setPower(Var.TeleOp.intakePower);
+                intakeAssist.setPower(1.0);
             } else if (gamepad2.right_trigger > Var.TeleOp.triggerPct) {
                 robot.intake().setPower(-Var.TeleOp.intakePower);
+                intakeAssist.setPower(-1.0);
             } else {
                 robot.intake().setPower(0);
+                intakeAssist.setPower(0);
             }
 
             double botHeading = robot.imu().getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);

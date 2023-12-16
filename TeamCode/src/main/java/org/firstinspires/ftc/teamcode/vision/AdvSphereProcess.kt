@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.vision
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import com.qualcomm.robotcore.util.RobotLog
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration
@@ -70,9 +71,9 @@ class AdvSphereProcess(var mode: Mode) : VisionProcessor {
         private val blueFrom = Scalar(95.0, HSV_MIN_S, HSV_MIN_V)
         private val blueTo = Scalar(125.0, 255.0, 255.0)
 
-        val Position1 = PctSquare(.07, .60, .25, PctSquare.SizeRelativeTo.Width)
-        val Position2 = PctSquare(.38, .55, .25, PctSquare.SizeRelativeTo.Width)
-        val Position3 = PctSquare(.72, .60, .25, PctSquare.SizeRelativeTo.Width)
+        val Position1 = PctSquare(.07, .50, .25, PctSquare.SizeRelativeTo.Width)
+        val Position2 = PctSquare(.38, .45, .25, PctSquare.SizeRelativeTo.Width)
+        val Position3 = PctSquare(.72, .50, .25, PctSquare.SizeRelativeTo.Width)
 
         // at least X times more than other columns to confidently vote here
         private const val ClearMajorityFactor = 2.0
@@ -249,7 +250,7 @@ class AdvSphereProcess(var mode: Mode) : VisionProcessor {
         canvas: Canvas?,
         onscreenWidth: Int,
         onscreenHeight: Int,
-        scaleBmpPxToCanvasPx: Float,
+        bmp2canv: Float,
         scaleCanvasDensity: Float,
         userContext: Any?
     ) {
@@ -272,6 +273,36 @@ class AdvSphereProcess(var mode: Mode) : VisionProcessor {
         canvas.drawText(strategy, 10F, 60F, Paint().apply {
             textSize = 28F
         })
+
+        val p1r = ARect(
+            (pos1.x * bmp2canv).toInt(),
+            (pos1.y * bmp2canv).toInt(),
+            (pos1.x * bmp2canv + pos1.width * bmp2canv).toInt(),
+            (pos1.y * bmp2canv + pos1.height * bmp2canv).toInt()
+        )
+
+        val p2r = ARect(
+            (pos2.x * bmp2canv).toInt(),
+            (pos2.y * bmp2canv).toInt(),
+            (pos2.x * bmp2canv + pos2.width * bmp2canv).toInt(),
+            (pos2.y * bmp2canv + pos2.height * bmp2canv).toInt()
+        )
+
+        val p3r = ARect(
+            (pos3.x * bmp2canv).toInt(),
+            (pos3.y * bmp2canv).toInt(),
+            (pos3.x * bmp2canv + pos3.width * bmp2canv).toInt(),
+            (pos3.y * bmp2canv + pos3.height * bmp2canv).toInt()
+        )
+
+        val p = Paint().apply {
+            style = Paint.Style.FILL
+            color = 0xc000ffff.toInt()
+        }
+
+        canvas.drawRect(p1r, p)
+        canvas.drawRect(p2r, p)
+        canvas.drawRect(p3r, p)
     }
 
 

@@ -42,7 +42,7 @@ public class TurnPID {
         double errorFix = (Math.abs(degrees) / 25.0) * (2.0) /*+ 9.0*/;
         // If positive degrees, turn left according to the unit circle degrees
         // 2 * pi * r * degrees/360
-        double turnDist = 2 * Math.PI * radius * ((degrees - errorFix) / 360.0);
+        double turnDist = 2 * Math.PI * radius * ((Math.abs(degrees) - errorFix) / 360.0);
         if (degrees > 0) {
 
             while (true) {

@@ -5,9 +5,14 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.teamcode.vision.AdvSphereProcess;
 
 @Autonomous
-public class TwentyAutoRed extends TwentyAuto {
+public class TwentyAutoBlueRight extends TwentyAuto {
     @Override
     protected AdvSphereProcess.Mode modeConf() {
-        return AdvSphereProcess.Mode.Red;
+        return AdvSphereProcess.Mode.Blue;
+    }
+
+    @Override
+    protected StartPosition positionConf() {
+        return StartPosition.RightOfTruss;
     }
 }
