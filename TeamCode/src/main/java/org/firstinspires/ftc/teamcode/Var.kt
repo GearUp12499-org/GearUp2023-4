@@ -69,7 +69,7 @@ object Var {
         /**
          * Scoring (long) lift maximum, encoder counts
          */
-        const val longSlideLimit = 3000
+        const val longSlideLimit = 2500
 
         /**
          * Hanging (short) lift maximum, encoder counts
@@ -89,7 +89,7 @@ object Var {
         /**
          * Lift preset height for scoring, encoder ticks
          */
-        const val liftScoringPreset = 2200
+        const val liftScoringPreset = 2000
 
         /**
          * Lift preset height for hanging, encoder ticks

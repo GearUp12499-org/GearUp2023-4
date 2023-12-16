@@ -63,7 +63,7 @@ public class TeleOp extends LinearOpMode {
         // get the robot configuration container (see RobotConfiguration.java)
         RobotConfiguration robot = new Robot(hardwareMap);
         CRServo intakeAssist = hardwareMap.get(CRServo.class, "intakeAssist");
-        robot.purpleDropper().setPosition(Var.PixelDropper.up);
+        robot.purpleDropper().setPosition(Var.PixelDropper.back);
 
         // we don't want to have to call driveMotors() every time because it gets tedious
         MotorSet driveMotors = robot.driveMotors();
@@ -179,13 +179,6 @@ public class TeleOp extends LinearOpMode {
             }
             if (gamepad2.right_bumper) {
                 dumper.reset();
-            }
-
-            if (gamepad2.x) {
-                robot.purpleDropper().setPosition(Var.PixelDropper.down);
-            }
-            if (gamepad2.y) {
-                robot.purpleDropper().setPosition(Var.PixelDropper.back);
             }
 
             if (gamepad1.x) {
