@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.vision
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import com.qualcomm.robotcore.util.RobotLog
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration
@@ -19,7 +18,7 @@ import org.opencv.imgproc.Imgproc
 import kotlin.math.max
 import kotlin.math.min
 
-class AdvSphereProcess(var mode: Mode) : VisionProcessor {
+class AdvSphereProcess(var mode: Mode, var altBoxes: Boolean) : VisionProcessor {
     enum class Mode {
         Red,
         Blue
@@ -35,8 +34,8 @@ class AdvSphereProcess(var mode: Mode) : VisionProcessor {
     data class PctSquare(
         val left: Double,
         val top: Double,
-        val size: Double,
-        val sizeRelativeTo: SizeRelativeTo = SizeRelativeTo.Longer
+        val width: Double,
+        val height: Double,
     ) {
         enum class SizeRelativeTo {
             Width,
@@ -48,35 +47,43 @@ class AdvSphereProcess(var mode: Mode) : VisionProcessor {
         fun toRect(target: Mat): Rect {
             val w = target.width()
             val h = target.height()
-            val size = when (sizeRelativeTo) {
-                SizeRelativeTo.Width -> w * size
-                SizeRelativeTo.Height -> h * size
-                SizeRelativeTo.Shorter -> min(w, h) * size
-                SizeRelativeTo.Longer -> max(w, h) * size
-            }.toInt()
+            val sw = (w * width).toInt()
+            val sh = (h * height).toInt()
             val top = (h * top).toInt()
             val left = (w * left).toInt()
-            return Rect(left, top, min(w - left, size), min(h - top, size))
+            return Rect(left, top, min(w - left, sw), min(h - top, sh))
         }
     }
 
+    var votesLeft = 0
+        private set
+    var votesCenter = 0
+        private set
+    var votesRight = 0
+        private set
+
     companion object {
-        private const val HSV_MIN_S = 128.0
-        private const val HSV_MIN_V = 32.0
-        private val redFrom1 = Scalar(175.0, HSV_MIN_S, HSV_MIN_V)
+        private const val HSV_MIN_S = 128.0 // 50%
+        private const val HSV_MIN_V_RED = 32.0  // 12.5%
+        private val redFrom1 = Scalar(175.0, HSV_MIN_S, HSV_MIN_V_RED)
         private val redTo1 = Scalar(180.0, 255.0, 255.0)
-        private val redFrom2 = Scalar(0.0, HSV_MIN_S, HSV_MIN_V)
+        private val redFrom2 = Scalar(0.0, HSV_MIN_S, HSV_MIN_V_RED)
         private val redTo2 = Scalar(5.0, 255.0, 255.0)
 
-        private val blueFrom = Scalar(95.0, HSV_MIN_S, HSV_MIN_V)
+        private const val HSV_MIN_V_BLUE = 70.0 // 27.5%
+        private val blueFrom = Scalar(95.0, HSV_MIN_S, HSV_MIN_V_BLUE)
         private val blueTo = Scalar(125.0, 255.0, 255.0)
 
-        val Position1 = PctSquare(.07, .50, .25, PctSquare.SizeRelativeTo.Width)
-        val Position2 = PctSquare(.38, .45, .25, PctSquare.SizeRelativeTo.Width)
-        val Position3 = PctSquare(.72, .50, .25, PctSquare.SizeRelativeTo.Width)
+        val Position1A = PctSquare(.03, .30, .16, .60)
+        val Position2A = PctSquare(.36, .30, .16, .60)
+        val Position3A = PctSquare(.69, .30, .16, .60)
+
+        val Position1B = PctSquare(.20, .30, .16, .60)
+        val Position2B = PctSquare(.51, .30, .16, .60)
+        val Position3B = PctSquare(.83, .30, .16, .60)
 
         // at least X times more than other columns to confidently vote here
-        private const val ClearMajorityFactor = 2.0
+        private const val ClearMajorityFactor = 1.0
         private const val BlurSize = 11.0
 
         private const val circleDP = 1.0
@@ -87,6 +94,7 @@ class AdvSphereProcess(var mode: Mode) : VisionProcessor {
         private const val circleMaxRadius = 0
     }
 
+    private var scalingFraction: Double = 0.5
     private var pos1 = Rect(0, 0, 0, 0)
     private var pos2 = Rect(0, 0, 0, 0)
     private var pos3 = Rect(0, 0, 0, 0)
@@ -115,11 +123,11 @@ class AdvSphereProcess(var mode: Mode) : VisionProcessor {
     override fun processFrame(frame: Mat?, captureTimeNanos: Long): Any? {
         frame ?: throw IllegalStateException("passed a null frame to processFrame")
         Imgproc.cvtColor(frame, scratch, Imgproc.COLOR_RGB2BGR)
-        val scalingFraction = 720.0 / scratch.width()
+        scalingFraction = 720.0 / scratch.width()
         Imgproc.resize(scratch, scratch, Size(), scalingFraction, scalingFraction)
-        pos1 = Position1.toRect(scratch)
-        pos2 = Position2.toRect(scratch)
-        pos3 = Position3.toRect(scratch)
+        pos1 = (if (altBoxes) Position1B else Position1A).toRect(scratch)
+        pos2 = (if (altBoxes) Position2B else Position2A).toRect(scratch)
+        pos3 = (if (altBoxes) Position3B else Position3A).toRect(scratch)
 
         Imgproc.cvtColor(scratch, recolor, Imgproc.COLOR_BGR2HSV)
         //Core contains basic image operations like masking
@@ -128,9 +136,9 @@ class AdvSphereProcess(var mode: Mode) : VisionProcessor {
         Core.add(red1, red2, red1)
         Core.inRange(recolor, blueFrom, blueTo, blue)
 
-        left = Mat(red1, pos1)
-        center = Mat(red1, pos2)
-        right = Mat(red1, pos3)
+        left = Mat(if (mode == Mode.Red) red1 else blue, pos1)
+        center = Mat(if (mode == Mode.Red) red1 else blue, pos2)
+        right = Mat(if (mode == Mode.Red) red1 else blue, pos3)
 
         val redLeft = Mat(red1, pos1)
         val redCenter = Mat(red1, pos2)
@@ -139,19 +147,19 @@ class AdvSphereProcess(var mode: Mode) : VisionProcessor {
         val blueCenter = Mat(blue, pos2)
         val blueRight = Mat(blue, pos3)
         try {
-            val votesLeft = Core.countNonZero(
+            votesLeft = Core.countNonZero(
                 when (mode) {
                     Mode.Red -> redLeft
                     Mode.Blue -> blueLeft
                 }
             )
-            val votesCenter = Core.countNonZero(
+            votesCenter = Core.countNonZero(
                 when (mode) {
                     Mode.Red -> redCenter
                     Mode.Blue -> blueCenter
                 }
             )
-            val votesRight = Core.countNonZero(
+            votesRight = Core.countNonZero(
                 when (mode) {
                     Mode.Red -> redRight
                     Mode.Blue -> blueRight
@@ -255,6 +263,7 @@ class AdvSphereProcess(var mode: Mode) : VisionProcessor {
         userContext: Any?
     ) {
         canvas ?: return
+        val unscale = (1.0 / scalingFraction) * bmp2canv
         // visualization code
         val name = when (result) {
             Result.None -> "Not sure. :("
@@ -275,29 +284,29 @@ class AdvSphereProcess(var mode: Mode) : VisionProcessor {
         })
 
         val p1r = ARect(
-            (pos1.x * bmp2canv).toInt(),
-            (pos1.y * bmp2canv).toInt(),
-            (pos1.x * bmp2canv + pos1.width * bmp2canv).toInt(),
-            (pos1.y * bmp2canv + pos1.height * bmp2canv).toInt()
+            (pos1.x * unscale).toInt(),
+            (pos1.y * unscale).toInt(),
+            (pos1.x * unscale + pos1.width * unscale).toInt(),
+            (pos1.y * unscale + pos1.height * unscale).toInt()
         )
 
         val p2r = ARect(
-            (pos2.x * bmp2canv).toInt(),
-            (pos2.y * bmp2canv).toInt(),
-            (pos2.x * bmp2canv + pos2.width * bmp2canv).toInt(),
-            (pos2.y * bmp2canv + pos2.height * bmp2canv).toInt()
+            (pos2.x * unscale).toInt(),
+            (pos2.y * unscale).toInt(),
+            (pos2.x * unscale + pos2.width * unscale).toInt(),
+            (pos2.y * unscale + pos2.height * unscale).toInt()
         )
 
         val p3r = ARect(
-            (pos3.x * bmp2canv).toInt(),
-            (pos3.y * bmp2canv).toInt(),
-            (pos3.x * bmp2canv + pos3.width * bmp2canv).toInt(),
-            (pos3.y * bmp2canv + pos3.height * bmp2canv).toInt()
+            (pos3.x * unscale).toInt(),
+            (pos3.y * unscale).toInt(),
+            (pos3.x * unscale + pos3.width * unscale).toInt(),
+            (pos3.y * unscale + pos3.height * unscale).toInt()
         )
 
         val p = Paint().apply {
             style = Paint.Style.FILL
-            color = 0xc000ffff.toInt()
+            color = if (altBoxes) 0xc0ffff00.toInt() else 0xc000ffff.toInt()
         }
 
         canvas.drawRect(p1r, p)

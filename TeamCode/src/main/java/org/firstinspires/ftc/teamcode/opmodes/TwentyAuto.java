@@ -5,6 +5,7 @@ import android.util.Size;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
@@ -15,12 +16,9 @@ import org.firstinspires.ftc.teamcode.odo.TurnPID;
 import org.firstinspires.ftc.teamcode.vision.AdvSphereProcess;
 import org.firstinspires.ftc.vision.VisionPortal;
 
-public abstract class TwentyAuto extends LinearOpMode {
-    public enum StartPosition {
-        LeftOfTruss,
-        RightOfTruss
-    }
+import java.util.Locale;
 
+public abstract class TwentyAuto extends LinearOpMode {
     private VisionPortal portal;
     private AdvSphereProcess sphere;
     private DriveForwardPID forwardPID;
@@ -29,12 +27,14 @@ public abstract class TwentyAuto extends LinearOpMode {
 
     /**
      * Detection mode (Red or Blue.)
+     *
      * @return Red or Blue
      */
     protected abstract AdvSphereProcess.Mode modeConf();
 
     /**
      * Robot starting position
+     *
      * @return Left of truss Or Right of truss
      */
     protected abstract StartPosition positionConf();
@@ -43,6 +43,12 @@ public abstract class TwentyAuto extends LinearOpMode {
         sleep(500);
         robot.purpleDropper().setPosition(Var.PixelDropper.down);
         sleep(1000);
+        // interpolate.
+        ElapsedTime dt = new ElapsedTime();
+        dt.reset();
+        while (dt.time() < 1.0) {
+            robot.purpleDropper().setPosition(dt.time() * 0.1 + Var.PixelDropper.down);
+        }
         robot.purpleDropper().setPosition(Var.PixelDropper.back);
         sleep(500);
     }
@@ -64,14 +70,14 @@ public abstract class TwentyAuto extends LinearOpMode {
     void rightRight() {
         RobotLog.ii("TwentyAuto", "RIGHT");
         forwardPID.DriveReverse(16.0, telemetry);
-        turnPID.TurnRobot(-70.0, telemetry);
+        turnPID.TurnRobot(-60.0, telemetry);
         placePixel();
     }
 
     void leftLeft() {
         RobotLog.ii("TwentyAuto", "LEFT");
-        forwardPID.DriveReverse(16.0, telemetry);
-        turnPID.TurnRobot(10.0, telemetry);
+        forwardPID.DriveReverse(17.0, telemetry);
+        turnPID.TurnRobot(5.0, telemetry);
         placePixel();
     }
 
@@ -84,8 +90,9 @@ public abstract class TwentyAuto extends LinearOpMode {
 
     void rightLeft() {
         RobotLog.ii("TwentyAuto", "RIGHT");
-        forwardPID.DriveReverse(16.0, telemetry);
-        turnPID.TurnRobot(-70.0, telemetry);
+        forwardPID.DriveReverse(20.0, telemetry);
+        turnPID.TurnRobot(-90.0, telemetry);
+        forwardPID.DriveReverse(2.0, telemetry);
         placePixel();
     }
 
@@ -108,6 +115,13 @@ public abstract class TwentyAuto extends LinearOpMode {
             telemetry.addData("Detection", sphere.getResult());
             telemetry.addData("Strategy  ", sphere.getStrategy());
             telemetry.addData("Mode      ", sphere.getMode());
+            telemetry.addData("Scoring   ", String.format(
+                    Locale.getDefault(),
+                    "%d / %d / %d",
+                    sphere.getVotesLeft(),
+                    sphere.getVotesCenter(),
+                    sphere.getVotesRight()
+            ));
             telemetry.update();
         }
         waitForStart();
@@ -145,11 +159,16 @@ public abstract class TwentyAuto extends LinearOpMode {
     }
 
     void setupVision(CameraName camera) {
-        sphere = new AdvSphereProcess(modeConf());
+        sphere = new AdvSphereProcess(modeConf(), positionConf() == StartPosition.LeftOfTruss);
         portal = new VisionPortal.Builder()
                 .setCamera(camera)
                 .addProcessor(sphere)
                 .setCameraResolution(new Size(864, 480))
                 .build();
+    }
+
+    public enum StartPosition {
+        LeftOfTruss,
+        RightOfTruss
     }
 }

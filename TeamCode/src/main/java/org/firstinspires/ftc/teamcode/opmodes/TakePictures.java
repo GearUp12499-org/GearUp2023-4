@@ -15,6 +15,9 @@ public class TakePictures extends LinearOpMode {
     VisionPortal portal;
     AdvSphereProcess spheres;
 
+    AdvSphereProcess.Mode mode = AdvSphereProcess.Mode.Red;
+    boolean altBoxes = false;
+
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -22,18 +25,34 @@ public class TakePictures extends LinearOpMode {
         initVisionPortal();
         waitForStart();
         boolean lastABtn = false;
+        boolean lastXBtn = false;
+        boolean lastYBtn = false;
         while (opModeIsActive()) {
-            telemetry.addLine("Press A to take pictures");
+            telemetry.addLine("Press A to capture");
+            telemetry.addData("Mode [X]", mode);
+            telemetry.addData("Alternative Boxes? [Y]", altBoxes);
             telemetry.update();
             if (gamepad1.a && !lastABtn) {
                 spheres.capture();
             }
+            if (gamepad1.x && !lastXBtn) {
+                mode = mode == AdvSphereProcess.Mode.Red ?
+                        AdvSphereProcess.Mode.Blue :
+                        AdvSphereProcess.Mode.Red;
+                spheres.setMode(mode);
+            }
+            if (gamepad1.y && !lastYBtn) {
+                altBoxes = !altBoxes;
+                spheres.setAltBoxes(altBoxes);
+            }
             lastABtn = gamepad1.a;
+            lastXBtn = gamepad1.x;
+            lastYBtn = gamepad1.y;
         }
     }
 
     private void initVisionPortal() {
-        spheres = new AdvSphereProcess(AdvSphereProcess.Mode.Red);
+        spheres = new AdvSphereProcess(mode, altBoxes);
 
         VisionPortal.Builder visionPortalBuilder = new VisionPortal.Builder();
         visionPortalBuilder.setCamera(webcam);

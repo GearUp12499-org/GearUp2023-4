@@ -149,7 +149,7 @@ public class DetectTags extends LinearOpMode {
                 .setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
                 //.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
                 .build();
-        spheres = new AdvSphereProcess(AdvSphereProcess.Mode.Red);
+        spheres = new AdvSphereProcess(AdvSphereProcess.Mode.Red, false);
 
         VisionPortal.Builder visionPortalBuilder = new VisionPortal.Builder();
         visionPortalBuilder.setCamera(webcam);
