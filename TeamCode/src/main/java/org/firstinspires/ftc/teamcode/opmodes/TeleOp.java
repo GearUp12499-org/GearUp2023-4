@@ -106,7 +106,18 @@ public class TeleOp extends LinearOpMode {
             double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
             double rx = gamepad1.right_stick_x;
 
-            double fac = gamepad1.left_bumper ? Var.TeleOp.throttle : 1;
+            double throttleThrow = gamepad1.left_trigger - Var.TeleOp.throttleMinThrow;
+            double throttlePct = throttleThrow * (1 / (1 - Var.TeleOp.throttleMinThrow));
+
+            double fac = 1;
+            if (gamepad1.left_bumper)
+                fac = Var.TeleOp.binThrottle;
+            if (throttleThrow >= 0)
+                fac = 0.4 - ((0.4 - Var.TeleOp.throttle) * throttlePct);
+
+            if (Math.abs(y) + Math.abs(x) > 0.2) {
+                scheduler.filteredStop(task -> task.requirements().contains(robot.getDriveMotorLock()));
+            }
 
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
             double frontLeftPower = (y + x + rx) / denominator * fac;
@@ -132,6 +143,7 @@ public class TeleOp extends LinearOpMode {
             if (gamepad2.b) {
                 targetLeft = 0;
                 targetRight = 0;
+                scheduler.filteredStop(task -> task.requirements().contains(robot.getDumperLock()));
                 dumper.reset();
             }
 

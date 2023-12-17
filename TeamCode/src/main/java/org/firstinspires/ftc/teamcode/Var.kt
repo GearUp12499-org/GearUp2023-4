@@ -62,14 +62,24 @@ object Var {
         const val cancelApproachDuration = 3000
 
         /**
+         * Minimum amount to push the throttle trigger in order to activate the slowing effect
+         */
+        const val throttleMinThrow = 0.5
+
+        /**
+         * Minimum speed when using the left trigger on Gamepad 1 to decrease the driving speed.
+         */
+        const val throttle = 0.2
+
+        /**
          * Speed when using the left bumper on Gamepad 1 to decrease the driving speed.
          */
-        const val throttle = 0.5
+        const val binThrottle = 0.5
 
         /**
          * Scoring (long) lift maximum, encoder counts
          */
-        const val longSlideLimit = 2500
+        const val longSlideLimit = 2300
 
         /**
          * Hanging (short) lift maximum, encoder counts

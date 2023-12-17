@@ -19,6 +19,10 @@ public class ReadOdo extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         RobotConfiguration robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
+        robot.liftLeft().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.liftLeft().setPower(0);
+        robot.liftRight().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.liftRight().setPower(0);
         robot.driveMotors().frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.driveMotors().frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         robot.driveMotors().backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -30,6 +34,8 @@ public class ReadOdo extends LinearOpMode {
             telemetry.addData("Par1", robot.driveMotors().frontLeft.getCurrentPosition());
             telemetry.addData("Par2", robot.driveMotors().backRight.getCurrentPosition());
             telemetry.addData("Perp", intake.getCurrentPosition());
+            telemetry.addData("Left lift", robot.liftLeft().getCurrentPosition());
+            telemetry.addData("Right lift", robot.liftRight().getCurrentPosition());
             telemetry.update();
             sleep(20);
         }

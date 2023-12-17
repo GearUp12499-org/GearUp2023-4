@@ -58,17 +58,22 @@ class MultitaskScheduler : Scheduler() {
 
     private fun tickFinish() {
         val candidates = selectState(Task.State.Finishing)
-        candidates.forEach {
-            it.invokeOnFinish()
-            it.setState(Task.State.Finished)
-            // release locks
-            for (lock in it.requirements()) {
-                if (locks[lock.id] != it.myId) {
-                    throw IllegalStateException("task ${it.myId} (which just finished) does not own lock $lock that it is supposed to own")
-                }
-                locks[lock.id] = null
-                println("task ${it.myId} released $lock")
+        candidates.forEach(::release)
+    }
+
+    private fun release(task: Task) {
+        if (task.state == Task.State.NotStarted) {
+            task.setState(Task.State.Finished)
+            return
+        }
+        task.invokeOnFinish()
+        task.setState(Task.State.Finished)
+        for (lock in task.requirements()) {
+            if (locks[lock.id] != task.myId) {
+                throw IllegalStateException("task ${task.myId} (which just finished) does not own lock $lock that it is supposed to own")
             }
+            locks[lock.id] = null
+            println("task ${task.myId} released $lock")
         }
     }
 
@@ -126,5 +131,16 @@ class MultitaskScheduler : Scheduler() {
         while (hasJobs() && ok()) {
             tick()
         }
+    }
+
+    /**
+     * Stops any tasks matching the predicate that are not already finished or haven't started yet.
+     * Resources owned by matching tasks are guaranteed to be released after this call.
+     */
+    fun filteredStop(predicate: (Task) -> Boolean) {
+        tasks.values
+            .filter { it.state != Task.State.Finished && it.state != Task.State.NotStarted }
+            .filter(predicate)
+            .forEach(::release)
     }
 }
