@@ -5,3 +5,4 @@ plugins {
 include ':FtcRobotController'
 include ':TeamCode'
 include ':multitask'
+include ':ktftc'
