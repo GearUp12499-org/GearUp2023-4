@@ -177,6 +177,13 @@ public abstract class TwentyAuto extends LinearOpMode {
                     sphere.getVotesCenter(),
                     sphere.getVotesRight()
             ));
+            telemetry.addData("Circles   ", String.format(
+                    Locale.getDefault(),
+                    "%d / %d / %d",
+                    sphere.getCirclesLeft(),
+                    sphere.getCirclesCenter(),
+                    sphere.getCirclesRight()
+            ));
             telemetry.update();
         }
         waitForStart();

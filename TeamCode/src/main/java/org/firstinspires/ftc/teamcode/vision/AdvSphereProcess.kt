@@ -9,7 +9,9 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.firstinspires.ftc.teamcode.utilities.toInt
 import org.firstinspires.ftc.vision.VisionProcessor
 import org.opencv.core.Core
+import org.opencv.core.CvType
 import org.opencv.core.Mat
+import org.opencv.core.Point
 import org.opencv.core.Rect
 import org.opencv.core.Scalar
 import org.opencv.core.Size
@@ -31,19 +33,18 @@ class AdvSphereProcess(var mode: Mode, var altBoxes: Boolean) : VisionProcessor 
         None
     }
 
+    enum class CircleResult {
+        Blue,
+        Red,
+        None
+    }
+
     data class PctSquare(
         val left: Double,
         val top: Double,
         val width: Double,
         val height: Double,
     ) {
-        enum class SizeRelativeTo {
-            Width,
-            Height,
-            Longer,
-            Shorter
-        }
-
         fun toRect(target: Mat): Rect {
             val w = target.width()
             val h = target.height()
@@ -60,6 +61,13 @@ class AdvSphereProcess(var mode: Mode, var altBoxes: Boolean) : VisionProcessor 
     var votesCenter = 0
         private set
     var votesRight = 0
+        private set
+
+    var circlesLeft = 0
+        private set
+    var circlesCenter = 0
+        private set
+    var circlesRight = 0
         private set
 
     companion object {
@@ -83,7 +91,8 @@ class AdvSphereProcess(var mode: Mode, var altBoxes: Boolean) : VisionProcessor 
         val Position3B = PctSquare(.83, .30, .16, .60)
 
         // at least X times more than other columns to confidently vote here
-        private const val ClearMajorityFactor = 1.0
+        private const val ClearMajorityFactor = 2
+        private const val CircleFillVotePct = .5
         private const val BlurSize = 11.0
 
         private const val circleDP = 1.0
@@ -99,15 +108,13 @@ class AdvSphereProcess(var mode: Mode, var altBoxes: Boolean) : VisionProcessor 
     private var pos2 = Rect(0, 0, 0, 0)
     private var pos3 = Rect(0, 0, 0, 0)
 
-    fun changeMode(newMode: Mode) {
-        mode = newMode;
-    }
-
     override fun init(width: Int, height: Int, calibration: CameraCalibration?) {
     }
 
     private var scratch = Mat()
-    private var recolor = Mat()
+    private var maskScratch = Mat()
+    private var hsvColor = Mat()
+    private var grayColor = Mat()
     private var red1 = Mat()
     private var red2 = Mat()
     private var blue = Mat()
@@ -120,6 +127,25 @@ class AdvSphereProcess(var mode: Mode, var altBoxes: Boolean) : VisionProcessor 
     var strategy: String = ""
         private set
 
+    private fun processCircle(center: Point, radius: Int): CircleResult {
+        val mask = Mat(hsvColor.size(), CvType.CV_8UC1, Scalar(0.0))
+        Imgproc.circle(mask, center, radius, Scalar(255.0))
+        val total = Core.countNonZero(mask)
+        Core.bitwise_and(red1, mask, maskScratch)
+        val reds = Core.countNonZero(maskScratch)
+        Core.bitwise_and(blue, mask, maskScratch)
+        val blues = Core.countNonZero(maskScratch)
+        mask.release()
+        val isRed = reds / total.toDouble() > CircleFillVotePct
+        val isBlue = blues / total.toDouble() > CircleFillVotePct
+        return when {
+            isRed && isBlue -> CircleResult.None
+            isRed -> CircleResult.Red
+            isBlue -> CircleResult.Blue
+            else -> CircleResult.None
+        }
+    }
+
     override fun processFrame(frame: Mat?, captureTimeNanos: Long): Any? {
         frame ?: throw IllegalStateException("passed a null frame to processFrame")
         Imgproc.cvtColor(frame, scratch, Imgproc.COLOR_RGB2BGR)
@@ -129,12 +155,12 @@ class AdvSphereProcess(var mode: Mode, var altBoxes: Boolean) : VisionProcessor 
         pos2 = (if (altBoxes) Position2B else Position2A).toRect(scratch)
         pos3 = (if (altBoxes) Position3B else Position3A).toRect(scratch)
 
-        Imgproc.cvtColor(scratch, recolor, Imgproc.COLOR_BGR2HSV)
+        Imgproc.cvtColor(scratch, hsvColor, Imgproc.COLOR_BGR2HSV)
         //Core contains basic image operations like masking
-        Core.inRange(recolor, redFrom1, redTo1, red1)
-        Core.inRange(recolor, redFrom2, redTo2, red2)
+        Core.inRange(hsvColor, redFrom1, redTo1, red1)
+        Core.inRange(hsvColor, redFrom2, redTo2, red2)
         Core.add(red1, red2, red1)
-        Core.inRange(recolor, blueFrom, blueTo, blue)
+        Core.inRange(hsvColor, blueFrom, blueTo, blue)
 
         left = Mat(if (mode == Mode.Red) red1 else blue, pos1)
         center = Mat(if (mode == Mode.Red) red1 else blue, pos2)
@@ -196,11 +222,11 @@ class AdvSphereProcess(var mode: Mode, var altBoxes: Boolean) : VisionProcessor 
         // somehow two spots both got the extreme majority
 
         // Do circles
-        Imgproc.cvtColor(scratch, recolor, Imgproc.COLOR_BGR2GRAY)
-        Imgproc.blur(recolor, recolor, Size(BlurSize, BlurSize))
-        val left = Mat(recolor, pos1)
-        val center = Mat(recolor, pos2)
-        val right = Mat(recolor, pos3)
+        Imgproc.cvtColor(scratch, grayColor, Imgproc.COLOR_BGR2GRAY)
+        Imgproc.blur(grayColor, grayColor, Size(BlurSize, BlurSize))
+        val left = Mat(grayColor, pos1)
+        val center = Mat(grayColor, pos2)
+        val right = Mat(grayColor, pos3)
         val leftCircles = Mat()
         val centerCircles = Mat()
         val rightCircles = Mat()
@@ -232,14 +258,84 @@ class AdvSphereProcess(var mode: Mode, var altBoxes: Boolean) : VisionProcessor 
                 // min and max radius (set these values as you desire)
                 circleMinRadius, circleMaxRadius,
             )
-            strategy = "Circles"
+
+            var leftRedC = 0
+            var leftBlueC = 0
+            for (i in 0 until leftCircles.cols()) {
+                val circle = leftCircles.get(0, i)
+                val centerPoint = Point(circle[0] + pos1.x, circle[1] + pos1.y)
+                when (processCircle(centerPoint, circle[2].toInt())) {
+                    CircleResult.Red -> leftRedC++
+                    CircleResult.Blue -> leftBlueC++
+                    else -> {}
+                }
+            }
+
+            var centerRedC = 0
+            var centerBlueC = 0
+            for (i in 0 until centerCircles.cols()) {
+                val circle = centerCircles.get(0, i)
+                val centerPoint = Point(circle[0] + pos2.x, circle[1] + pos2.y)
+                when (processCircle(centerPoint, circle[2].toInt())) {
+                    CircleResult.Red -> centerRedC++
+                    CircleResult.Blue -> centerBlueC++
+                    else -> {}
+                }
+            }
+
+            var rightRedC = 0
+            var rightBlueC = 0
+            for (i in 0 until rightCircles.cols()) {
+                val circle = rightCircles.get(0, i)
+                val centerPoint = Point(circle[0] + pos3.x, circle[1] + pos3.y)
+                when (processCircle(centerPoint, circle[2].toInt())) {
+                    CircleResult.Red -> rightRedC++
+                    CircleResult.Blue -> rightBlueC++
+                    else -> {}
+                }
+            }
+
+            val leftC = when (mode) {
+                Mode.Red -> leftRedC
+                Mode.Blue -> leftBlueC
+            }
+            circlesLeft = leftC
+            val centerC = when (mode) {
+                Mode.Red -> centerRedC
+                Mode.Blue -> centerBlueC
+            }
+            circlesCenter = centerC
+            val rightC = when (mode) {
+                Mode.Red -> rightRedC
+                Mode.Blue -> rightBlueC
+            }
+            circlesRight = rightC
+            val maximC = max(max(max(leftC, centerC), rightC), 1)
+            val countMatching =
+                (if (leftC == maximC) 1 else 0) + (if (centerC == maximC) 1 else 0) + (if (rightC == maximC) 1 else 0)
+            strategy = "Circles ($maximC detected)"
+            result = when {
+                countMatching > 1 -> {
+                    strategy = "Circles (too many? $countMatching are $maximC)"
+                    result
+                } // well that's weird
+                countMatching < 1 -> {
+                    strategy = "Circles (cached)"
+                    result
+                } // inconclusive
+                leftC == maximC -> Result.Left
+                centerC == maximC -> Result.Center
+                rightC == maximC -> Result.Right
+                else -> result // shouldn't happen but shuts up compiler
+            }
         } finally {
             left.release()
             center.release()
             right.release()
         }
         // I give up.
-        result = Result.None
+        // actually don't overwrite the result.
+//        result = Result.None
         return null
     }
 
