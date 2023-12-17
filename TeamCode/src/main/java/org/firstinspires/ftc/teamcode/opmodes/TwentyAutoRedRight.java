@@ -18,6 +18,6 @@ public class TwentyAutoRedRight extends TwentyAuto {
 
     @Override
     protected Parking parkingConf() {
-        return Parking.NoParking; // TODO: This should be MoveRight, awaiting testing.
+        return Parking.MoveRight;
     }
 }

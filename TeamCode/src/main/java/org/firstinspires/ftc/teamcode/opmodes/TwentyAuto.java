@@ -77,7 +77,10 @@ public abstract class TwentyAuto extends LinearOpMode {
     }
 
     void unLeftRight() {
-        throw new RuntimeException("NYI");
+        RobotLog.ii("TwentyAuto", "LEFT");
+        forwardPID.DriveForward(3.0, telemetry);
+        turnPID.TurnRobot(-45.0, telemetry);
+        forwardPID.DriveForward(17.0, telemetry);
     }
 
     void centerRight() {
@@ -87,7 +90,8 @@ public abstract class TwentyAuto extends LinearOpMode {
     }
 
     void unCenterRight() {
-        throw new RuntimeException("NYI");
+        RobotLog.ii("TwentyAuto", "CENTER");
+        forwardPID.DriveForward(23.0, telemetry);
     }
 
     void rightRight() {
@@ -98,7 +102,10 @@ public abstract class TwentyAuto extends LinearOpMode {
     }
 
     void unRightRight() {
-        throw new RuntimeException("NYI");
+        RobotLog.ii("TwentyAuto", "RIGHT");
+        turnPID.TurnRobot(60.0, telemetry);
+        sleep(250);
+        forwardPID.DriveForward(12.0, telemetry);
     }
 
     void leftLeft() {
