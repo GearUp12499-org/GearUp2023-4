@@ -15,4 +15,9 @@ public class TwentyAutoRedRight extends TwentyAuto {
     protected StartPosition positionConf() {
         return StartPosition.RightOfTruss;
     }
+
+    @Override
+    protected Parking parkingConf() {
+        return Parking.NoParking; // TODO: This should be MoveRight, awaiting testing.
+    }
 }

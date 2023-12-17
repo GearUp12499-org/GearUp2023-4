@@ -45,8 +45,7 @@ class Dumper(
         }
     }
 
-    fun dumpSecond() {
-        if (scheduler.isResourceInUse(lock)) return
+    fun autoDumpSecond(): Pair<Task, Task> {
         var base: Task? = null
         if (dumperState == State.Idle) base = scheduler.task {
             +lock
@@ -67,11 +66,16 @@ class Dumper(
             maxDuration(LatchTime)
         }
         base?.then(add)
+        return Pair(base ?: add, add)
     }
 
-    fun reset() {
+    fun dumpSecond() {
         if (scheduler.isResourceInUse(lock)) return
-        scheduler.task {
+        autoDumpSecond()
+    }
+
+    fun autoReset(): Task {
+        return scheduler.task {
             +lock
             onStart { ->
                 dumperState = State.Idle
@@ -80,6 +84,11 @@ class Dumper(
             }
             maxDuration(RotateTime)
         }
+    }
+
+    fun reset() {
+        if (scheduler.isResourceInUse(lock)) return
+        autoReset()
     }
 
 

@@ -41,7 +41,7 @@ public class ExampleScheduledAuto extends LinearOpMode {
                 }
             });
         }));
-        scheduler.runToCompletion();
+        scheduler.runToCompletion(this::opModeIsActive);
         //noinspection StatementWithEmptyBody
         while (!isStopRequested()) {
             // idk

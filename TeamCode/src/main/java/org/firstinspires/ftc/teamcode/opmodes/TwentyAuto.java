@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import static org.firstinspires.ftc.teamcode.opmodes.TeleOp.kvoid;
+
 import android.util.Size;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -10,6 +12,7 @@ import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.teamcode.Var;
+import org.firstinspires.ftc.teamcode.abstractions.Dumper;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.odo.DriveForwardPID;
 import org.firstinspires.ftc.teamcode.odo.TurnPID;
@@ -17,6 +20,11 @@ import org.firstinspires.ftc.teamcode.vision.AdvSphereProcess;
 import org.firstinspires.ftc.vision.VisionPortal;
 
 import java.util.Locale;
+
+import dev.aether.collaborative_multitasking.MultitaskScheduler;
+import dev.aether.collaborative_multitasking.Task;
+import dev.aether.collaborative_multitasking.ext.TimingKt;
+import kotlin.Pair;
 
 public abstract class TwentyAuto extends LinearOpMode {
     private VisionPortal portal;
@@ -38,6 +46,13 @@ public abstract class TwentyAuto extends LinearOpMode {
      * @return Left of truss Or Right of truss
      */
     protected abstract StartPosition positionConf();
+
+    /**
+     * Robot parking options
+     *
+     * @return Park Left / Right / None
+     */
+    protected abstract Parking parkingConf();
 
     private void placePixel() {
         sleep(500);
@@ -61,10 +76,18 @@ public abstract class TwentyAuto extends LinearOpMode {
         placePixel();
     }
 
+    void unLeftRight() {
+        throw new RuntimeException("NYI");
+    }
+
     void centerRight() {
         RobotLog.ii("TwentyAuto", "CENTER");
         forwardPID.DriveReverse(27.0, telemetry);
         placePixel();
+    }
+
+    void unCenterRight() {
+        throw new RuntimeException("NYI");
     }
 
     void rightRight() {
@@ -74,6 +97,10 @@ public abstract class TwentyAuto extends LinearOpMode {
         placePixel();
     }
 
+    void unRightRight() {
+        throw new RuntimeException("NYI");
+    }
+
     void leftLeft() {
         RobotLog.ii("TwentyAuto", "LEFT");
         forwardPID.DriveReverse(17.0, telemetry);
@@ -81,11 +108,23 @@ public abstract class TwentyAuto extends LinearOpMode {
         placePixel();
     }
 
+    void unLeftLeft() {
+        RobotLog.ii("TwentyAuto", "LEFT");
+        turnPID.TurnRobot(-5.0, telemetry);
+        forwardPID.DriveForward(13.0, telemetry);
+    }
+
     void centerLeft() {
         RobotLog.ii("TwentyAuto", "CENTER");
         forwardPID.DriveReverse(24.0, telemetry);
         turnPID.TurnRobot(-20.0, telemetry);
         placePixel();
+    }
+
+    void unCenterLeft() {
+        RobotLog.ii("TwentyAuto", "LEFT");
+        turnPID.TurnRobot(20.0, telemetry);
+        forwardPID.DriveForward(20.0, telemetry);
     }
 
     void rightLeft() {
@@ -96,13 +135,22 @@ public abstract class TwentyAuto extends LinearOpMode {
         placePixel();
     }
 
+    void unRightLeft() {
+        RobotLog.ii("TwentyAuto", "RIGHT");
+        forwardPID.DriveForward(2.0, telemetry);
+        turnPID.TurnRobot(90.0, telemetry);
+        forwardPID.DriveForward(16.0, telemetry);
+    }
+
     @Override
     public void runOpMode() throws InterruptedException {
         // Get robot hardware configs
+        MultitaskScheduler scheduler = new MultitaskScheduler();
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
         forwardPID = new DriveForwardPID(robot);
         turnPID = new TurnPID(robot);
+        Dumper dumper = new Dumper(scheduler, robot);
 
         // Set up robot hardware
         robot.clearEncoders();
@@ -134,9 +182,15 @@ public abstract class TwentyAuto extends LinearOpMode {
         telemetry.addData("Action", result);
         telemetry.update();
 
-        Runnable left = positionConf() == StartPosition.LeftOfTruss ? this::leftLeft : this::leftRight;
-        Runnable center = positionConf() == StartPosition.LeftOfTruss ? this::centerLeft : this::centerRight;
-        Runnable right = positionConf() == StartPosition.LeftOfTruss ? this::rightLeft : this::rightRight;
+        boolean posLeft = positionConf() == StartPosition.LeftOfTruss;
+        Runnable left = posLeft ? this::leftLeft : this::leftRight;
+        Runnable undoLeft = posLeft ? this::unLeftLeft : this::unLeftRight;
+        Runnable center = posLeft ? this::centerLeft : this::centerRight;
+        Runnable undoCenter = posLeft ? this::unCenterLeft : this::unCenterRight;
+        Runnable right = posLeft ? this::rightLeft : this::rightRight;
+        Runnable undoRight = posLeft ? this::unRightLeft : this::unRightRight;
+
+        boolean shouldUndo = parkingConf() != Parking.NoParking;
 
         switch (result) {
             case Left:
@@ -149,6 +203,65 @@ public abstract class TwentyAuto extends LinearOpMode {
             case Center:
                 center.run();
                 break;
+        }
+
+        if (shouldUndo) {
+            switch (result) {
+                case Left:
+                    undoLeft.run();
+                    break;
+                case Right:
+                    undoRight.run();
+                    break;
+                case None:
+                case Center:
+                    undoCenter.run();
+                    break;
+            }
+            double modifier = parkingConf() == Parking.MoveLeft ? 1 : -1;
+            turnPID.TurnRobot(modifier * 100.0, telemetry);
+            forwardPID.DriveReverse(33.0, telemetry, 5.0);
+
+//            robot.liftLeft().setTargetPosition(1000);
+
+            // encoder ticks
+            int target = 1000;
+            int acceptError = 50;
+            /*
+             * 1. go to the target position within the acceptError
+             * 2. dump the box
+             * 3. wait 500ms
+             * 4. reset the box
+             * 5. go to 0 within acceptError
+             *
+             * run to completion.
+             */
+            Task t1 = scheduler.task((x) -> {
+                x.onStart(() -> {
+                    robot.liftLeft().setTargetPosition(target);
+                    return kvoid;
+                });
+                x.isCompleted(() -> Math.abs(robot.liftLeft().getCurrentPosition() - target) < acceptError);
+                return kvoid;
+            });
+            Pair<Task, Task> beforeAfter = dumper.autoDumpSecond();
+            t1.then(beforeAfter.getFirst());
+            beforeAfter.getSecond()
+                    .then((x) -> {
+                        TimingKt.maxDuration(x, 500);
+                        return kvoid;
+                    })
+                    .then(dumper.autoReset())
+                    .then((x) -> {
+                        x.onStart(() -> {
+                            robot.liftLeft().setTargetPosition(0);
+                            return kvoid;
+                        });
+                        x.isCompleted(() -> Math.abs(robot.liftLeft().getCurrentPosition()) < acceptError);
+                        return kvoid;
+                    });
+
+            scheduler.runToCompletion(this::opModeIsActive);
         }
 
         // Stop motors just in case
@@ -170,5 +283,11 @@ public abstract class TwentyAuto extends LinearOpMode {
     public enum StartPosition {
         LeftOfTruss,
         RightOfTruss
+    }
+
+    public enum Parking {
+        MoveLeft,
+        MoveRight,
+        NoParking
     }
 }

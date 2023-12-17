@@ -15,4 +15,9 @@ public class TwentyAutoBlueLeft extends TwentyAuto {
     protected StartPosition positionConf() {
         return StartPosition.LeftOfTruss;
     }
+
+    @Override
+    protected Parking parkingConf() {
+        return Parking.MoveLeft;
+    }
 }

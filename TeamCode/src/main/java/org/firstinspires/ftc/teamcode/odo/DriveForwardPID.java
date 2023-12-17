@@ -59,17 +59,22 @@ public class DriveForwardPID {
     public static final double ki = 0.05;
 
     public void DriveForward(double target, Telemetry telemetry) {
+        DriveForward(target, telemetry, -1.0);
+    }
+
+    public void DriveForward(double target, Telemetry telemetry, double timeout) {
         if (target < 0) {
-            DriveReverse(-target, telemetry);
+            DriveReverse(-target, telemetry, timeout);
             return;
         }
         double rbase = RightOdoDist();
         double lbase = LeftOdoDist();
+        ElapsedTime timer = new ElapsedTime();
         ElapsedTime stopwatch = new ElapsedTime();
         double overall_error = 0.0;
         double previousTime = stopwatch.time();
 
-        while (true) {
+        while (timeout < 0 || timer.time() < timeout) {
             double rdist = RightOdoDist() - rbase;
             double ldist = LeftOdoDist() - lbase;
             double avg = (rdist + ldist) / 2.0;
@@ -96,16 +101,21 @@ public class DriveForwardPID {
 
 
     public void DriveReverse(double target, Telemetry telemetry) {
+        DriveReverse(target, telemetry, -1.0);
+    }
+
+    public void DriveReverse(double target, Telemetry telemetry, double timeout) {
         if (target < 0) {
             DriveForward(-target, telemetry);
             return;
         }
         double rbase = RightOdoDist();
         double lbase = LeftOdoDist();
+        ElapsedTime timer = new ElapsedTime();
         ElapsedTime stopwatch = new ElapsedTime();
         double overall_error = 0.0;
 
-        while (true) {
+        while (timeout < 0 || timer.time() < timeout) {
             double rdist = rbase - RightOdoDist();
             double ldist = lbase - LeftOdoDist();
             double avg = (rdist + ldist) / 2.0;
@@ -131,6 +141,10 @@ public class DriveForwardPID {
     }
 
     public void strafeRight(double target, Telemetry telemetry) {
+        strafeRight(target, telemetry, -1.0);
+    }
+
+    public void strafeRight(double target, Telemetry telemetry, double timeout) {
         if (target < 0) {
             strafeLeft(-target, telemetry);
             return;
@@ -138,11 +152,12 @@ public class DriveForwardPID {
         double s_base = StrafeOdoDist();
         double l_base = LeftOdoDist();
         double r_base = RightOdoDist();
+        ElapsedTime timer = new ElapsedTime();
         ElapsedTime stopwatch = new ElapsedTime();
         double overall_left = 0.0;
         double overall_right = 0.0;
 
-        while (true) {
+        while (timeout < 0 || timer.time() < timeout) {
             double s_dist = StrafeOdoDist() - s_base;
             double l_err = LeftOdoDist() - l_base;
             double r_err = RightOdoDist() - r_base;
@@ -166,6 +181,10 @@ public class DriveForwardPID {
     }
 
     public void strafeLeft(double target, Telemetry telemetry) {
+        strafeLeft(target, telemetry, -1.0);
+    }
+
+    public void strafeLeft(double target, Telemetry telemetry, double timeout) {
         if (target < 0) {
             strafeRight(-target, telemetry);
             return;
@@ -173,11 +192,12 @@ public class DriveForwardPID {
         double s_base = StrafeOdoDist();
         double l_base = LeftOdoDist();
         double r_base = RightOdoDist();
+        ElapsedTime timer = new ElapsedTime();
         ElapsedTime stopwatch = new ElapsedTime();
         double overall_left = 0.0;
         double overall_right = 0.0;
 
-        while (true) {
+        while (timeout < 0 || timer.time() < timeout) {
             double s_dist = s_base - StrafeOdoDist();
             double l_err = l_base - LeftOdoDist();
             double r_err = r_base - RightOdoDist();

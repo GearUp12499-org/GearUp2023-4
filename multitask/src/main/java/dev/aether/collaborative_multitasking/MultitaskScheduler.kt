@@ -122,8 +122,8 @@ class MultitaskScheduler : Scheduler() {
         return tasks.values.any { it.state != Task.State.Finished && !it.daemon }
     }
 
-    fun runToCompletion() {
-        while (hasJobs()) {
+    fun runToCompletion(ok: () -> Boolean) {
+        while (hasJobs() && ok()) {
             tick()
         }
     }
