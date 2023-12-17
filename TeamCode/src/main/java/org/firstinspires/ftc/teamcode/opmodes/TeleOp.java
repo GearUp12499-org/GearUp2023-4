@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -13,6 +14,7 @@ import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import dev.aether.collaborative_multitasking.MultitaskScheduler;
 import dev.aether.collaborative_multitasking.ext.TimingKt;
@@ -75,8 +77,8 @@ public class TeleOp extends LinearOpMode {
         robot.clearEncoders();
 
         waitForStart();
-        int targetLeft = 0;
-        int targetRight = 0;
+        AtomicInteger targetLeft = new AtomicInteger();
+        AtomicInteger targetRight = new AtomicInteger();
         int hangTarget = Var.TeleOp.liftHangingPreset;
 
         double balFL = Var.TeleOp.balanceFront * Var.TeleOp.balanceLeft;
@@ -94,6 +96,7 @@ public class TeleOp extends LinearOpMode {
 
         ElapsedTime deltaTimer = new ElapsedTime();
         ElapsedTime frameTimer = new ElapsedTime();
+        boolean lastBackBtn = false;
         while (opModeIsActive()) {
             double dt = deltaTimer.time(TimeUnit.MICROSECONDS) / 1_000_000.0;
             scheduler.tick();
@@ -141,48 +144,79 @@ public class TeleOp extends LinearOpMode {
             // when B is pressed, reset all the lifts to the first preset
             // none of the other presets are ever used lol
             if (gamepad2.b) {
-                targetLeft = 0;
-                targetRight = 0;
+                targetLeft.set(0);
+                targetRight.set(0);
                 scheduler.filteredStop(task -> task.requirements().contains(robot.getDumperLock()));
                 dumper.reset();
             }
 
             int iLiftSpeed = (int) (Var.TeleOp.liftSpeed * dt);
             // use dpad up and down to move the left lift
-            if (gamepad2.dpad_up) targetLeft += iLiftSpeed;
-            if (gamepad2.dpad_down) targetLeft -= iLiftSpeed;
+            if (gamepad2.dpad_up) targetLeft.addAndGet(iLiftSpeed);
+            if (gamepad2.dpad_down) targetLeft.addAndGet(-iLiftSpeed);
 
             double lsy = -gamepad2.left_stick_y;
             double lsx = gamepad2.left_stick_x;
             if (Math.abs(lsy) > 0.5 || Math.abs(lsx) > 0.5) {
-                targetLeft = Var.TeleOp.liftScoringPreset;
+                targetLeft.set(Var.TeleOp.liftScoringPreset);
             }
 
             int cLiftSpeed = (int) (Var.TeleOp.climbingLiftSpeed * dt);
             // gamepad 1 dpad up/down is for endgame truss scaling
             // moves the right lift, and synchronizes the left lift with it
             if (gamepad1.dpad_up) {
-                targetRight += cLiftSpeed;
-                targetLeft = targetRight;
+                targetRight.addAndGet(cLiftSpeed);
+                targetLeft.set(targetRight.get());
             }
             if (gamepad1.dpad_down) {
-                targetRight -= cLiftSpeed;
-                targetLeft = targetRight;
+                targetRight.addAndGet(-cLiftSpeed);
+                targetLeft.set(targetRight.get());
             }
+
+            if (gamepad1.back && !lastBackBtn) {
+                scheduler.task((e) -> {
+                    e.require(robot.getLiftLock());
+                    e.onStart(() -> {
+                        robot.liftLeft().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                        robot.liftRight().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                        return kvoid;
+                    });
+                    e.onTick(() -> {
+                        robot.liftLeft().setPower(robot.liftLeft().getCurrentPosition() > 100 ? -1.0 : 0);
+                        robot.liftRight().setPower(robot.liftRight().getCurrentPosition() > 100 ? -1.0 : 0);
+                        return kvoid;
+                    });
+                    e.isCompleted(() -> robot.liftRight().getCurrentPosition() <= 100 && robot.liftLeft().getCurrentPosition() <= 100);
+                    TimingKt.maxDuration(e, 250);
+                    e.onFinish(() -> {
+                        targetLeft.set(robot.liftLeft().getCurrentPosition());
+                        robot.liftLeft().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        robot.liftLeft().setTargetPosition(targetLeft.get());
+                        robot.liftLeft().setPower(1.0);
+                        targetRight.set(robot.liftRight().getCurrentPosition());
+                        robot.liftRight().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        robot.liftRight().setTargetPosition(targetRight.get());
+                        robot.liftRight().setPower(1.0);
+                        return kvoid;
+                    });
+                    return kvoid;
+                });
+            }
+            lastBackBtn = gamepad1.back;
 
             // don't let the lifts go out of bounds
             // (this will cause the motors to break down)
-            if (targetLeft < 0) targetLeft = 0;
-            if (targetLeft > LONG_SLIDE_LIM) targetLeft = LONG_SLIDE_LIM;
-            if (targetRight < 0) targetRight = 0;
-            if (targetRight > SHORT_SLIDE_LIM) targetRight = SHORT_SLIDE_LIM;
+            if (targetLeft.get() < 0) targetLeft.set(0);
+            if (targetLeft.get() > LONG_SLIDE_LIM) targetLeft.set(LONG_SLIDE_LIM);
+            if (targetRight.get() < 0) targetRight.set(0);
+            if (targetRight.get() > SHORT_SLIDE_LIM) targetRight.set(SHORT_SLIDE_LIM);
 
             if (!scheduler.isResourceInUse(robot.getLiftLock())) {
-                robot.liftLeft().setTargetPosition(targetLeft);
-                robot.liftRight().setTargetPosition(targetRight);
+                robot.liftLeft().setTargetPosition(targetLeft.get());
+                robot.liftRight().setTargetPosition(targetRight.get());
             }
             if (gamepad2.left_bumper) {
-                if (targetLeft >= 250) {
+                if (targetLeft.get() >= 250) {
                     if (dumper.getState() == Dumper.State.Dump) dumper.dumpSecond();
                     else dumper.dump();
                 }
@@ -207,8 +241,8 @@ public class TeleOp extends LinearOpMode {
 
             if (gamepad1.y) {
                 dumper.dump();
-                targetLeft = hangTarget;
-                targetRight = hangTarget;
+                targetLeft.set(hangTarget);
+                targetRight.set(hangTarget);
                 scheduler.task(c -> {
                     c.require(robot.getLiftLock());
                     c.onStart(() -> {
