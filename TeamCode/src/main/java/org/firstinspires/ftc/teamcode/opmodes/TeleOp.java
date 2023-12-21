@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Var;
-import org.firstinspires.ftc.teamcode.abstractions.ApproachObject;
+import org.firstinspires.ftc.teamcode.abstractions.ApproachObject2;
 import org.firstinspires.ftc.teamcode.abstractions.Dumper;
 import org.firstinspires.ftc.teamcode.configurations.Robot;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
@@ -68,7 +68,7 @@ public class TeleOp extends LinearOpMode {
         // we don't want to have to call driveMotors() every time because it gets tedious
         MotorSet driveMotors = robot.driveMotors();
         Dumper dumper = new Dumper(scheduler, robot);
-        ApproachObject approachBackdrop = new ApproachObject(scheduler, robot);
+        ApproachObject2 approachBackdrop = new ApproachObject2(scheduler, robot);
 
         dumper.defaultPos();
 

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode
 import org.firstinspires.ftc.teamcode.Var.ApproachObject
 import org.firstinspires.ftc.teamcode.Var.Box
 import org.firstinspires.ftc.teamcode.Var.TeleOp
+import org.firstinspires.ftc.teamcode.utilities.feet
 import org.firstinspires.ftc.teamcode.utilities.inches
 
 /*
@@ -154,7 +155,7 @@ object Var {
          * @see maxSpeed
          */
         @JvmField
-        val stoppingDistance = 18.inches
+        val stoppingDistance = 2.feet
 
         /**
          * If either sensor reads more than this distance, abort!

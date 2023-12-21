@@ -27,6 +27,7 @@ class KOdometryDrive(
     private val rightOdo = driveMotors.backRight
     private val leftOdo = driveMotors.frontLeft
     private val strafeOdo = robot.intake()
+    private val dmLock = robot.driveMotorLock
 
     private fun distanceLeft() = tick2inch(leftOdo.currentPosition)
     private fun distanceRight() = tick2inch(rightOdo.currentPosition)
@@ -38,6 +39,7 @@ class KOdometryDrive(
         val switcher = target.value.sign
 
         return scheduler.task {
+            +dmLock
             var lBase = 0.0
             var rBase = 0.0
             val timeoutT = ElapsedTime()
@@ -94,6 +96,7 @@ class KOdometryDrive(
         val switcher = target.value.sign
 
         return scheduler.task {
+            +dmLock
             var sBase = 0.0
             var lBase = 0.0
             var rBase = 0.0
