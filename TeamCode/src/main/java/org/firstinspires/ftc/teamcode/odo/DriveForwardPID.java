@@ -14,13 +14,15 @@ public class DriveForwardPID {
     public static final double MIN_SPEED_FINAL = 0.15;
     public static final double acceptableError = .50; // in
 
-    double rampDown(double distToTarget) {
+    // TODO: Migrate to Kotlin impl
+    public static double rampDown(double distToTarget) {
         if (distToTarget <= 0) return 0.0;
         if (distToTarget >= RAMPS_DOWN) return MAX_SPEED;
         else return (MAX_SPEED - MIN_SPEED_FINAL) * (distToTarget / RAMPS_DOWN) + MIN_SPEED_FINAL;
     }
 
-    double rampUp(double distTravel) {
+    // TODO: Migrate to Kotlin impl
+    public static double rampUp(double distTravel) {
         if (distTravel <= 0) return MIN_SPEED_INITIAL;
         if (distTravel >= RAMPS_UP) return MAX_SPEED;
         return (MAX_SPEED - MIN_SPEED_INITIAL) * (distTravel / RAMPS_UP) + MIN_SPEED_INITIAL;
