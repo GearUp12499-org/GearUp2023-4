@@ -202,6 +202,11 @@ class Task constructor(
         return task
     }
 
+    fun then(polyChain: Pair<Task, Task>): Task {
+        this.then(polyChain.first)
+        return polyChain.second
+    }
+
     fun apply(configure: Task.() -> Unit) {
         this.configure()
     }
