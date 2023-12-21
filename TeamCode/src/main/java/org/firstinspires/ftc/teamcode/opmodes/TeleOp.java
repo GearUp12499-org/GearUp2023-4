@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -96,7 +95,6 @@ public class TeleOp extends LinearOpMode {
 
         ElapsedTime deltaTimer = new ElapsedTime();
         ElapsedTime frameTimer = new ElapsedTime();
-        boolean lastBackBtn = false;
         while (opModeIsActive()) {
             double dt = deltaTimer.time(TimeUnit.MICROSECONDS) / 1_000_000.0;
             scheduler.tick();
@@ -172,37 +170,6 @@ public class TeleOp extends LinearOpMode {
                 targetRight.addAndGet(-cLiftSpeed);
                 targetLeft.set(targetRight.get());
             }
-
-            if (gamepad1.back && !lastBackBtn) {
-                scheduler.task((e) -> {
-                    e.require(robot.getLiftLock());
-                    e.onStart(() -> {
-                        robot.liftLeft().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                        robot.liftRight().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                        return kvoid;
-                    });
-                    e.onTick(() -> {
-                        robot.liftLeft().setPower(robot.liftLeft().getCurrentPosition() > 100 ? -1.0 : 0);
-                        robot.liftRight().setPower(robot.liftRight().getCurrentPosition() > 100 ? -1.0 : 0);
-                        return kvoid;
-                    });
-                    e.isCompleted(() -> robot.liftRight().getCurrentPosition() <= 100 && robot.liftLeft().getCurrentPosition() <= 100);
-                    TimingKt.maxDuration(e, 250);
-                    e.onFinish(() -> {
-                        targetLeft.set(robot.liftLeft().getCurrentPosition());
-                        robot.liftLeft().setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                        robot.liftLeft().setTargetPosition(targetLeft.get());
-                        robot.liftLeft().setPower(1.0);
-                        targetRight.set(robot.liftRight().getCurrentPosition());
-                        robot.liftRight().setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                        robot.liftRight().setTargetPosition(targetRight.get());
-                        robot.liftRight().setPower(1.0);
-                        return kvoid;
-                    });
-                    return kvoid;
-                });
-            }
-            lastBackBtn = gamepad1.back;
 
             // don't let the lifts go out of bounds
             // (this will cause the motors to break down)

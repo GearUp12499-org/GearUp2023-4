@@ -79,12 +79,12 @@ object Var {
         /**
          * Scoring (long) lift maximum, encoder counts
          */
-        const val longSlideLimit = 2300
+        const val longSlideLimit = 3200
 
         /**
          * Hanging (short) lift maximum, encoder counts
          */
-        const val shortSlideLimit = 1500
+        const val shortSlideLimit = 2100
 
         /**
          * Lift speed, encoder counts per second
@@ -104,7 +104,7 @@ object Var {
         /**
          * Lift preset height for hanging, encoder ticks
          */
-        const val liftHangingPreset = 1400
+        const val liftHangingPreset = 1910
 
         /**
          * Left-side motor fudging

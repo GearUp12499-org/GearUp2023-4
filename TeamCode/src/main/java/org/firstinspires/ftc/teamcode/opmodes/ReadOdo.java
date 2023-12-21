@@ -30,6 +30,7 @@ public class ReadOdo extends LinearOpMode {
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
         intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        waitForStart();
         while (opModeIsActive()) {
             telemetry.addData("Par1", robot.driveMotors().frontLeft.getCurrentPosition());
             telemetry.addData("Par2", robot.driveMotors().backRight.getCurrentPosition());
