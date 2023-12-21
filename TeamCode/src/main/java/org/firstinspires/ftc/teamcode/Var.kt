@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode
 
 import org.firstinspires.ftc.teamcode.Var.ApproachObject
-import org.firstinspires.ftc.teamcode.Var.Autonomous
 import org.firstinspires.ftc.teamcode.Var.Box
 import org.firstinspires.ftc.teamcode.Var.TeleOp
 import org.firstinspires.ftc.teamcode.utilities.inches
@@ -15,7 +14,6 @@ import org.firstinspires.ftc.teamcode.utilities.inches
  * - [Box] - box positions (idle, dump) & latched, unlatched
  * - [TeleOp] - control configuration: how close to get with 'x', lift speed, etc
  * - [ApproachObject] - options for the object approach algorithm, aka the 'x' button
- * - [Autonomous] - autonomous program configurations
  */
 object Var {
     object Box {
@@ -163,12 +161,5 @@ object Var {
          */
         @JvmField
         val panicDistance = 24.inches
-    }
-
-    object Autonomous {
-        /**
-         * Distance to travel with front-stage autos (the one where we put the pixel on the spike)
-         */
-        const val frontStageForwardDistance = 23.0
     }
 }
