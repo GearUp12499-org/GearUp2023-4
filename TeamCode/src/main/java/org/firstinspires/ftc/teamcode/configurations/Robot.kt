@@ -100,15 +100,17 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
         liftRightB.power = 1.0
         liftRightB.mode = DcMotor.RunMode.RUN_TO_POSITION
         setReverse(liftRightB)
+
         // Adjust the orientation parameters to match your robot
         val parameters = IMU.Parameters(
             RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+                RevHubOrientationOnRobot.UsbFacingDirection.LEFT
             )
         )
         // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
         imu.initialize(parameters)
+        imu.resetYaw()
     }
 
     override fun clearEncoders() {

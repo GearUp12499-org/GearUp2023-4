@@ -104,7 +104,7 @@ public class TeleOp extends LinearOpMode {
             // Standard mecanum drive code
             // Compute the necessary powers to apply to the motors
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-            double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+            double x = gamepad1.left_stick_x; // Counteract imperfect strafing
             double rx = gamepad1.right_stick_x;
 
             double throttleThrow = gamepad1.left_trigger - Var.TeleOp.throttleMinThrow;
@@ -120,11 +120,18 @@ public class TeleOp extends LinearOpMode {
                 scheduler.filteredStop(task -> task.requirements().contains(robot.getDriveMotorLock()));
             }
 
+            double botHeading = robot.imu().getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+
+            double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+            double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+
+            rotX *= 1.1;  // counteract imperfect strafing
+
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-            double frontLeftPower = (y + x + rx) / denominator * fac;
-            double backLeftPower = (y - x + rx) / denominator * fac;
-            double frontRightPower = (y - x - rx) / denominator * fac;
-            double backRightPower = (y + x - rx) / denominator * fac;
+            double frontLeftPower = (rotY + rotX + rx) / denominator * fac;
+            double backLeftPower = (rotY - rotX + rx) / denominator * fac;
+            double frontRightPower = (rotY - rotX - rx) / denominator * fac;
+            double backRightPower = (rotY + rotX - rx) / denominator * fac;
 
 
             // Apply the powers to the motors
@@ -238,8 +245,6 @@ public class TeleOp extends LinearOpMode {
                 intakeAssist.setPower(0);
             }
 
-            double botHeading = robot.imu().getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-
 
             robot.tele(telemetry);
 
@@ -250,7 +255,6 @@ public class TeleOp extends LinearOpMode {
             telemetry.addData("dt", "%.2f ms", dt * 1000);
             telemetry.addData("Left Target", targetLeft);
             telemetry.addData("Right Target", targetRight);
-            telemetry.addData("Robot Heading", botHeading);
             telemetry.update();
             while (frameTimer.time(TimeUnit.MILLISECONDS) < 5) {
                 sleep(1);
