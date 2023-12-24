@@ -69,6 +69,19 @@ abstract class RobotConfiguration {
     fun imu(): IMU = imu
         ?: throw NullPointerException("Robot configuration has no IMU (for some reason) but it was requested")
 
+    protected abstract val odoPerpendicular: DcMotor?
+    fun odoPerpendicular(): DcMotor = odoPerpendicular
+        ?: throw NullPointerException("Robot configuration has no Perpendicular Odometry Wheel.")
+
+
+    protected abstract val odoParallel1: DcMotor?
+    fun odoParallel1(): DcMotor = odoParallel1
+        ?: throw NullPointerException("Robot configuration has no Perpendicular Odometry Wheel.")
+
+    protected abstract val odoParallel2: DcMotor?
+    fun odoParallel2(): DcMotor = odoParallel2
+        ?: throw NullPointerException("Robot configuration has no Perpendicular Odometry Wheel.")
+
     private fun deviceStatus(name: String, device: Any?): String = "$name: " + when (device) {
         (device == null) -> "DISCONNECTED"
         is DcMotor -> "${device.mode} P${device.power}"

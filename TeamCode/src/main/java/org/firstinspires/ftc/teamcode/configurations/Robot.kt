@@ -84,6 +84,9 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
     @JvmField
     val imuB: IMU = map.typedGet("imu")
     override val imu: IMU get() = imuB
+    override val odoPerpendicular: DcMotor? = intakeB
+    override val odoParallel1: DcMotor = frontLeft
+    override val odoParallel2: DcMotor = backRight
 
 
     init {
