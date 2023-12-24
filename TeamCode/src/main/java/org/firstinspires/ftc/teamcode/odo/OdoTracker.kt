@@ -36,6 +36,8 @@ class OdoTracker(
         var lastY: Double? = null
         var lastX1: Double? = null
         var lastX2: Double? = null
+        val dIn = d.to.inches.value
+        val rIn = r1.to.inches.value
         onStart { ->
             currentPose = origin
             timer.reset()
@@ -59,9 +61,9 @@ class OdoTracker(
 
             val alpha = (cX1 + cX2) / 2.0
             val yd = (cX1 - cX2) / 2.0
-            val gamma = yd / d.to.inches.value
+            val gamma = yd / dIn
             // cY - r1 * Y
-            val beta = cY - (r1.to.inches.value * gamma)
+            val beta = cY - (rIn * gamma)
             lastY = currentYRaw.toDouble()
             lastX1 = currentX1Raw.toDouble()
             lastX2 = currentX2Raw.toDouble()
