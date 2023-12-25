@@ -18,7 +18,7 @@ class OdoTracker(
     private val odoPara2: DcMotor = robot.odoParallel2()
     private val r1: LengthUnit = (-8).inches // +/- 0.25in
     private val d: LengthUnit = 7.25.inches  // +/- 0.25in
-    private val minTimeBetweenReads = 100.0 // ms
+    private val minTimeBetweenReads = 10.0 // ms
 
     private var poseBacker: Pose = origin
 
@@ -33,13 +33,19 @@ class OdoTracker(
         // don't contribute to 'finished' checks
         daemon = true
         val timer = ElapsedTime()
-        var lastY: Double? = null
-        var lastX1: Double? = null
-        var lastX2: Double? = null
+        var lastY = odoPerp.currentPosition
+        var lastX1 = odoPara1.currentPosition
+        var lastX2 = odoPara2.currentPosition
         val dIn = d.to.inches.value
         val rIn = r1.to.inches.value
         onStart { ->
             currentPose = origin
+            // In case of executing in .then(...) (why would we do this?) the current values may
+            // not match the values at the time the task was created, because the canStart
+            // conditions can be modified after the task is created.
+            lastY = odoPerp.currentPosition
+            lastX1 = odoPara1.currentPosition
+            lastX2 = odoPara2.currentPosition
             timer.reset()
         }
         onTick { ->
@@ -49,37 +55,31 @@ class OdoTracker(
             val currentYRaw = odoPerp.currentPosition
             val currentX1Raw = odoPara1.currentPosition
             val currentX2Raw = odoPara2.currentPosition
-            if (lastY == null || lastX1 == null || lastX2 == null) {
-                lastY = currentYRaw.toDouble()
-                lastX1 = currentX1Raw.toDouble()
-                lastX2 = currentX2Raw.toDouble()
-                return@onTick
-            }
-            val cY = odoTicksToDistance(currentYRaw - lastY!!)
-            val cX1 = odoTicksToDistance(currentX1Raw - lastX1!!)
-            val cX2 = odoTicksToDistance(currentX2Raw - lastX2!!)
+            val cY = odoTicksToDistance(currentYRaw - lastY)
+            val cX1 = odoTicksToDistance(currentX1Raw - lastX1)
+            val cX2 = odoTicksToDistance(currentX2Raw - lastX2)
 
-            val alpha = (cX1 + cX2) / 2.0
+            val forward = (cX1 + cX2) / 2.0
             val yd = (cX1 - cX2) / 2.0
-            val gamma = yd / dIn
-            // cY - r1 * Y
-            val beta = cY - (rIn * gamma)
-            lastY = currentYRaw.toDouble()
-            lastX1 = currentX1Raw.toDouble()
-            lastX2 = currentX2Raw.toDouble()
+            val rotate = yd / dIn
+            // cY + r1 * Y
+            val right = cY + (rIn * rotate)
+            lastY = currentYRaw
+            lastX1 = currentX1Raw
+            lastX2 = currentX2Raw
 
-            currentPose += Pose(alpha.inches, beta.inches, gamma.radians)
+            currentPose += Pose(forward.inches, right.inches, rotate.radians)
         }
     }
 
     companion object {
         @JvmStatic
-        fun odoTicksToDistance(ticks: Double): Double {
+        fun odoTicksToDistance(ticks: Number): Double {
             val tpr = 8192.0 // Ticks Per Revolution
             val radius = 0.69.inches
             val inchPerTick = radius/* .to.inches */ / tpr
             // we really don't need the units here
-            return (inchPerTick * ticks).value
+            return (inchPerTick * ticks.toDouble()).value
         }
     }
 }
