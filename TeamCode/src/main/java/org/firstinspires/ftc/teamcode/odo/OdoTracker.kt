@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.utilities.radians
 
 class OdoTracker(
     robot: RobotConfiguration,
-    private val origin: Pose
+    private val origin: Pose,
 ) {
     private val odoPerp: DcMotor = robot.odoPerpendicular()
     private val odoPara1: DcMotor = robot.odoParallel1()

@@ -15,7 +15,7 @@ abstract class RotationUnit(value: Double) :
 
 data class RotationConversionRules(
     val toDegrees: Double,
-    val toRadians: Double
+    val toRadians: Double,
 )
 
 class RotationConverter(private val rules: RotationConversionRules, private val value: Double) :
