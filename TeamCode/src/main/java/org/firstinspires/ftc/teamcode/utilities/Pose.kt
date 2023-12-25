@@ -108,6 +108,7 @@ class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
 
     operator fun plus(other: Pose) =
         Pose(this.x + other.x, this.y + other.y, this.theta + other.theta)
+    operator fun plus(other: Move) = transform(other)
 
     operator fun div(other: Int) = Pose(this.x / other, this.y / other, this.theta / other)
     operator fun div(other: Double) = Pose(this.x / other, this.y / other, this.theta / other)

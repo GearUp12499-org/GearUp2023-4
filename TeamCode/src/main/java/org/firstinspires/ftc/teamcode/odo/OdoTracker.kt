@@ -68,7 +68,7 @@ class OdoTracker(
             lastX1 = currentX1Raw
             lastX2 = currentX2Raw
 
-            currentPose += Pose(forward.inches, right.inches, rotate.radians)
+            currentPose = currentPose.transform(forward.inches, right.inches, rotate.radians)
         }
     }
 
