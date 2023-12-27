@@ -14,10 +14,14 @@ import kotlin.math.sqrt
 private const val DISTANCE_FROM_FRONT = (142.0 - 10.75)
 val tagPositions = mapOf(
     1 to Vector2(29.5, DISTANCE_FROM_FRONT),
-    3 to Vector2(41.5, DISTANCE_FROM_FRONT),
     2 to Vector2(35.5, DISTANCE_FROM_FRONT),
+    3 to Vector2(41.5, DISTANCE_FROM_FRONT),
 )
 
+/**
+ * this doesn't work
+ */
+@Deprecated("Literally doesn't work LMAO")
 fun detectPairToPose(first: AprilTagDetection, second: AprilTagDetection): Pose {
     val kA = first.ftcPose.range
     val kB = second.ftcPose.range
@@ -49,14 +53,14 @@ fun detectPairToPose(first: AprilTagDetection, second: AprilTagDetection): Pose 
 
 fun detectSingleToPose(detection: AprilTagDetection): Pose {
     val k = detection.ftcPose.range
-    val phi: Double = -detection.ftcPose.yaw.degrees.to.radians.value
+    val criticalAngle: Double = (-detection.ftcPose.yaw.degrees.to.radians.value) + (detection.ftcPose.bearing.degrees.to.radians.value)
     // the yaw happens to be the angle at the camera
     // such that the two legs of a right triangle w/ phi are aligned with the tag
-    val globalX = k * sin(phi) // would be Y rel. to camera
-    val globalY = k * cos(phi) // would be X rel. to camera
+    val globalX = k * sin(criticalAngle) // would be Y rel. to camera
+    val globalY = k * cos(criticalAngle) // would be X rel. to camera
     val tagPos = tagPositions[detection.id]
         ?: throw java.lang.IllegalArgumentException("where is tag#${detection.id}")
     // offset the relative position with the known pos of the tag
     val globalAll = tagPos.add(Vector2(globalX, -globalY))
-    return Pose(globalAll.x.inches, globalAll.y.inches, (-detection.ftcPose.yaw + 90.0).degrees)
+    return Pose(globalAll.x.inches, globalAll.y.inches, (-detection.ftcPose.yaw - 90.0).degrees)
 }

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.utilities
 
+import kotlin.math.abs
+
 abstract class Converter<out R>
 
 abstract class MeasureUnit<This : MeasureUnit<This>>(val value: Double) {
@@ -13,6 +15,8 @@ abstract class MeasureUnit<This : MeasureUnit<This>>(val value: Double) {
     operator fun times(other: MeasureUnit<*>): This {
         return newInstance(this.value * convertOther(other).value)
     }
+
+    val abs: This get() = newInstance(abs(value))
 
     abstract val label: String
     override fun toString(): String = String.format("[%.4f %s]", value, label)

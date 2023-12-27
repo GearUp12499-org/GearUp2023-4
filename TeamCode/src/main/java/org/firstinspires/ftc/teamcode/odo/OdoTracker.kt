@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.utilities.LengthUnit
 import org.firstinspires.ftc.teamcode.utilities.Pose
 import org.firstinspires.ftc.teamcode.utilities.inches
 import org.firstinspires.ftc.teamcode.utilities.radians
+import kotlin.math.PI
 
 class OdoTracker(
     robot: RobotConfiguration,
@@ -76,10 +77,8 @@ class OdoTracker(
         @JvmStatic
         fun odoTicksToDistance(ticks: Number): Double {
             val tpr = 8192.0 // Ticks Per Revolution
-            val radius = 0.69.inches
-            val inchPerTick = radius/* .to.inches */ / tpr
-            // we really don't need the units here
-            return (inchPerTick * ticks.toDouble()).value
+            val radius = 0.69
+            return (ticks.toDouble() / tpr) * 2.0 * PI * radius
         }
     }
 }

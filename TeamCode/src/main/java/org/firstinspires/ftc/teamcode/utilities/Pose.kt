@@ -5,6 +5,7 @@ package org.firstinspires.ftc.teamcode.utilities
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.sign
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -15,7 +16,19 @@ class Move(forward: LengthUnit, right: LengthUnit, turn: RotationUnit) {
     val right = right.to.inches
     val turn = turn.to.radians
 
-    fun getPowers(robotSize: Double): MotorPowers {
+    companion object {
+        private const val RAMP_ALPHA = 0.25
+        private const val RAMP_EPSILON = 0.01
+        fun ramp(speed: Double): Double {
+            val sign = speed.sign
+            return when {
+                abs(speed) < RAMP_EPSILON -> 0.0
+                else -> RAMP_ALPHA + (1 - RAMP_ALPHA) * abs(speed)
+            } * sign
+        }
+    }
+
+    fun getSpeeds(robotSize: Double): MotorPowers {
         val rotationInches = robotSize * turn.value
         val forward = forward.value * sqrt(2.0)
         val right = right.value * sqrt(2.0)
@@ -36,7 +49,7 @@ class Move(forward: LengthUnit, right: LengthUnit, turn: RotationUnit) {
 }
 
 class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
-    constructor(x: Vector2, y: RadianUnit) : this(x.x.inches, x.y.inches, y)
+    constructor(x: Vector2, y: RotationUnit) : this(x.x.inches, x.y.inches, y)
 
     val x = x.to.inches
     val y = y.to.inches
@@ -70,7 +83,7 @@ class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
 
     fun transform(move: Move): Pose = transform(move.forward, move.right, move.turn)
 
-    fun to(target: Pose): Move {
+    fun toPose(target: Pose): Move {
         // TODO: these equations don't match the Python. why
         val theta = theta.value
         val dx = target.x - x

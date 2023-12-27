@@ -58,6 +58,15 @@ data class MotorPowers(
             backRight * factor
         )
     }
+
+    fun map(funct: (Double) -> Double): MotorPowers {
+        return MotorPowers(
+            funct(frontLeft),
+            funct(frontRight),
+            funct(backLeft),
+            funct(backRight)
+        )
+    }
 }
 
 data class MotorSet(

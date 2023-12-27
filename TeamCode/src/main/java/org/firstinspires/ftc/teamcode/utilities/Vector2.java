@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.utilities;
 
 import androidx.annotation.NonNull;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Locale;
 
 public class Vector2 {
@@ -30,5 +32,9 @@ public class Vector2 {
     @Override
     public String toString() {
         return String.format(Locale.US, "(%.3f, %.3f)", x, y);
+    }
+
+    public Vector2 plus(@NotNull Vector2 other) {
+        return new Vector2(this.x + other.x, this.y + other.y);
     }
 }
