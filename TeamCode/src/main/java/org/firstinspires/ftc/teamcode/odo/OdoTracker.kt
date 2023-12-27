@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.odo
 
+import android.util.Log
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.util.ElapsedTime
 import dev.aether.collaborative_multitasking.Task
@@ -14,6 +15,16 @@ class OdoTracker(
     robot: RobotConfiguration,
     private val origin: Pose,
 ) {
+    fun update(newPose: Pose) {
+        val diff = currentPose - newPose
+        if (diff.x.abs.value > 12 || diff.y.abs.value > 12 || diff.theta.abs.to.degrees.value > 45) {
+            Log.w("OdoTracker Update", diff.toString())
+        } else {
+            Log.i("OdoTracker Update", diff.toString())
+        }
+        currentPose = newPose
+    }
+
     private val odoPerp: DcMotor = robot.odoPerpendicular()
     private val odoPara1: DcMotor = robot.odoParallel1()
     private val odoPara2: DcMotor = robot.odoParallel2()

@@ -85,4 +85,6 @@ class MeterUnit(value: Double) : LengthUnit(value) {
 }
 
 val Double.meters: MeterUnit get() = MeterUnit(this)
+val Double.cm: MeterUnit get() = MeterUnit(this / 100.0)
 val Int.meters: MeterUnit get() = MeterUnit(this.toDouble())
+val Int.cm: MeterUnit get() = MeterUnit(this / 100.0)

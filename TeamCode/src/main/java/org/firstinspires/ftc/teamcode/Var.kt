@@ -3,6 +3,9 @@ package org.firstinspires.ftc.teamcode
 import org.firstinspires.ftc.teamcode.Var.ApproachObject
 import org.firstinspires.ftc.teamcode.Var.Box
 import org.firstinspires.ftc.teamcode.Var.TeleOp
+import org.firstinspires.ftc.teamcode.utilities.Pose
+import org.firstinspires.ftc.teamcode.utilities.cm
+import org.firstinspires.ftc.teamcode.utilities.degrees
 import org.firstinspires.ftc.teamcode.utilities.feet
 import org.firstinspires.ftc.teamcode.utilities.inches
 
@@ -162,5 +165,18 @@ object Var {
          */
         @JvmField
         val panicDistance = 24.inches
+    }
+
+    object Pose {
+        const val straightBias = 1.0
+        const val strafeBias = 1.1
+        const val turnBias = 1.0
+    }
+
+    object AutoPositions {
+        private val RobotWidth = 41.cm
+        private val RobotBackToOdo = 21.cm
+        val BlueLeft = Pose(RobotBackToOdo, 94.inches - RobotWidth / 2.0, 180.degrees)
+        val BlueLeftRightPixel = Pose(24.5.inches + RobotWidth / 2.0, 83.5.inches, (90).degrees)
     }
 }

@@ -203,7 +203,7 @@ class MultitaskScheduler : Scheduler() {
      * Stops any tasks matching the predicate that are not already finished or haven't started yet.
      * Resources owned by matching tasks are guaranteed to be released after this call.
      */
-    fun filteredStop(predicate: (Task) -> Boolean) {
+    override fun filteredStop(predicate: (Task) -> Boolean) {
         tasks.values
             .filter { it.state != Task.State.Finished && it.state != Task.State.NotStarted }
             .filter(predicate)

@@ -166,6 +166,10 @@ class Task constructor(
         onFinish(this, scheduler)
     }
 
+    fun requestStop() {
+        scheduler.filteredStop { it == this }
+    }
+
     operator fun SharedResource.unaryPlus() {
         require(this)
     }

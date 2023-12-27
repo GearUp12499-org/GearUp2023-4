@@ -10,4 +10,6 @@ abstract class Scheduler {
     abstract val nextId: Int
 
     abstract fun panic()
+
+    abstract fun filteredStop(predicate: (Task) -> Boolean)
 }

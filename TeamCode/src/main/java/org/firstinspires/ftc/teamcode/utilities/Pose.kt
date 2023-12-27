@@ -2,6 +2,7 @@
 
 package org.firstinspires.ftc.teamcode.utilities
 
+import org.firstinspires.ftc.teamcode.Var
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -29,12 +30,10 @@ class Move(forward: LengthUnit, right: LengthUnit, turn: RotationUnit) {
     }
 
     fun getSpeeds(robotSize: Double): MotorPowers {
-        val rotationInches = robotSize * turn.value
-        val forward = forward.value * sqrt(2.0)
-        val right = right.value * sqrt(2.0)
+        val rotationInches = robotSize * turn.value * Var.Pose.turnBias
+        val forward = forward.value * sqrt(2.0) * Var.Pose.straightBias
+        val right = right.value * sqrt(2.0) * Var.Pose.strafeBias
 
-        // TODO: The robot is *not* a square.
-        // TODO: Motion profiling - consider outside this class?
         val proportions = MotorPowers(
             frontLeft = forward + right - rotationInches,
             frontRight = forward - right + rotationInches,
