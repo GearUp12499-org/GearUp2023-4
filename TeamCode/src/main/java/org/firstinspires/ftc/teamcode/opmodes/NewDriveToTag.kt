@@ -13,7 +13,9 @@ import org.firstinspires.ftc.teamcode.odo.ControlRamps
 import org.firstinspires.ftc.teamcode.odo.OdoTracker
 import org.firstinspires.ftc.teamcode.tagPositions
 import org.firstinspires.ftc.teamcode.utilities.Move
+import org.firstinspires.ftc.teamcode.utilities.Pose
 import org.firstinspires.ftc.teamcode.utilities.Vector2
+import org.firstinspires.ftc.teamcode.utilities.degrees
 import org.firstinspires.ftc.teamcode.utilities.inches
 import org.firstinspires.ftc.teamcode.utilities.typedGet
 import org.firstinspires.ftc.vision.VisionPortal
@@ -57,20 +59,27 @@ class NewDriveToTag : LinearOpMode() {
         val toolTask = scheduler.task(tagMotion.updateTool(odo))
         scheduler.task {
             +robot.driveMotorLock
-            val target = Var.AutoPositions.BlueLeftRightPixel
+            val target = Pose(tagTargets[2]!! + tagOffset, (-90.0).degrees)
             onTick { ->
 //                if (!tagMotion.acquired) return@onTick
 
                 val pose = odo.currentPose
                 telemetry.addData("current est", pose)
                 telemetry.addData("target", target)
+
+                // This turns the From pose and the To pose into a Move.
                 val fromTo = pose.toPose(target)
                 telemetry.addData("from/to", fromTo)
+
+                // Pythagorean theorem.
                 val distance =
                     sqrt(
                         fromTo.forward.value * fromTo.forward.value
                                 + fromTo.right.value * fromTo.right.value
                     )
+
+                // THIS IS THE PROBLEM PART.
+                //                  vvvvvvvvv
                 val motion = fromTo.getSpeeds(ROBOT_SIZE) * ramp.ramp(0.0, distance)
                 telemetry.addData("speeds", motion)
                 val correctedMotion = motion.map(Move::ramp)

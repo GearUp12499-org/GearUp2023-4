@@ -60,14 +60,14 @@ class Task constructor(
         private set
 
     fun setState(newState: State) {
-        println("task ${myId}: transition: ${state.name} -> ${newState.name}")
+        println("$this: transition: ${state.name} -> ${newState.name}")
         if (state.order > newState.order) {
             throw IllegalStateException("cannot move from ${state.name} to ${newState.name}")
         }
         if (state == newState) return
         when (newState) {
             State.Starting -> startedAt = scheduler.getTicks()
-            State.Finishing -> println("task ${myId}: finishing at ${scheduler.getTicks()} (run for ${scheduler.getTicks() - (startedAt ?: 0)} ticks)")
+            State.Finishing -> println("$this: finishing at ${scheduler.getTicks()} (run for ${scheduler.getTicks() - (startedAt ?: 0)} ticks)")
             else -> {}
         }
         state = newState
@@ -81,6 +81,8 @@ class Task constructor(
     internal var isCompleted: TaskQuery2<Boolean> = { _: Task, _: Scheduler -> false }
     private var onFinish: TaskAction2 = { _: Task, _: Scheduler -> }
     private var then: TaskAction2 = { _: Task, _: Scheduler -> }
+
+    var name: String = "unnamed task"
 
     var daemon = false
     var myId: Int? = null
@@ -192,6 +194,7 @@ class Task constructor(
 
     fun then(configure: Task.() -> Unit): Task {
         val task = Task(scheduler)
+        task.name = MultitaskScheduler.getCaller()
         task.configure()
         then(task)
         task.register() // ready to go
@@ -213,5 +216,9 @@ class Task constructor(
 
     fun apply(configure: Task.() -> Unit) {
         this.configure()
+    }
+
+    override fun toString(): String {
+        return "task $myId '$name'"
     }
 }

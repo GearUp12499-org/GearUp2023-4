@@ -19,8 +19,15 @@ class KOdometryDrive(
 ) {
     companion object {
         const val ACCEPTABLE_ERROR = .5
-        const val kp = 0.1
-        const val ki = 0.05
+        const val kpFwd = 0.2
+        const val kiFwd = 0.05
+        val StrafingCurve = ControlRamps(
+            .3,
+            .25,
+            .4,
+            6.0,
+            24.0,
+        )
     }
 
     private val driveMotors = robot.driveMotors()
@@ -71,7 +78,7 @@ class KOdometryDrive(
                 previousTime = currentTime
                 sumError += pError * dt
 
-                val correction = (kp * pError + ki * sumError) * switcher
+                val correction = (kpFwd * pError + kiFwd * sumError) * switcher
                 val speed = min(rampUp(average), rampDown(distInch - average)) * switcher
                 driveMotors.frontLeft.power = speed + correction
                 driveMotors.backLeft.power = speed + correction
@@ -93,6 +100,10 @@ class KOdometryDrive(
     @JvmOverloads
     fun strafeRight(target: LengthUnit, timeout: Double = -1.0): Task {
         val distInch = abs(target.to.inches.value)
+        Log.i(
+            "KOD",
+            String.format("strafe ${if (target.value < 0) "left" else "right"} $distInch inches")
+        )
         val switcher = target.value.sign
 
         return scheduler.task {
@@ -135,12 +146,12 @@ class KOdometryDrive(
                 sumErrorLeft += lErr * dt
                 sumErrorRight += rErr * dt
 
-                val lCorrect = kp * lErr + ki * sumErrorLeft
-                val rCorrect = kp * rErr + ki * sumErrorRight
-                val speed = min(rampUp(sDist), rampDown(distInch - sDist)) * switcher
+                val lCorrect = kpFwd * lErr + kiFwd * sumErrorLeft
+                val rCorrect = kpFwd * rErr + kiFwd * sumErrorRight
+                val speed = StrafingCurve.ramp(sDist, distInch - sDist) * switcher
 
                 // FIXME: are these signs correct?
-                if (abs(lCorrect) > .25 || abs(rCorrect) > .25) {
+                if (abs(lCorrect) > .5 || abs(rCorrect) > .5) {
                     // we're screwed
                     driveMotors.setAll(0.0)
 
@@ -158,10 +169,10 @@ class KOdometryDrive(
                         )
                     )
                 } else {
-                    driveMotors.frontLeft.power = speed - lCorrect
-                    driveMotors.frontRight.power = -speed - rCorrect
-                    driveMotors.backLeft.power = -speed - lCorrect
-                    driveMotors.backRight.power = speed - rCorrect
+                    driveMotors.frontLeft.power = speed + lCorrect
+                    driveMotors.backLeft.power = -speed + lCorrect
+                    driveMotors.frontRight.power = -speed + rCorrect
+                    driveMotors.backRight.power = speed + rCorrect
                 }
             }
             isCompleted { -> completed || (timeout > 0 && timeoutT.time() >= timeout) }

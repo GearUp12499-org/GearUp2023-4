@@ -128,6 +128,7 @@ class Pose(x: LengthUnit, y: LengthUnit, theta: RotationUnit) {
         Pose(this.x - other.x, this.y - other.y, this.theta - other.theta)
 
     companion object {
+        @JvmField
         val zero = Pose(0.inches, 0.inches, 0.radians)
         const val EPSILON_DISTANCE = 0.1 // in
         const val EPSILON_ANGLE = 0.035 // rad, ~2deg

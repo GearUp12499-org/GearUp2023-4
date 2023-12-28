@@ -174,9 +174,12 @@ object Var {
     }
 
     object AutoPositions {
-        private val RobotWidth = 41.cm
+        @JvmField
+        val RobotWidth = 41.cm
         private val RobotBackToOdo = 21.cm
+        @JvmField
         val BlueLeft = Pose(RobotBackToOdo, 94.inches - RobotWidth / 2.0, 180.degrees)
+        @JvmField
         val BlueLeftRightPixel = Pose(24.5.inches + RobotWidth / 2.0, 83.5.inches, (90).degrees)
     }
 }

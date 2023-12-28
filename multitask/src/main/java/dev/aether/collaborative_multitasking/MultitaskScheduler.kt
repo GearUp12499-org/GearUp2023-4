@@ -16,6 +16,18 @@ class MultitaskScheduler : Scheduler() {
             val index = ceil(l * k.size).toInt()
             return k[max(0, index - 1)]
         }
+        internal fun getCaller(): String {
+            try {
+                throw Exception()
+            } catch (e: Exception) {
+                val stack = e.stackTrace
+                for (frame in stack) {
+                    if (frame.className.contains("dev.aether.collaborative_multitasking")) continue
+                    return "${frame.className.split(".").last()}.${frame.methodName} line ${frame.lineNumber}"
+                }
+            }
+            return "<unknown source>"
+        }
     }
 
     val tickTimes: MutableList<Double> = mutableListOf()
@@ -42,7 +54,7 @@ class MultitaskScheduler : Scheduler() {
                     it.setState(Task.State.Starting)
                     // acquire locks
                     for (lock in it.requirements()) {
-                        println("task ${it.myId} acquired $lock")
+                        println("$it acquired $lock")
                         locks[lock.id] = it.myId
                         lockIdName[lock.id] = lock
                         println("locks: $locks")
@@ -110,10 +122,10 @@ class MultitaskScheduler : Scheduler() {
         task.setState(Task.State.Finished)
         for (lock in task.requirements()) {
             if (locks[lock.id] != task.myId) {
-                throw IllegalStateException("task ${task.myId} (which just finished) does not own lock $lock that it is supposed to own")
+                throw IllegalStateException("$task (which just finished) does not own lock $lock that it is supposed to own")
             }
             locks[lock.id] = null
-            println("task ${task.myId} released $lock")
+            println("$task released $lock")
         }
     }
 
@@ -158,6 +170,7 @@ class MultitaskScheduler : Scheduler() {
     override fun task(configure: Task.() -> Unit): Task {
         val task = Task(this)
         task.configure()
+        task.name = getCaller()
         task.register()
         return task
     }

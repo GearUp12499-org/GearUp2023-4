@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.odo
 
+import android.util.Log
 import dev.aether.collaborative_multitasking.Task
 import org.firstinspires.ftc.teamcode.detectSingleToPose
 import org.firstinspires.ftc.teamcode.utilities.Move
@@ -20,12 +21,14 @@ class AprilTagUpdateTool(
     }
     var acquired: Boolean = false
         private set
+    private var lastReadData: AprilTagPoseFtc? = null
+
     fun updateTool(aux: OdoTracker): Task.() -> Unit {
         return {
             daemon = true
+            Log.i("AprilTagUpdateTool", "using target $initialTarget")
             var lockedTarget = initialTarget
             var visible: Boolean
-            var lastReadData: AprilTagPoseFtc? = null
             onStart { ->
                 lockedTarget = initialTarget
                 acquired = false
@@ -62,5 +65,10 @@ class AprilTagUpdateTool(
                 && this.range == other.range
                 && this.bearing == other.bearing
                 && this.elevation == other.elevation
+    }
+
+    fun unacq() {
+        acquired = false
+        lastReadData = null
     }
 }

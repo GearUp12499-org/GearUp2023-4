@@ -14,10 +14,18 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.teamcode.Var;
 import org.firstinspires.ftc.teamcode.abstractions.Dumper;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
+import org.firstinspires.ftc.teamcode.odo.AprilTagUpdateTool;
 import org.firstinspires.ftc.teamcode.odo.DriveForwardPID;
+import org.firstinspires.ftc.teamcode.odo.ExtractedDriveToTag;
+import org.firstinspires.ftc.teamcode.odo.KOdometryDrive;
+import org.firstinspires.ftc.teamcode.odo.OdoTracker;
 import org.firstinspires.ftc.teamcode.odo.TurnPID;
+import org.firstinspires.ftc.teamcode.utilities.InchUnit;
+import org.firstinspires.ftc.teamcode.utilities.Pose;
 import org.firstinspires.ftc.teamcode.vision.AdvSphereProcess;
 import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.Locale;
 
@@ -29,6 +37,7 @@ import kotlin.Pair;
 public abstract class TwentyAuto extends LinearOpMode {
     private VisionPortal portal;
     private AdvSphereProcess sphere;
+    private AprilTagProcessor aprilTag;
     private DriveForwardPID forwardPID;
     private TurnPID turnPID;
     private RobotConfiguration robot;
@@ -153,17 +162,23 @@ public abstract class TwentyAuto extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         // Get robot hardware configs
         MultitaskScheduler scheduler = new MultitaskScheduler();
+        setupVision(hardwareMap.get(CameraName.class, "Webcam 1"));
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
         forwardPID = new DriveForwardPID(robot);
         turnPID = new TurnPID(robot);
+        KOdometryDrive newOdo = new KOdometryDrive(scheduler, robot);
+        OdoTracker tracker = new OdoTracker(robot, Pose.zero);
+        AprilTagUpdateTool trackerTagUpdate = new AprilTagUpdateTool(aprilTag, 2);
+        ExtractedDriveToTag driveToTag = new ExtractedDriveToTag(
+                robot, trackerTagUpdate, tracker, 2, telemetry
+        );
         Dumper dumper = new Dumper(scheduler, robot);
 
         // Set up robot hardware
         robot.clearEncoders();
         robot.purpleDropper().setPosition(Var.PixelDropper.up);
 
-        setupVision(hardwareMap.get(CameraName.class, "Webcam 1"));
 
         // Display current detection results
         while (opModeInInit()) {
@@ -191,7 +206,6 @@ public abstract class TwentyAuto extends LinearOpMode {
 
         // Capture the result and stop the camera to save resources
         AdvSphereProcess.Result result = sphere.getResult();
-        portal.close();
         RobotLog.ii("TwentyAuto", "woah it's a " + result);
         telemetry.addData("Action", result);
         telemetry.update();
@@ -206,18 +220,24 @@ public abstract class TwentyAuto extends LinearOpMode {
 
         boolean shouldUndo = parkingConf() != Parking.NoParking;
 
+        int targetTag = 0;
         switch (result) {
             case Left:
+                targetTag = 1;
                 left.run();
                 break;
             case Right:
+                targetTag = 3;
                 right.run();
                 break;
             case None:
             case Center:
+                targetTag = 2;
                 center.run();
                 break;
         }
+        trackerTagUpdate.setInitialTarget(targetTag);
+        driveToTag.setTargetPosition(targetTag);
 
         if (shouldUndo) {
             switch (result) {
@@ -234,7 +254,42 @@ public abstract class TwentyAuto extends LinearOpMode {
             }
             double modifier = parkingConf() == Parking.MoveLeft ? 1 : -1;
             turnPID.TurnRobot(modifier * 100.0, telemetry);
-            forwardPID.DriveReverse(33.0, telemetry, 5.0);
+            forwardPID.DriveReverse(19.0, telemetry, 5.0);
+            // Left: 9.5", Center: 15", Right: 21.5"
+
+            scheduler.task(tracker.getTaskFactory());
+            scheduler.task(trackerTagUpdate.updateTool(tracker));
+
+            Task navigateInFrontOfTag;
+            switch (result) {
+                case Left:
+                    navigateInFrontOfTag = newOdo.strafeLeft(
+                            new InchUnit(11.0).plus(Var.AutoPositions.RobotWidth.div(2))
+                    );
+                    break;
+                case None:
+                case Center:
+                    navigateInFrontOfTag = newOdo.strafeLeft(
+                            new InchUnit(16.5).plus(Var.AutoPositions.RobotWidth.div(2))
+                    );
+                    break;
+                case Right:
+                    navigateInFrontOfTag = newOdo.strafeLeft(
+                            new InchUnit(23.0).plus(Var.AutoPositions.RobotWidth.div(2))
+                    );
+                    break;
+                default:
+                    throw new IllegalStateException();
+            }
+            navigateInFrontOfTag
+                    .then(e -> {
+                        TimingKt.maxDuration(e, 200);
+                        return kvoid;
+                    })
+                    .then(driveToTag.getTaskFactory());
+
+            // ewwwww
+            scheduler.runToCompletion(this::opModeIsActive);
 
 //            robot.liftLeft().setTargetPosition(1000);
 
@@ -287,9 +342,17 @@ public abstract class TwentyAuto extends LinearOpMode {
 
     void setupVision(CameraName camera) {
         sphere = new AdvSphereProcess(modeConf(), positionConf() == StartPosition.LeftOfTruss);
+        aprilTag = new AprilTagProcessor.Builder()
+                .setDrawAxes(true)
+                .setDrawCubeProjection(true)
+                .setDrawTagOutline(true)
+                .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
+                .setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary()) //.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
+                .build();
         portal = new VisionPortal.Builder()
                 .setCamera(camera)
                 .addProcessor(sphere)
+                .addProcessor(aprilTag)
                 .setCameraResolution(new Size(864, 480))
                 .build();
     }
