@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.odo;
 
 
+import android.util.Log;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
@@ -66,10 +68,11 @@ public class TurnPID {
 
                 double correction = kp * error;
                 double speed = rampDown(turnDist - average);
-                driveMotors.backLeft.setPower(-speed - ((correction)));
-                driveMotors.frontLeft.setPower(-speed - ((correction)));
-                driveMotors.frontRight.setPower(speed + ((correction)));
-                driveMotors.backRight.setPower(speed + ((correction)));
+                Log.i("TurnPID", String.format("speed: %.2f / turnDist: %.2f average: %.2f / correction: %.4f", speed, turnDist, average, correction));
+                driveMotors.backLeft.setPower(-speed - correction);
+                driveMotors.frontLeft.setPower(-speed - correction);
+                driveMotors.frontRight.setPower(speed + correction);
+                driveMotors.backRight.setPower(speed + correction);
                 telemetry.addData("Right Odometry: ", RightOdoDist());
                 telemetry.addData("Left Odometry: ", LeftOdoDist());
                 telemetry.update();
@@ -85,12 +88,17 @@ public class TurnPID {
                 double average = (l_dist + r_dist) / 2.0;
 
                 if (average > turnDist - acceptableError) break;
+                double error = r_dist + l_dist;
 
-                driveMotors.backLeft.setPower(0.6);
-                driveMotors.frontLeft.setPower(0.6);
+                double correction = kp * error;
+                double speed = rampDown(turnDist - average);
+                Log.i("TurnPID", String.format("speed: %.2f / turnDist: %.2f average: %.2f / correction: %.4f", speed, turnDist, average, correction));
+
+                driveMotors.backLeft.setPower(speed + correction);
+                driveMotors.frontLeft.setPower(speed + correction);
                 //Turns right, which means negative degrees according to the unit circle
-                driveMotors.frontRight.setPower(-0.6);
-                driveMotors.backRight.setPower(-0.6);
+                driveMotors.frontRight.setPower(-speed - correction);
+                driveMotors.backRight.setPower(-speed - correction);
                 telemetry.addData("Right Odometry: ", RightOdoDist());
                 telemetry.addData("Left Odometry: ", LeftOdoDist());
                 telemetry.update();
