@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.teamcode.Var;
+import org.firstinspires.ftc.teamcode.abstractions.ApproachObject2;
 import org.firstinspires.ftc.teamcode.abstractions.Dumper;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.odo.AprilTagUpdateTool;
@@ -173,6 +174,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         ExtractedDriveToTag driveToTag = new ExtractedDriveToTag(
                 robot, trackerTagUpdate, tracker, 2, telemetry
         );
+        ApproachObject2 theXButton = new ApproachObject2(scheduler, robot);
         Dumper dumper = new Dumper(scheduler, robot);
 
         // Set up robot hardware
@@ -286,7 +288,8 @@ public abstract class TwentyAuto extends LinearOpMode {
                         TimingKt.maxDuration(e, 200);
                         return kvoid;
                     })
-                    .then(driveToTag.getTaskFactory());
+                    .then(driveToTag.getTaskFactory())
+                    .then(theXButton.approach(new InchUnit(3.5)));
 
             // ewwwww
             scheduler.runToCompletion(this::opModeIsActive);
@@ -321,6 +324,7 @@ public abstract class TwentyAuto extends LinearOpMode {
                         return kvoid;
                     })
                     .then(dumper.autoReset())
+                    .then(newOdo.driveForward(new InchUnit(2)))
                     .then((x) -> {
                         x.onStart(() -> {
                             robot.liftLeft().setTargetPosition(0);
@@ -328,7 +332,10 @@ public abstract class TwentyAuto extends LinearOpMode {
                         });
                         x.isCompleted(() -> Math.abs(robot.liftLeft().getCurrentPosition()) < acceptError);
                         return kvoid;
-                    });
+                    })
+                    // TODO: make this number depend on detection result
+                    .then(newOdo.strafeRight(new InchUnit(24)));
+            // TODO: Potentially back up to be sure
 
             scheduler.runToCompletion(this::opModeIsActive);
         }

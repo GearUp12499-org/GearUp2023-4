@@ -68,6 +68,8 @@ class NewDriveToTag : LinearOpMode() {
                 telemetry.addData("target", target)
 
                 // This turns the From pose and the To pose into a Move.
+                // THIS IS THE PROBLEM PART.
+                //                vvvvvv
                 val fromTo = pose.toPose(target)
                 telemetry.addData("from/to", fromTo)
 
@@ -78,7 +80,7 @@ class NewDriveToTag : LinearOpMode() {
                                 + fromTo.right.value * fromTo.right.value
                     )
 
-                // THIS IS THE PROBLEM PART.
+                // THIS IS THE PROBLEM PART. (2)
                 //                  vvvvvvvvv
                 val motion = fromTo.getSpeeds(ROBOT_SIZE) * ramp.ramp(0.0, distance)
                 telemetry.addData("speeds", motion)

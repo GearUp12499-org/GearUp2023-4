@@ -67,7 +67,7 @@ class OdoTracker(
             val currentYRaw = odoPerp.currentPosition
             val currentX1Raw = odoPara1.currentPosition
             val currentX2Raw = odoPara2.currentPosition
-            val cY = odoTicksToDistance(currentYRaw - lastY)
+            val cY = -odoTicksToDistance(currentYRaw - lastY)
             val cX1 = odoTicksToDistance(currentX1Raw - lastX1)
             val cX2 = odoTicksToDistance(currentX2Raw - lastX2)
 

@@ -1,5 +1,5 @@
 this is a log dump from a run in which the robot kept strafing in one direction.
-this is probably because the strafing correction is wrong
+this is probably because the strafing reading in the odometry tracker is backwards
 
 15:12:10.566 AprilTagUpdateTool      com.qualcomm.ftcrobotcontroller      I  using target 2
 15:12:10.567 KOD                     com.qualcomm.ftcrobotcontroller      I  strafe left 24.570870499999998 inches
