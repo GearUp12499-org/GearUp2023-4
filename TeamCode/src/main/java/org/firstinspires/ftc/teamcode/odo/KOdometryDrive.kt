@@ -131,7 +131,6 @@ class KOdometryDrive(
             }
             onTick { ->
                 val sDist = (sBase - distanceStrafe()) * switcher
-                // FIXME: is `* switcher` correct here?
                 val lErr = distanceLeft() - lBase
                 val rErr = distanceRight() - rBase
 
@@ -169,6 +168,7 @@ class KOdometryDrive(
                         )
                     )
                 } else { // Divide (speed + correct) by max abs power
+                    // TODO: these may be wrong; DriveForwardPID has different signs
                     val powers = MotorPowers(
                         frontLeft = speed + lCorrect,
                         frontRight = -speed + rCorrect,
