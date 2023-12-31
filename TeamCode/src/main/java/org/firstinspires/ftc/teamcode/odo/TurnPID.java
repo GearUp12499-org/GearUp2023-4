@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.odo;
 
 import android.util.Log;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
@@ -10,6 +12,9 @@ import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 public class TurnPID {
     RobotConfiguration robot;
     MotorSet driveMotors;
+    DcMotor para1;
+    DcMotor para2;
+    DcMotor perp;
     double kp = 0.002;
     public static final double RAMPS_DOWN = 18;
     public static final double MAX_SPEED = 0.9;
@@ -23,6 +28,8 @@ public class TurnPID {
     public TurnPID(RobotConfiguration robot) {
         this.robot = robot;
         this.driveMotors = robot.driveMotors();
+        this.para1 = robot.odoParallelLeft();
+        this.para2 = robot.odoParallelRight();
     }
 
     public double ticksToInches(int ticks) {
@@ -34,11 +41,11 @@ public class TurnPID {
     }
 
     public double RightOdoDist() {
-        return ticksToInches(driveMotors.backRight.getCurrentPosition());
+        return ticksToInches(para2.getCurrentPosition());
     }
 
     public double LeftOdoDist() {
-        return ticksToInches(driveMotors.frontLeft.getCurrentPosition());
+        return ticksToInches(para1.getCurrentPosition());
     }
 
     public static final double acceptableError = 0.2; //in

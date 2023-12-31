@@ -134,11 +134,9 @@ public class HWTest extends LinearOpMode {
 
     void testEncoders() {
         if (!confirm("Test encoders?")) return;
-        MotorSet motors = robot.driveMotors();
-        DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
-        testEncoder("Strafe odo", intake);
-        testEncoder("Forward odo 1", motors.frontLeft);
-        testEncoder("Forward odo 2", motors.backRight);
+        testEncoder("Strafe odo", robot.odoPerpendicular());
+        testEncoder("Forward odo 1", robot.odoParallelLeft());
+        testEncoder("Forward odo 2", robot.odoParallelRight());
         testEncoder("Left lift", robot.liftLeft());
         testEncoder("Right lift", robot.liftRight());
     }

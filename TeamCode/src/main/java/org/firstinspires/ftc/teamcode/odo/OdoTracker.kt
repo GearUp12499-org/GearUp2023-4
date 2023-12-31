@@ -26,8 +26,8 @@ class OdoTracker(
     }
 
     private val odoPerp: DcMotor = robot.odoPerpendicular()
-    private val odoPara1: DcMotor = robot.odoParallel1()
-    private val odoPara2: DcMotor = robot.odoParallel2()
+    private val odoPara1: DcMotor = robot.odoParallelLeft()
+    private val odoPara2: DcMotor = robot.odoParallelRight()
     private val r1: LengthUnit = (-8).inches // +/- 0.25in
     private val d: LengthUnit = 7.25.inches  // +/- 0.25in
     private val minTimeBetweenReads = 10.0 // ms

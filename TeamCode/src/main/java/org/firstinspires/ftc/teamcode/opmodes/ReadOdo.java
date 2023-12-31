@@ -23,18 +23,17 @@ public class ReadOdo extends LinearOpMode {
         robot.liftLeft().setPower(0);
         robot.liftRight().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         robot.liftRight().setPower(0);
-        robot.driveMotors().frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.driveMotors().frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        robot.driveMotors().backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.driveMotors().backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
-        intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.odoParallelLeft().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.odoParallelLeft().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.odoParallelRight().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.odoParallelRight().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.odoPerpendicular().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.odoPerpendicular().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         waitForStart();
         while (opModeIsActive()) {
-            telemetry.addData("Par1", robot.driveMotors().frontLeft.getCurrentPosition());
-            telemetry.addData("Par2", robot.driveMotors().backRight.getCurrentPosition());
-            telemetry.addData("Perp", intake.getCurrentPosition());
+            telemetry.addData("Par1", robot.odoParallelLeft().getCurrentPosition());
+            telemetry.addData("Par2", robot.odoParallelRight().getCurrentPosition());
+            telemetry.addData("Perp", robot.odoPerpendicular().getCurrentPosition());
             telemetry.addData("Left lift", robot.liftLeft().getCurrentPosition());
             telemetry.addData("Right lift", robot.liftRight().getCurrentPosition());
             telemetry.update();

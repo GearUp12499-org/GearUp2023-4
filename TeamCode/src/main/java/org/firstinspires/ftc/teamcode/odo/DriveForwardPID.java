@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.odo;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -13,6 +14,9 @@ public class DriveForwardPID {
     public static final double MIN_SPEED_INITIAL = 0.3; // was 0.25
     public static final double MIN_SPEED_FINAL = 0.25; // was 0.15
     public static final double acceptableError = .50; // in
+    private final DcMotor paraRight;
+    private final DcMotor paraLeft;
+    private final DcMotor perp;
 
     // TODO: Migrate to Kotlin impl
     public static double rampDown(double distToTarget) {
@@ -31,6 +35,9 @@ public class DriveForwardPID {
     public DriveForwardPID(RobotConfiguration robot) {
         this.robot = robot;
         this.driveMotors = robot.driveMotors();
+        this.paraRight = robot.odoParallelRight();
+        this.paraLeft = robot.odoParallelLeft();
+        this.perp = robot.odoPerpendicular();
     }
 
     public double ticksToInches(int ticks) {
@@ -42,15 +49,15 @@ public class DriveForwardPID {
     }
 
     public double RightOdoDist() {
-        return ticksToInches(driveMotors.backRight.getCurrentPosition());
+        return ticksToInches(paraRight.getCurrentPosition());
     }
 
     public double LeftOdoDist() {
-        return ticksToInches(driveMotors.frontLeft.getCurrentPosition());
+        return ticksToInches(paraLeft.getCurrentPosition());
     }
 
     public double StrafeOdoDist() {
-        return ticksToInches(robot.intake().getCurrentPosition());
+        return ticksToInches(perp.getCurrentPosition());
     }
 
     RobotConfiguration robot;

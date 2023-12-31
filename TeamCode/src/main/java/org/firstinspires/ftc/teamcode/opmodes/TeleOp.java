@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -63,6 +64,9 @@ public class TeleOp extends LinearOpMode {
         MultitaskScheduler scheduler = new MultitaskScheduler();
         // get the robot configuration container (see RobotConfiguration.java)
         RobotConfiguration robot = new Robot(hardwareMap);
+        DcMotor para1 = robot.odoParallelLeft();
+        DcMotor para2 = robot.odoParallelRight();
+        DcMotor perp = robot.odoPerpendicular();
         CRServo intakeAssist = hardwareMap.get(CRServo.class, "intakeAssist");
         robot.purpleDropper().setPosition(Var.PixelDropper.back);
 
@@ -194,15 +198,20 @@ public class TeleOp extends LinearOpMode {
                 robot.liftRight().setTargetPosition(targetRight.get());
             }
             if (gamepad2.left_bumper) {
+                // what???
                 if (targetLeft.get() >= 250) {
                     dumperServo.setPosition(Var.Box.dumpRotate);
                 }
-                while(gamepad2.left_bumper){ sleep(1000);}
-                if(gamepad2.left_bumper) {
+                while (gamepad2.left_bumper) {
+                    sleep(1000);
+                }
+                if (gamepad2.left_bumper) {
                     latch.setPosition(Var.Box.latch1);
                 }
-                while(gamepad2.left_bumper){ sleep(1000);}
-                if(gamepad2.left_bumper){
+                while (gamepad2.left_bumper) {
+                    sleep(1000);
+                }
+                if (gamepad2.left_bumper) {
                     latch.setPosition((Var.Box.unlatched));
                 }
                     /* if (dumper.getState() == Dumper.State.Dump) dumper.dumpSecond();
@@ -262,7 +271,8 @@ public class TeleOp extends LinearOpMode {
             robot.tele(telemetry);
 
             //Updates the average distance traveled forward: positive is right or forward; negative is backward or left
-            telemetry.addData("Distance Driven Forward:", OdoToInches((driveMotors.backRight.getCurrentPosition() + driveMotors.frontLeft.getCurrentPosition()) / 2.0));
+            telemetry.addData("Distance Driven Forward:",
+                    OdoToInches((para2.getCurrentPosition() + para1.getCurrentPosition()) / 2.0));
             telemetry.addData("Inches Strafed: ", OdoToInches(robot.intake().getCurrentPosition()));
             telemetry.addData("Slide Motor Ticks: ", slideTicks);
             telemetry.addData("dt", "%.2f ms", dt * 1000);

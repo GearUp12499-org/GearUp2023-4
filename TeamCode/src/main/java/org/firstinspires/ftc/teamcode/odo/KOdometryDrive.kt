@@ -32,9 +32,9 @@ class KOdometryDrive(
     }
 
     private val driveMotors = robot.driveMotors()
-    private val rightOdo = driveMotors.backRight
-    private val leftOdo = driveMotors.frontLeft
-    private val strafeOdo = robot.intake()
+    private val rightOdo = robot.odoParallelRight()
+    private val leftOdo = robot.odoParallelLeft()
+    private val strafeOdo = robot.odoPerpendicular()
     private val dmLock = robot.driveMotorLock
 
     private fun distanceLeft() = tick2inch(leftOdo.currentPosition)

@@ -74,12 +74,12 @@ abstract class RobotConfiguration {
         ?: throw NullPointerException("Robot configuration has no Perpendicular Odometry Wheel.")
 
 
-    protected abstract val odoParallel1: DcMotor?
-    fun odoParallel1(): DcMotor = odoParallel1
+    protected abstract val odoParallelLeft: DcMotor?
+    fun odoParallelLeft(): DcMotor = odoParallelLeft
         ?: throw NullPointerException("Robot configuration has no Perpendicular Odometry Wheel.")
 
-    protected abstract val odoParallel2: DcMotor?
-    fun odoParallel2(): DcMotor = odoParallel2
+    protected abstract val odoParallelRight: DcMotor?
+    fun odoParallelRight(): DcMotor = odoParallelRight
         ?: throw NullPointerException("Robot configuration has no Perpendicular Odometry Wheel.")
 
     private fun deviceStatus(name: String, device: Any?): String = "$name: " + when (device) {

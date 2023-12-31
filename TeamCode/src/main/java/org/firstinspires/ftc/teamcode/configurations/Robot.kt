@@ -85,8 +85,8 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
     val imuB: IMU = map.typedGet("imu")
     override val imu: IMU get() = imuB
     override val odoPerpendicular: DcMotor? = intakeB
-    override val odoParallel1: DcMotor = frontLeft
-    override val odoParallel2: DcMotor = backRight
+    override val odoParallelLeft: DcMotor = frontLeft
+    override val odoParallelRight: DcMotor = frontRight
 
 
     init {
@@ -120,9 +120,9 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
         clearEncoder(
             liftLeft,
             liftRight,
-            frontLeft,
-            backRight,
-            intake
+            odoParallelLeft,
+            odoParallelRight,
+            odoPerpendicular
         )
     }
 
