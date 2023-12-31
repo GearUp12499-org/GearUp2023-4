@@ -33,7 +33,10 @@ object Var {
          * Tune with the lift raised by hand.
          */
         const val dumpRotate = 0.367
-
+        /**
+         * Latch position such that it lets go of the top pixel but not the bottom pixel.
+         */
+        const val latch1 = 0.209
         /**
          * Latch position such that it does not block movement of the bottom pixel in the box.
          */

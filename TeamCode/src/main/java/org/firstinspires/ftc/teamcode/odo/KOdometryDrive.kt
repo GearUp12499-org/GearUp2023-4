@@ -168,7 +168,7 @@ class KOdometryDrive(
                             speed + rCorrect
                         )
                     )
-                } else {
+                } else { // Divide (speed + correct) by max abs power
                     driveMotors.frontLeft.power = speed + lCorrect
                     driveMotors.backLeft.power = -speed + lCorrect
                     driveMotors.frontRight.power = -speed + rCorrect

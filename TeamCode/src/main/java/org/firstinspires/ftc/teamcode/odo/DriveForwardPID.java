@@ -7,11 +7,11 @@ import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
 public class DriveForwardPID {
-    public static final double MAX_SPEED = 0.4;
-    public static final double RAMPS_UP = 6; // in - too slow to go, make it lower
-    public static final double RAMPS_DOWN = 24; // in -
-    public static final double MIN_SPEED_INITIAL = 0.25;
-    public static final double MIN_SPEED_FINAL = 0.15;
+    public static final double MAX_SPEED = 0.5; // was 0.4
+    public static final double RAMPS_UP = 3; // in - too slow to go, make it lower
+    public static final double RAMPS_DOWN = 3; // in -
+    public static final double MIN_SPEED_INITIAL = 0.3; // was 0.25
+    public static final double MIN_SPEED_FINAL = 0.25; // was 0.15
     public static final double acceptableError = .50; // in
 
     // TODO: Migrate to Kotlin impl
@@ -147,8 +147,8 @@ public class DriveForwardPID {
     }
 
     public void strafeRight(double target, Telemetry telemetry, double timeout) {
-        if (target < 0) {
-            strafeLeft(-target, telemetry);
+        if (target > 0) {
+            strafeLeft(target, telemetry);
             return;
         }
         double s_base = StrafeOdoDist();
@@ -176,9 +176,9 @@ public class DriveForwardPID {
             double speed = Math.min(rampUp(s_dist), rampDown(target - s_dist));
 
             driveMotors.frontLeft.setPower(speed + left_correct);
-            driveMotors.frontRight.setPower(-speed + right_correct);
+            driveMotors.frontRight.setPower(-speed - right_correct);
             driveMotors.backLeft.setPower(-speed + left_correct);
-            driveMotors.backRight.setPower(speed + right_correct);
+            driveMotors.backRight.setPower(speed - right_correct);
         }
     }
 
@@ -188,7 +188,7 @@ public class DriveForwardPID {
 
     public void strafeLeft(double target, Telemetry telemetry, double timeout) {
         if (target < 0) {
-            strafeRight(-target, telemetry);
+            strafeRight(target, telemetry);
             return;
         }
         double s_base = StrafeOdoDist();
@@ -216,9 +216,9 @@ public class DriveForwardPID {
             double speed = Math.min(rampUp(s_dist), rampDown(target - s_dist));
 
             driveMotors.frontLeft.setPower(-speed + left_correct);
-            driveMotors.frontRight.setPower(speed + right_correct);
+            driveMotors.frontRight.setPower(speed - right_correct);
             driveMotors.backLeft.setPower(speed + left_correct);
-            driveMotors.backRight.setPower(-speed + right_correct);
+            driveMotors.backRight.setPower(-speed - right_correct);
         }
     }
 }

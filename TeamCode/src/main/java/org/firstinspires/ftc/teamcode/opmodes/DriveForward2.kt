@@ -14,7 +14,7 @@ class DriveForward2 : LinearOpMode() {
         val robot = RobotConfiguration.currentConfiguration()(hardwareMap)
         val drive = KOdometryDrive(scheduler, robot)
         waitForStart()
-        drive.strafeLeft(3.feet)
+        drive.strafeLeft(1.feet)
 //            .then(drive.driveReverse(6.feet, 5.0))
 
         scheduler.runToCompletion(::opModeIsActive)

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -90,6 +91,9 @@ public class TeleOp extends LinearOpMode {
         balFR /= balanceDen;
         balBL /= balanceDen;
         balBR /= balanceDen;
+
+        Servo dumperServo = hardwareMap.get(Servo.class, "dumperServo");
+        Servo latch = hardwareMap.get(Servo.class, "latch");
 
         robot.clearEncoders();
 
@@ -191,9 +195,18 @@ public class TeleOp extends LinearOpMode {
             }
             if (gamepad2.left_bumper) {
                 if (targetLeft.get() >= 250) {
-                    if (dumper.getState() == Dumper.State.Dump) dumper.dumpSecond();
-                    else dumper.dump();
+                    dumperServo.setPosition(Var.Box.dumpRotate);
                 }
+                while(gamepad2.left_bumper){ sleep(1000);}
+                if(gamepad2.left_bumper) {
+                    latch.setPosition(Var.Box.latch1);
+                }
+                while(gamepad2.left_bumper){ sleep(1000);}
+                if(gamepad2.left_bumper){
+                    latch.setPosition((Var.Box.unlatched));
+                }
+                    /* if (dumper.getState() == Dumper.State.Dump) dumper.dumpSecond();
+                    else dumper.dump(); */
             }
             if (gamepad2.right_bumper) {
                 dumper.reset();
@@ -214,7 +227,7 @@ public class TeleOp extends LinearOpMode {
             double slideTicks = (robot.liftRight().getCurrentPosition() + robot.liftLeft().getCurrentPosition()) / 2.0;
 
             if (gamepad1.y) {
-                dumper.dump();
+                dumper.autoReset();
                 targetLeft.set(hangTarget);
                 targetRight.set(hangTarget);
                 scheduler.task(c -> {

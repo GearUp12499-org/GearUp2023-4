@@ -24,17 +24,17 @@ public class DriveForward extends LinearOpMode {
         waitForStart();
         if (!opModeIsActive()) return;
 
-//      pidDrive.DriveForward(-48.0, telemetry);
 //        pidTurn.TurnRobot(360, telemetry);
 //        sleep(1000);
 //        pidTurn.TurnRobot(-360, telemetry);
 
-        MotorPowers test = new MotorPowers(0.44425, -0.44777, -0.42935, 0.42583);
-        test.apply(driveMotors);
+        //MotorPowers test = new MotorPowers(0.44425, -0.44777, -0.42935, 0.42583);
+        //test.apply(driveMotors);
 
         while (opModeIsActive()) {
             telemetry.addData("LEFT  ", pidDrive.LeftOdoDist());
             telemetry.addData("RIGHT", pidDrive.RightOdoDist());
+            telemetry.addData("STRAFE DIST: ", pidDrive.StrafeOdoDist());
             telemetry.update();
             sleep(20);
         }
