@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.odo.DriveForwardPID.rampDown
 import org.firstinspires.ftc.teamcode.odo.DriveForwardPID.rampUp
 import org.firstinspires.ftc.teamcode.odo.EncoderMath.tick2inch
 import org.firstinspires.ftc.teamcode.utilities.LengthUnit
+import org.firstinspires.ftc.teamcode.utilities.MotorPowers
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.sign
@@ -131,8 +132,8 @@ class KOdometryDrive(
             onTick { ->
                 val sDist = (sBase - distanceStrafe()) * switcher
                 // FIXME: is `* switcher` correct here?
-                val lErr = (distanceLeft() - lBase) * switcher
-                val rErr = (distanceRight() - rBase) * switcher
+                val lErr = distanceLeft() - lBase
+                val rErr = distanceRight() - rBase
 
                 if (sDist > distInch - ACCEPTABLE_ERROR) {
                     completed = true
@@ -150,7 +151,6 @@ class KOdometryDrive(
                 val rCorrect = kpFwd * rErr + kiFwd * sumErrorRight
                 val speed = StrafingCurve.ramp(sDist, distInch - sDist) * switcher
 
-                // FIXME: are these signs correct?
                 if (abs(lCorrect) > .5 || abs(rCorrect) > .5) {
                     // we're screwed
                     driveMotors.setAll(0.0)
@@ -169,10 +169,13 @@ class KOdometryDrive(
                         )
                     )
                 } else { // Divide (speed + correct) by max abs power
-                    driveMotors.frontLeft.power = speed + lCorrect
-                    driveMotors.backLeft.power = -speed + lCorrect
-                    driveMotors.frontRight.power = -speed + rCorrect
-                    driveMotors.backRight.power = speed + rCorrect
+                    val powers = MotorPowers(
+                        frontLeft = speed + lCorrect,
+                        frontRight = -speed + rCorrect,
+                        backLeft = -speed + lCorrect,
+                        backRight = speed + rCorrect
+                    )
+                    powers.normalize().apply(driveMotors)
                 }
             }
             isCompleted { -> completed || (timeout > 0 && timeoutT.time() >= timeout) }
