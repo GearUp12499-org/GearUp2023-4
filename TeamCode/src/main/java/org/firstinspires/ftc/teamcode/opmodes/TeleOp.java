@@ -96,8 +96,8 @@ public class TeleOp extends LinearOpMode {
         balBL /= balanceDen;
         balBR /= balanceDen;
 
-        Servo dumperServo = hardwareMap.get(Servo.class, "dumperServo");
-        Servo latch = hardwareMap.get(Servo.class, "latch");
+        Servo dumperServo = robot.dumperRotate();
+        Servo latch = robot.dumperLatch();
 
         robot.clearEncoders();
 
