@@ -22,12 +22,13 @@ class KOdometryDrive(
         const val ACCEPTABLE_ERROR = .5
         const val kpFwd = 0.2
         const val kiFwd = 0.05
+        // previous version of this curve @ 9405a9d1f89cb164c81c14ca659724933698ae92
         val StrafingCurve = ControlRamps(
             .3,
             .25,
-            .4,
+            .5,
+            3.0,
             6.0,
-            24.0,
         )
     }
 
@@ -168,12 +169,11 @@ class KOdometryDrive(
                         )
                     )
                 } else { // Divide (speed + correct) by max abs power
-                    // TODO: these may be wrong; DriveForwardPID has different signs
                     val powers = MotorPowers(
-                        frontLeft = speed + lCorrect,
-                        frontRight = -speed + rCorrect,
-                        backLeft = -speed + lCorrect,
-                        backRight = speed + rCorrect
+                        frontLeft = speed - lCorrect,
+                        frontRight = -speed - rCorrect,
+                        backLeft = -speed - lCorrect,
+                        backRight = speed - rCorrect
                     )
                     powers.normalize().apply(driveMotors)
                 }
