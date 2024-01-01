@@ -72,10 +72,14 @@ public class TeleOp extends LinearOpMode {
 
         // we don't want to have to call driveMotors() every time because it gets tedious
         MotorSet driveMotors = robot.driveMotors();
+
+        Servo dumperServo = robot.dumperRotate();
+        Servo latch = robot.dumperLatch();
         Dumper dumper = new Dumper(scheduler, robot);
         ApproachObject2 approachBackdrop = new ApproachObject2(scheduler, robot);
 
-        dumper.defaultPos();
+        dumperServo.setPosition(Var.Box.idleRotate);
+        latch.setPosition(Var.Box.latched);
 
         //Reset odometry pods
         robot.clearEncoders();
@@ -96,13 +100,13 @@ public class TeleOp extends LinearOpMode {
         balBL /= balanceDen;
         balBR /= balanceDen;
 
-        Servo dumperServo = robot.dumperRotate();
-        Servo latch = robot.dumperLatch();
-
         robot.clearEncoders();
 
         ElapsedTime deltaTimer = new ElapsedTime();
         ElapsedTime frameTimer = new ElapsedTime();
+        int bumpCycle = 0;
+        boolean lastLeftBumper = false;
+
         while (opModeIsActive()) {
             double dt = deltaTimer.time(TimeUnit.MICROSECONDS) / 1_000_000.0;
             scheduler.tick();
@@ -160,7 +164,9 @@ public class TeleOp extends LinearOpMode {
                 targetLeft.set(0);
                 targetRight.set(0);
                 scheduler.filteredStop(task -> task.requirements().contains(robot.getDumperLock()));
-                dumper.reset();
+                dumperServo.setPosition(Var.Box.idleRotate);
+                latch.setPosition(Var.Box.latched);
+                bumpCycle = 0;
             }
 
             int iLiftSpeed = (int) (Var.TeleOp.liftSpeed * dt);
@@ -197,28 +203,33 @@ public class TeleOp extends LinearOpMode {
                 robot.liftLeft().setTargetPosition(targetLeft.get());
                 robot.liftRight().setTargetPosition(targetRight.get());
             }
-            if (gamepad2.left_bumper) {
-                // what???
-                if (targetLeft.get() >= 250) {
-                    dumperServo.setPosition(Var.Box.dumpRotate);
+            if (gamepad2.left_bumper && !lastLeftBumper) {
+                switch (bumpCycle) {
+                    case 0:
+                        if (targetLeft.get() >= 250) {
+                            dumperServo.setPosition(Var.Box.dumpRotate);
+                            bumpCycle++;
+                        }
+                        break;
+                    case 1:
+                        latch.setPosition(Var.Box.latch1);
+                        bumpCycle++;
+                        break;
+                    case 2:
+                        latch.setPosition(Var.Box.unlatched);
+                        bumpCycle++;
+                        break;
+                    case 3:
+                        // nothing else to do (?)
+                        break;
                 }
-                while (gamepad2.left_bumper) {
-                    sleep(1000);
-                }
-                if (gamepad2.left_bumper) {
-                    latch.setPosition(Var.Box.latch1);
-                }
-                while (gamepad2.left_bumper) {
-                    sleep(1000);
-                }
-                if (gamepad2.left_bumper) {
-                    latch.setPosition((Var.Box.unlatched));
-                }
-                    /* if (dumper.getState() == Dumper.State.Dump) dumper.dumpSecond();
-                    else dumper.dump(); */
             }
+            lastLeftBumper = gamepad2.left_bumper;
+
             if (gamepad2.right_bumper) {
-                dumper.reset();
+                dumperServo.setPosition(Var.Box.idleRotate);
+                latch.setPosition(Var.Box.latched);
+                bumpCycle = 0;
             }
 
             if (gamepad1.x) {
@@ -236,6 +247,7 @@ public class TeleOp extends LinearOpMode {
             double slideTicks = (robot.liftRight().getCurrentPosition() + robot.liftLeft().getCurrentPosition()) / 2.0;
 
             if (gamepad1.y) {
+                // FIXME this class is not being used elsewhere
                 dumper.autoReset();
                 targetLeft.set(hangTarget);
                 targetRight.set(hangTarget);
