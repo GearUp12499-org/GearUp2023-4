@@ -156,7 +156,7 @@ public class DriveForwardPID {
 
     public void strafeRight(double target, Telemetry telemetry, double timeout) {
         if (target < 0) {
-            strafeLeft(target, telemetry);
+            strafeLeft(-target, telemetry);
             return;
         }
         double s_base = StrafeOdoDist();
@@ -198,8 +198,8 @@ public class DriveForwardPID {
     }
 
     public void strafeLeft(double target, Telemetry telemetry, double timeout) {
-        if (target > 0) {
-            strafeRight(target, telemetry);
+        if(target < 0){
+            strafeRight(-target, telemetry);
             return;
         }
         double s_base = StrafeOdoDist();
@@ -212,8 +212,8 @@ public class DriveForwardPID {
 
         while (timeout < 0 || timer.time() < timeout) {
             double s_dist = s_base - StrafeOdoDist();
-            double l_err = l_base - LeftOdoDist();
-            double r_err = r_base - RightOdoDist();
+            double l_err = LeftOdoDist() - l_base;
+            double r_err = RightOdoDist() - r_base;
 
             if (s_dist > target - acceptableError) break;
 
