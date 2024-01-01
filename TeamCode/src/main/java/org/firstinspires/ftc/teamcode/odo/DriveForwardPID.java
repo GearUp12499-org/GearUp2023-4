@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 public class DriveForwardPID {
     public static final double MAX_SPEED = 0.5; // was 0.4
     public static final double RAMPS_UP = 3; // in - too slow to go, make it lower
-    public static final double RAMPS_DOWN = 3; // in -
+    public static final double RAMPS_DOWN = 6; // in -
     public static final double MIN_SPEED_INITIAL = 0.3; // was 0.25
     public static final double MIN_SPEED_FINAL = 0.25; // was 0.15
     public static final double acceptableError = .50; // in
@@ -176,9 +176,6 @@ public class DriveForwardPID {
 
             double dt = stopwatch.time();
             stopwatch.reset();
-            telemetry.addData("Time", timer.time());
-            telemetry.addData("STRAFE distance: ", StrafeOdoDist());
-            telemetry.update();
             overall_left += l_err * dt;
             overall_right += r_err * dt;
 
