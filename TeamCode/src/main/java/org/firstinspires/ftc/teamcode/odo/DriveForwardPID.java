@@ -57,7 +57,7 @@ public class DriveForwardPID {
     }
 
     public double StrafeOdoDist() {
-        return ticksToInches(perp.getCurrentPosition());
+        return -ticksToInches(perp.getCurrentPosition());
     }
 
     RobotConfiguration robot;
@@ -153,8 +153,9 @@ public class DriveForwardPID {
         strafeRight(target, telemetry, -1.0);
     }
 
+
     public void strafeRight(double target, Telemetry telemetry, double timeout) {
-        if (target > 0) {
+        if (target < 0) {
             strafeLeft(target, telemetry);
             return;
         }
@@ -175,18 +176,24 @@ public class DriveForwardPID {
 
             double dt = stopwatch.time();
             stopwatch.reset();
+            telemetry.addData("Time", timer.time());
+            telemetry.addData("STRAFE distance: ", StrafeOdoDist());
+            telemetry.update();
             overall_left += l_err * dt;
             overall_right += r_err * dt;
 
             double left_correct = kp * l_err + ki * overall_left;
             double right_correct = kp * r_err + ki * overall_right;
             double speed = Math.min(rampUp(s_dist), rampDown(target - s_dist));
+            double totalPower = speed;
 
-            driveMotors.frontLeft.setPower(speed + left_correct);
+
+            driveMotors.frontLeft.setPower(speed - left_correct);
             driveMotors.frontRight.setPower(-speed - right_correct);
-            driveMotors.backLeft.setPower(-speed + left_correct);
+            driveMotors.backLeft.setPower(-speed - left_correct);
             driveMotors.backRight.setPower(speed - right_correct);
         }
+        driveMotors.setAll(0);
     }
 
     public void strafeLeft(double target, Telemetry telemetry) {
@@ -194,7 +201,7 @@ public class DriveForwardPID {
     }
 
     public void strafeLeft(double target, Telemetry telemetry, double timeout) {
-        if (target < 0) {
+        if (target > 0) {
             strafeRight(target, telemetry);
             return;
         }
@@ -222,11 +229,12 @@ public class DriveForwardPID {
             double right_correct = kp * r_err + ki * overall_right;
             double speed = Math.min(rampUp(s_dist), rampDown(target - s_dist));
 
-            driveMotors.frontLeft.setPower(-speed + left_correct);
+            driveMotors.frontLeft.setPower(-speed - left_correct);
             driveMotors.frontRight.setPower(speed - right_correct);
-            driveMotors.backLeft.setPower(speed + left_correct);
+            driveMotors.backLeft.setPower(speed - left_correct);
             driveMotors.backRight.setPower(-speed - right_correct);
         }
+        driveMotors.setAll(0);
     }
 }
 
