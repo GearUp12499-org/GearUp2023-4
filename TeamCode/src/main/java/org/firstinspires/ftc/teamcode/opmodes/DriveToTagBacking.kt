@@ -12,7 +12,6 @@ import org.firstinspires.ftc.teamcode.detectPairToPose
 import org.firstinspires.ftc.teamcode.detectSingleToPose
 import org.firstinspires.ftc.teamcode.tagPositions
 import org.firstinspires.ftc.teamcode.utilities.CollectionUtils.pairs
-import org.firstinspires.ftc.teamcode.utilities.MotorSet
 import org.firstinspires.ftc.teamcode.utilities.Pose
 import org.firstinspires.ftc.teamcode.utilities.degrees
 import org.firstinspires.ftc.teamcode.utilities.inches
@@ -73,7 +72,7 @@ class DriveToTagBacking(
     private val configuration = RobotConfiguration.currentConfiguration()(hardwareMap)
 
     private val scheduler = MultitaskScheduler()
-    private val driveMotors: MotorSet = configuration.driveMotors()
+    private val driveMotors = configuration.driveMotors()
     private val camera: CameraName = hardwareMap.typedGet("Webcam 1")
 
     private val aprilTag: AprilTagProcessor = AprilTagProcessor.Builder()

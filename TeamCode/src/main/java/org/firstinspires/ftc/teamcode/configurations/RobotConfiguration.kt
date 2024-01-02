@@ -16,8 +16,8 @@ abstract class RobotConfiguration {
         fun currentConfiguration(): (HardwareMap) -> RobotConfiguration = ::Robot
     }
 
-    protected abstract val driveMotors: MotorSet?
-    fun driveMotors(): MotorSet = driveMotors
+    protected abstract val driveMotors: MotorSet<DcMotor>?
+    fun driveMotors(): MotorSet<DcMotor> = driveMotors
         ?: throw NullPointerException("Robot configuration has no drive motors but they were requested")
 
     abstract val driveMotorLock: SharedResource

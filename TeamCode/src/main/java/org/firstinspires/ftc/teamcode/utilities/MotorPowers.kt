@@ -21,7 +21,7 @@ data class MotorPowers(
         backRightMotor.power = backRight
     }
 
-    fun apply(motors: MotorSet) {
+    fun apply(motors: MotorSet<DcMotor>) {
         apply(
             frontLeftMotor = motors.frontLeft,
             frontRightMotor = motors.frontRight,
@@ -69,14 +69,14 @@ data class MotorPowers(
     }
 }
 
-data class MotorSet(
-    @JvmField val frontLeft: DcMotor,
-    @JvmField val frontRight: DcMotor,
-    @JvmField val backLeft: DcMotor,
-    @JvmField val backRight: DcMotor
+data class MotorSet<out T: DcMotor>(
+    @JvmField val frontLeft: T,
+    @JvmField val frontRight: T,
+    @JvmField val backLeft: T,
+    @JvmField val backRight: T
 ) {
     fun setAll(p: Double) = MotorPowers(p, p, p, p).apply(this)
-    fun each(function: DcMotor.() -> Unit) {
+    fun each(function: T.() -> Unit) {
         frontLeft.function()
         frontRight.function()
         backLeft.function()
