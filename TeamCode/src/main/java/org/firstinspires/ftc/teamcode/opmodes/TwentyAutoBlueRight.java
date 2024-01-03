@@ -18,6 +18,6 @@ public class TwentyAutoBlueRight extends TwentyAuto {
 
     @Override
     protected Parking parkingConf() {
-        return Parking.NoParking;
+        return Parking.OtherParking;
     }
 }
