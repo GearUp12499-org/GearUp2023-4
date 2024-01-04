@@ -258,11 +258,12 @@ public abstract class TwentyAuto extends LinearOpMode {
             turnPID.TurnRobot(modifier * 100.0, telemetry);
             forwardPID.DriveReverse(19.0, telemetry, 5.0);
             // Left: 9.5", Center: 15", Right: 21.5"
+            Task navigateInFrontOfTag;
 
             scheduler.task(tracker.getTaskFactory());
             scheduler.task(trackerTagUpdate.updateTool(tracker));
 
-            Task navigateInFrontOfTag;
+
             switch (result) {
                 case Left:
                     navigateInFrontOfTag = newOdo.strafeLeft(
@@ -293,7 +294,6 @@ public abstract class TwentyAuto extends LinearOpMode {
 
             // ewwwww
             scheduler.runToCompletion(this::opModeIsActive);
-
 //            robot.liftLeft().setTargetPosition(1000);
 
             // encoder ticks

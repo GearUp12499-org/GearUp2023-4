@@ -14,6 +14,13 @@ public class DriveForwardPID {
     public static final double MIN_SPEED_INITIAL = 0.3; // was 0.25
     public static final double MIN_SPEED_FINAL = 0.25; // was 0.15
     public static final double acceptableError = .50; // in
+
+    public static final double MAX_SPEED_D = 0.3; // drive forward/reverse
+    public static final double RAMPS_UP_D = 6; // drive forward/reverse
+    public static final double RAMPS_DOWN_D = 8; // drive forward/reverse
+    public static final double MIN_SPEED_INITIAL_D = 0.25; // drive forward/reverse
+    public static final double MIN_SPEED_FINAL_D = 0.15; // drive forward/reverse
+    public static final double acceptableError_D = 1.0; // drive forward/reverse
     private final DcMotor paraRight;
     private final DcMotor paraLeft;
     private final DcMotor perp;
@@ -25,11 +32,21 @@ public class DriveForwardPID {
         else return (MAX_SPEED - MIN_SPEED_FINAL) * (distToTarget / RAMPS_DOWN) + MIN_SPEED_FINAL;
     }
 
+    public static double rampDownForward(double distToTarget) {
+        if (distToTarget <= 0) return 0.0;
+        if (distToTarget >= RAMPS_DOWN_D) return MAX_SPEED_D;
+        else return (MAX_SPEED_D - MIN_SPEED_FINAL_D) * (distToTarget / RAMPS_DOWN_D) + MIN_SPEED_FINAL_D;
+    }
     // TODO: Migrate to Kotlin impl
     public static double rampUp(double distTravel) {
         if (distTravel <= 0) return MIN_SPEED_INITIAL;
         if (distTravel >= RAMPS_UP) return MAX_SPEED;
         return (MAX_SPEED - MIN_SPEED_INITIAL) * (distTravel / RAMPS_UP) + MIN_SPEED_INITIAL;
+    }
+    public static double rampUpForward(double distTravel) {
+        if (distTravel <= 0) return MIN_SPEED_INITIAL_D;
+        if (distTravel >= RAMPS_UP_D) return MAX_SPEED_D;
+        return (MAX_SPEED_D - MIN_SPEED_INITIAL_D) * (distTravel / RAMPS_UP_D) + MIN_SPEED_INITIAL_D;
     }
 
     public DriveForwardPID(RobotConfiguration robot) {
@@ -88,7 +105,7 @@ public class DriveForwardPID {
             double ldist = LeftOdoDist() - lbase;
             double avg = (rdist + ldist) / 2.0;
 
-            if (avg > target - acceptableError) break;
+            if (avg > target - acceptableError_D) break;
             double error = rdist - ldist;
 
             double currentTime = stopwatch.time();
@@ -97,7 +114,7 @@ public class DriveForwardPID {
             previousTime = currentTime;
 
             double correction = kp * error + ki * overall_error;
-            double speed = Math.min(rampUp(avg), rampDown(target - avg));
+            double speed = Math.min(rampUpForward(avg), rampDownForward(target - avg));
             driveMotors.frontLeft.setPower(speed + correction);
             driveMotors.backLeft.setPower(speed + correction);
             driveMotors.frontRight.setPower(speed - correction);
@@ -129,7 +146,7 @@ public class DriveForwardPID {
             double ldist = lbase - LeftOdoDist();
             double avg = (rdist + ldist) / 2.0;
 
-            if (avg > target - acceptableError) break;
+            if (avg > target - acceptableError_D) break;
 
             double error = rdist - ldist;
 
@@ -138,15 +155,18 @@ public class DriveForwardPID {
             overall_error += error * dt;
 
             double correction = kp * error + ki * overall_error;
-            double speed = -Math.min(rampUp(avg), rampDown(target - avg));
+            double speed = -Math.min(rampUpForward(avg), rampDownForward(target - avg));
             driveMotors.frontLeft.setPower(speed - correction);
             driveMotors.backLeft.setPower(speed - correction);
             driveMotors.frontRight.setPower(speed + correction);
             driveMotors.backRight.setPower(speed + correction);
+            //telemetry.addData("Target: ", target);
+
         }
 
         driveMotors.setAll(0);
         sumOfError = overall_error;
+
     }
 
     public void strafeRight(double target, Telemetry telemetry) {
