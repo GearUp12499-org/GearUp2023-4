@@ -254,6 +254,10 @@ public abstract class TwentyAuto extends LinearOpMode {
                     undoCenter.run();
                     break;
             }
+            // PUT IF STATEMENT TO BRANCH HERE
+
+            if (parkingConf() == Parking.OtherParking)
+                throw new IllegalStateException("Don't know how to handle OtherParking here");
             double modifier = parkingConf() == Parking.MoveLeft ? 1 : -1;
             turnPID.TurnRobot(modifier * 100.0, telemetry);
             forwardPID.DriveReverse(19.0, telemetry, 5.0);
@@ -292,7 +296,6 @@ public abstract class TwentyAuto extends LinearOpMode {
                     .then(driveToTag.getTaskFactory())
                     .then(theXButton.approach(new InchUnit(3.5)));
 
-            // ewwwww
             scheduler.runToCompletion(this::opModeIsActive);
 //            robot.liftLeft().setTargetPosition(1000);
 
@@ -372,6 +375,7 @@ public abstract class TwentyAuto extends LinearOpMode {
     public enum Parking {
         MoveLeft,
         MoveRight,
-        NoParking
+        NoParking,
+        OtherParking
     }
 }
