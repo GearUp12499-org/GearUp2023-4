@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
 public class TurnPID {
     RobotConfiguration robot;
-    MotorSet driveMotors;
+    MotorSet<DcMotor> driveMotors;
     DcMotor para1;
     DcMotor para2;
     DcMotor perp;

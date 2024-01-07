@@ -78,7 +78,7 @@ public class DriveForwardPID {
     }
 
     RobotConfiguration robot;
-    MotorSet driveMotors;
+    MotorSet<DcMotor> driveMotors;
 
     public double sumOfError = 0;
     public static final double kp = 0.2;

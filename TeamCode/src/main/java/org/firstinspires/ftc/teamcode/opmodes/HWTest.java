@@ -95,7 +95,7 @@ public class HWTest extends LinearOpMode {
     void testMotors() {
         if (!confirm("Test motors?")) return;
         alert("Lift the robot so that the wheels don't\ntouch the ground for the duration of\nthe test.");
-        MotorSet motors = robot.driveMotors();
+        MotorSet<DcMotor> motors = robot.driveMotors();
         testMotor("Front Left", motors.frontLeft);
         testMotor("Front Right", motors.frontRight);
         testMotor("Back Left", motors.backLeft);

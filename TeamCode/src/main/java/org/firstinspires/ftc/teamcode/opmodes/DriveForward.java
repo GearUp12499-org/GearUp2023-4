@@ -4,11 +4,11 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.odo.DriveForwardPID;
 import org.firstinspires.ftc.teamcode.odo.TurnPID;
-import org.firstinspires.ftc.teamcode.utilities.MotorPowers;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
 @Autonomous
@@ -17,7 +17,7 @@ public class DriveForward extends LinearOpMode {
     public void runOpMode() {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         RobotConfiguration robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
-        MotorSet driveMotors = robot.driveMotors();
+        MotorSet<DcMotor> driveMotors = robot.driveMotors();
         DriveForwardPID pidDrive = new DriveForwardPID(robot);
         TurnPID pidTurn = new TurnPID(robot);
         robot.clearEncoders();

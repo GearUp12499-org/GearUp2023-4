@@ -71,7 +71,7 @@ public class TeleOp extends LinearOpMode {
         robot.purpleDropper().setPosition(Var.PixelDropper.back);
 
         // we don't want to have to call driveMotors() every time because it gets tedious
-        MotorSet driveMotors = robot.driveMotors();
+        MotorSet<DcMotor> driveMotors = robot.driveMotors();
 
         Servo dumperServo = robot.dumperRotate();
         Servo latch = robot.dumperLatch();
