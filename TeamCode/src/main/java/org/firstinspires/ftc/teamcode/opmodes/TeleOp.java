@@ -13,6 +13,7 @@ import org.firstinspires.ftc.teamcode.abstractions.Dumper;
 import org.firstinspires.ftc.teamcode.configurations.Robot;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
+import org.firstinspires.ftc.teamcode.utilities.RadianUnit;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -174,10 +175,8 @@ public class TeleOp extends LinearOpMode {
             if (gamepad2.dpad_up) targetLeft.addAndGet(iLiftSpeed);
             if (gamepad2.dpad_down) targetLeft.addAndGet(-iLiftSpeed);
 
-            double lsy = -gamepad2.left_stick_y;
-            double lsx = gamepad2.left_stick_x;
-            if (Math.abs(lsy) > 0.5 || Math.abs(lsx) > 0.5) {
-                targetLeft.set(Var.TeleOp.liftScoringPreset);
+            if (gamepad2.a) {
+                targetLeft.set(Var.TeleOp.liftScoringReadyPreset);
             }
 
             int cLiftSpeed = (int) (Var.TeleOp.climbingLiftSpeed * dt);
@@ -288,6 +287,7 @@ public class TeleOp extends LinearOpMode {
             telemetry.addData("Inches Strafed: ", OdoToInches(robot.intake().getCurrentPosition()));
             telemetry.addData("Slide Motor Ticks: ", slideTicks);
             telemetry.addData("dt", "%.2f ms", dt * 1000);
+            telemetry.addData("Heading", new RadianUnit(botHeading).to().getDegrees());
             telemetry.addData("Left Target", targetLeft);
             telemetry.addData("Right Target", targetRight);
             telemetry.update();

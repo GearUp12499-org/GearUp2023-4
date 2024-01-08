@@ -104,7 +104,7 @@ object Var {
         /**
          * Lift preset height for scoring, encoder ticks
          */
-        const val liftScoringPreset = 2000
+        const val liftScoringReadyPreset = 450
 
         /**
          * Lift preset height for hanging, encoder ticks

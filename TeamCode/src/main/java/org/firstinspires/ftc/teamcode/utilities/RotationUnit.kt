@@ -5,7 +5,10 @@ import kotlin.math.PI
 abstract class RotationUnit(value: Double) :
     MeasureUnit<RotationUnit>(value) {
     protected abstract val rules: RotationConversionRules
+
     override val to: RotationConverter get() = RotationConverter(rules, value)
+
+    fun to() = to
 
     /**
      * Normalize angle to range (-pi, pi] (rads) or equivalent units
