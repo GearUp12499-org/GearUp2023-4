@@ -3,7 +3,8 @@ package dev.aether.collaborative_multitasking
 import kotlin.math.ceil
 import kotlin.math.max
 
-class MultitaskScheduler : Scheduler() {
+class MultitaskScheduler
+@JvmOverloads constructor(private val throwDebuggingErrors: Boolean = false) : Scheduler() {
     private val locks: MutableMap<String, Int?> = mutableMapOf()
     private val tasks: MutableMap<Int, Task> = mutableMapOf()
     private val lockIdName: MutableMap<String, SharedResource> = mutableMapOf()
@@ -16,6 +17,7 @@ class MultitaskScheduler : Scheduler() {
             val index = ceil(l * k.size).toInt()
             return k[max(0, index - 1)]
         }
+
         internal fun getCaller(): String {
             try {
                 throw Exception()
@@ -23,7 +25,9 @@ class MultitaskScheduler : Scheduler() {
                 val stack = e.stackTrace
                 for (frame in stack) {
                     if (frame.className.contains("dev.aether.collaborative_multitasking")) continue
-                    return "${frame.className.split(".").last()}.${frame.methodName} line ${frame.lineNumber}"
+                    return "${
+                        frame.className.split(".").last()
+                    }.${frame.methodName} line ${frame.lineNumber}"
                 }
             }
             return "<unknown source>"
@@ -55,6 +59,9 @@ class MultitaskScheduler : Scheduler() {
                     // acquire locks
                     for (lock in it.requirements()) {
                         println("$it acquired $lock")
+                        if (locks[lock.id] != null) {
+                            println("WARN: uhh we're gonna make ${tasks[locks[lock.id]]} crash when it finishes")
+                        }
                         locks[lock.id] = it.myId
                         lockIdName[lock.id] = lock
                         println("locks: $locks")
@@ -103,9 +110,10 @@ class MultitaskScheduler : Scheduler() {
         candidates.forEach(::release)
     }
 
-    private fun release(task: Task) {
+    private fun release(task: Task, cancel: Boolean = false) {
+        val targetState = if (cancel) Task.State.Cancelled else Task.State.Finished
         if (task.state == Task.State.NotStarted) {
-            task.setState(Task.State.Finished)
+            task.setState(targetState)
             return
         }
         try {
@@ -119,10 +127,12 @@ class MultitaskScheduler : Scheduler() {
             )
             e.printStackTrace()
         }
-        task.setState(Task.State.Finished)
+        task.setState(targetState)
         for (lock in task.requirements()) {
             if (locks[lock.id] != task.myId) {
-                throw IllegalStateException("$task (which just finished) does not own lock $lock that it is supposed to own")
+                if (throwDebuggingErrors)
+                    throw IllegalStateException("$task (which just finished) does not own lock $lock that it is supposed to own")
+                else println("ERROR!!! $task (which just finished) does not own lock $lock that it is supposed to own")
             }
             locks[lock.id] = null
             println("$task released $lock")
@@ -145,9 +155,23 @@ class MultitaskScheduler : Scheduler() {
     }
 
     fun statsheet(): String {
+        var waiting = 0
+        var progress = 0
+        var done = 0
+        var cancelled = 0
+        for (task in tasks.values) {
+            when (task.state) {
+                Task.State.NotStarted -> waiting++
+                Task.State.Finished -> done++
+                Task.State.Cancelled -> cancelled++
+                else -> progress++
+            }
+        }
+
         val s = tickTimes.sorted()
         return String.format(
-            "%d samples:\n" +
+            "${tasks.size} tasks: $waiting waiting, $progress running, $done done, $cancelled cancel\n" +
+                    "%d samples:\n" +
                     "  [Min  ][1%%   ][5%%   ][32%%  ][50%%  ][68%%  ][95%%  ][99%%  ][Max  ]\n" +
                     "  %7.1f%7.1f%7.1f%7.1f%7.1f%7.1f%7.1f%7.1f%7.1f",
             s.size,
@@ -192,7 +216,7 @@ class MultitaskScheduler : Scheduler() {
 
     override fun panic() {
         for (task in tasks.values) {
-            if (task.state == Task.State.Finished || task.state == Task.State.NotStarted) continue
+            if (task.state == Task.State.Finished || task.state == Task.State.NotStarted || task.state == Task.State.Cancelled) continue
             task.invokeOnFinish()
             task.setState(Task.State.Finished)
         }
@@ -216,10 +240,15 @@ class MultitaskScheduler : Scheduler() {
      * Stops any tasks matching the predicate that are not already finished or haven't started yet.
      * Resources owned by matching tasks are guaranteed to be released after this call.
      */
-    override fun filteredStop(predicate: (Task) -> Boolean) {
+
+    override fun filteredStop(predicate: (Task) -> Boolean, cancel: Boolean) {
         tasks.values
-            .filter { it.state != Task.State.Finished && it.state != Task.State.NotStarted }
+            .filter { it.state != Task.State.Finished && it.state != Task.State.NotStarted && it.state != Task.State.Cancelled }
             .filter(predicate)
-            .forEach(::release)
+            .forEach {
+                release(it, cancel)
+            }
     }
+
+    override fun filteredStop(predicate: (Task) -> Boolean) = filteredStop(predicate, true)
 }

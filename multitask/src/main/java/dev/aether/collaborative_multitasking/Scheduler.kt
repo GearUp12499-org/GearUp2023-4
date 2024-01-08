@@ -11,5 +11,6 @@ abstract class Scheduler {
 
     abstract fun panic()
 
+    abstract fun filteredStop(predicate: (Task) -> Boolean, cancel: Boolean)
     abstract fun filteredStop(predicate: (Task) -> Boolean)
 }

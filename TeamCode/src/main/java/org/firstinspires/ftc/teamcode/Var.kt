@@ -59,7 +59,7 @@ object Var {
          * Target distance for approaching objects with the 'x' button on Gamepad 1.
          */
         @JvmField
-        val approachDistance = 3.5.inches
+        val approachDistance = 2.5.inches
 
         /**
          * Cancel approaching object task after this duration (milliseconds)
@@ -139,7 +139,7 @@ object Var {
         /**
          * How hard we spin the intake?
          */
-        const val intakePower = 0.8
+        const val intakePower = 0.6
     }
 
     object ApproachObject {

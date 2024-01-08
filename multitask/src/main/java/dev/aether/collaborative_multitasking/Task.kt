@@ -42,7 +42,7 @@ typealias TaskAction2 = TaskQuery2<Unit>
 typealias TaskAction1 = TaskQuery1<Unit>
 typealias Runnable = () -> Unit
 
-class Task constructor(
+class Task(
     internal var scheduler: Scheduler,
 ) {
     enum class State(val order: Int) {
@@ -51,6 +51,7 @@ class Task constructor(
         Ticking(2),
         Finishing(3),
         Finished(4),
+        Cancelled(4),
     }
 
     var state: State = State.NotStarted
@@ -168,8 +169,9 @@ class Task constructor(
         onFinish(this, scheduler)
     }
 
-    fun requestStop() {
-        scheduler.filteredStop { it == this }
+    @JvmOverloads
+    fun requestStop(cancel: Boolean = true) {
+        scheduler.filteredStop({ it == this }, cancel)
     }
 
     operator fun SharedResource.unaryPlus() {
@@ -204,7 +206,12 @@ class Task constructor(
     fun then(task: Task): Task {
         val capturedCanStart = task.canStart
         task.canStart = { that: Task, scheduler2: Scheduler ->
-            capturedCanStart(that, scheduler2) && this.state == State.Finished
+            if (this.state == State.Cancelled) {
+                task.requestStop()
+                false
+            } else {
+                capturedCanStart(that, scheduler2) && this.state == State.Finished
+            }
         }
         return task
     }

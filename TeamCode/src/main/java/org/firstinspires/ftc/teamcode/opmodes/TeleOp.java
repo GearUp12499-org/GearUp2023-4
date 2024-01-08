@@ -1,10 +1,13 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import androidx.annotation.Nullable;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Var;
@@ -19,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import dev.aether.collaborative_multitasking.MultitaskScheduler;
+import dev.aether.collaborative_multitasking.Task;
 import dev.aether.collaborative_multitasking.ext.TimingKt;
 import kotlin.Unit;
 
@@ -107,6 +111,7 @@ public class TeleOp extends LinearOpMode {
         ElapsedTime frameTimer = new ElapsedTime();
         int bumpCycle = 0;
         boolean lastLeftBumper = false;
+        @Nullable Task cancelLift = null;
 
         while (opModeIsActive()) {
             double dt = deltaTimer.time(TimeUnit.MICROSECONDS) / 1_000_000.0;
@@ -135,17 +140,11 @@ public class TeleOp extends LinearOpMode {
 
             double botHeading = robot.imu().getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-            double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
-            double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
-
-            rotX *= 1.1;  // counteract imperfect strafing
-
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-            double frontLeftPower = (rotY + rotX + rx) / denominator * fac;
-            double backLeftPower = (rotY - rotX + rx) / denominator * fac;
-            double frontRightPower = (rotY - rotX - rx) / denominator * fac;
-            double backRightPower = (rotY + rotX - rx) / denominator * fac;
-
+            double frontLeftPower = (y + x + rx) / denominator * fac;
+            double backLeftPower = (y - x + rx) / denominator * fac;
+            double frontRightPower = (y - x - rx) / denominator * fac;
+            double backRightPower = (y + x - rx) / denominator * fac;
 
             // Apply the powers to the motors
             if (!scheduler.isResourceInUse(robot.getDriveMotorLock())) {
@@ -162,21 +161,58 @@ public class TeleOp extends LinearOpMode {
             // when B is pressed, reset all the lifts to the first preset
             // none of the other presets are ever used lol
             if (gamepad2.b) {
-                targetLeft.set(0);
-                targetRight.set(0);
                 scheduler.filteredStop(task -> task.requirements().contains(robot.getDumperLock()));
                 dumperServo.setPosition(Var.Box.idleRotate);
                 latch.setPosition(Var.Box.latched);
+                if (targetLeft.get() > 1100) {
+                    targetLeft.set(0);
+                    targetRight.set(0);
+                } else {
+                    if (cancelLift == null
+                            || cancelLift.getState() == Task.State.Finished
+                            || cancelLift.getState() == Task.State.Cancelled) {
+                        cancelLift = scheduler.task(e -> {
+                            TimingKt.maxDuration(e, 300);
+                            return kvoid;
+                        });
+                        cancelLift.then(e -> {
+                            // no lock because we don't actually take control of the motors
+                            e.onStart(() -> {
+                                targetLeft.set(0);
+                                targetRight.set(0);
+                                return kvoid;
+                            });
+                            e.isCompleted(() -> true);
+                            return kvoid;
+                        });
+                    }
+                }
                 bumpCycle = 0;
             }
 
             int iLiftSpeed = (int) (Var.TeleOp.liftSpeed * dt);
             // use dpad up and down to move the left lift
-            if (gamepad2.dpad_up) targetLeft.addAndGet(iLiftSpeed);
-            if (gamepad2.dpad_down) targetLeft.addAndGet(-iLiftSpeed);
+            if (gamepad2.dpad_up) {
+                targetLeft.addAndGet(iLiftSpeed);
+                if (cancelLift != null) {
+                    cancelLift.requestStop(true);
+                }
+                cancelLift = null;
+            }
+            if (gamepad2.dpad_down) {
+                targetLeft.addAndGet(-iLiftSpeed);
+                if (cancelLift != null) {
+                    cancelLift.requestStop(true);
+                }
+                cancelLift = null;
+            }
 
             if (gamepad2.a) {
                 targetLeft.set(Var.TeleOp.liftScoringReadyPreset);
+                if (bumpCycle < 1) {
+                    dumperServo.setPosition(Var.Box.dumpRotate);
+                    bumpCycle = 1;
+                }
             }
 
             int cLiftSpeed = (int) (Var.TeleOp.climbingLiftSpeed * dt);
@@ -298,6 +334,7 @@ public class TeleOp extends LinearOpMode {
 
         // panic() cleans up 'resources' (Claw, drive motors, etc)
         scheduler.panic();
+        RobotLog.ii("MultitaskScheduler", scheduler.statsheet());
         // just in case
         driveMotors.setAll(0);
     }
