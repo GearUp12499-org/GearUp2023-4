@@ -5,13 +5,10 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import dev.aether.collaborative_multitasking.MultitaskScheduler
 import dev.aether.collaborative_multitasking.Task
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration
-import org.firstinspires.ftc.teamcode.odo.DriveForwardPID.rampDown
-import org.firstinspires.ftc.teamcode.odo.DriveForwardPID.rampUp
 import org.firstinspires.ftc.teamcode.odo.EncoderMath.tick2inch
 import org.firstinspires.ftc.teamcode.utilities.LengthUnit
 import org.firstinspires.ftc.teamcode.utilities.MotorPowers
 import kotlin.math.abs
-import kotlin.math.min
 import kotlin.math.sign
 
 class KOdometryDrive(
@@ -19,9 +16,17 @@ class KOdometryDrive(
     robot: RobotConfiguration
 ) {
     companion object {
-        const val ACCEPTABLE_ERROR = .5
+        const val ACCEPTABLE_ERROR_STRAFE = .5
+        const val ACCEPTABLE_ERROR_FWDBCK = 1.0
         const val kpFwd = 0.2
         const val kiFwd = 0.05
+        val ForwardingCurve = ControlRamps(
+            0.25,
+            0.15,
+            0.3,
+            6.0,
+            8.0,
+        )
         // previous version of this curve @ 9405a9d1f89cb164c81c14ca659724933698ae92
         val StrafingCurve = ControlRamps(
             .3,
@@ -38,9 +43,10 @@ class KOdometryDrive(
     private val strafeOdo = robot.odoPerpendicular()
     private val dmLock = robot.driveMotorLock
 
+    // Which of these are reversed!?!?
     private fun distanceLeft() = tick2inch(leftOdo.currentPosition)
     private fun distanceRight() = tick2inch(rightOdo.currentPosition)
-    private fun distanceStrafe() = tick2inch(strafeOdo.currentPosition)
+    private fun distanceStrafe() = -tick2inch(strafeOdo.currentPosition)
 
     @JvmOverloads
     fun driveForward(target: LengthUnit, timeout: Double = -1.0): Task {
@@ -69,7 +75,7 @@ class KOdometryDrive(
                 val rDist = (distanceRight() - rBase) * switcher
                 val average = (lDist + rDist) / 2.0
 
-                if (average > distInch - ACCEPTABLE_ERROR) {
+                if (average > distInch - ACCEPTABLE_ERROR_FWDBCK) {
                     complete = true
                     return@onTick
                 }
@@ -81,7 +87,7 @@ class KOdometryDrive(
                 sumError += pError * dt
 
                 val correction = (kpFwd * pError + kiFwd * sumError) * switcher
-                val speed = min(rampUp(average), rampDown(distInch - average)) * switcher
+                val speed = ForwardingCurve.ramp(average, distInch - average) * switcher
                 driveMotors.frontLeft.power = speed + correction
                 driveMotors.backLeft.power = speed + correction
                 driveMotors.frontRight.power = speed - correction
@@ -135,7 +141,7 @@ class KOdometryDrive(
                 val lErr = distanceLeft() - lBase
                 val rErr = distanceRight() - rBase
 
-                if (sDist > distInch - ACCEPTABLE_ERROR) {
+                if (sDist > distInch - ACCEPTABLE_ERROR_STRAFE) {
                     completed = true
                     return@onTick
                 }
