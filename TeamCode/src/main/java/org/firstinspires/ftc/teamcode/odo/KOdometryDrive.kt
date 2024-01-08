@@ -19,7 +19,9 @@ class KOdometryDrive(
         const val ACCEPTABLE_ERROR_STRAFE = .5
         const val ACCEPTABLE_ERROR_FWDBCK = 1.0
         const val kpFwd = 0.2
-        const val kiFwd = 0.05
+        const val kpStr = 0.2
+        const val kiFwd = 1.0 // FIXME
+        const val kiStr = 0.05
         val ForwardingCurve = ControlRamps(
             0.25,
             0.15,
@@ -92,6 +94,7 @@ class KOdometryDrive(
                 driveMotors.backLeft.power = speed + correction
                 driveMotors.frontRight.power = speed - correction
                 driveMotors.backRight.power = speed - correction
+                Log.i("KOD", "SumOfError ${String.format("%+.8f", sumError)} in*sec ki=$kiFwd, Error ${String.format("%+.8f", pError)} kp=$kpFwd")
             }
             isCompleted { -> complete || (timeout > 0 && timeoutT.time() >= timeout) }
             onFinish { ->
@@ -153,8 +156,8 @@ class KOdometryDrive(
                 sumErrorLeft += lErr * dt
                 sumErrorRight += rErr * dt
 
-                val lCorrect = kpFwd * lErr + kiFwd * sumErrorLeft
-                val rCorrect = kpFwd * rErr + kiFwd * sumErrorRight
+                val lCorrect = kpStr * lErr + kiStr * sumErrorLeft
+                val rCorrect = kpStr * rErr + kiStr * sumErrorRight
                 val speed = StrafingCurve.ramp(sDist, distInch - sDist) * switcher
 
                 if (abs(lCorrect) > .5 || abs(rCorrect) > .5) {
