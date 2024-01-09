@@ -11,6 +11,9 @@ import org.firstinspires.ftc.teamcode.utilities.MotorPowers
 import kotlin.math.abs
 import kotlin.math.sign
 
+/**
+ * do not use (yet!!)
+ */
 class KOdometryDrive(
     private val scheduler: MultitaskScheduler,
     robot: RobotConfiguration
@@ -19,7 +22,7 @@ class KOdometryDrive(
         const val ACCEPTABLE_ERROR_STRAFE = .5
         const val ACCEPTABLE_ERROR_FWDBCK = 1.0
         const val kpFwd = 0.2
-        const val kpStr = 0.2
+        const val kpStr = 0.8
         const val kiFwd = 1.0 // FIXME
         const val kiStr = 0.05
         val ForwardingCurve = ControlRamps(
@@ -140,7 +143,7 @@ class KOdometryDrive(
                 previousTime = deltaT.time()
             }
             onTick { ->
-                val sDist = (sBase - distanceStrafe()) * switcher
+                val sDist = (distanceStrafe() - sBase) * switcher
                 val lErr = distanceLeft() - lBase
                 val rErr = distanceRight() - rBase
 
@@ -159,7 +162,7 @@ class KOdometryDrive(
                 val lCorrect = kpStr * lErr + kiStr * sumErrorLeft
                 val rCorrect = kpStr * rErr + kiStr * sumErrorRight
                 val speed = StrafingCurve.ramp(sDist, distInch - sDist) * switcher
-
+                Log.i("Encoders", String.format("L %+.4f  R %+.4f  P %+.4f", lErr, rErr, sDist))
                 if (abs(lCorrect) > .5 || abs(rCorrect) > .5) {
                     // we're screwed
                     driveMotors.setAll(0.0)
