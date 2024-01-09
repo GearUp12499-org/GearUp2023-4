@@ -8,6 +8,8 @@ import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration
 import org.firstinspires.ftc.teamcode.odo.EncoderMath.tick2inch
 import org.firstinspires.ftc.teamcode.utilities.LengthUnit
 import org.firstinspires.ftc.teamcode.utilities.MotorPowers
+import org.firstinspires.ftc.teamcode.utilities.RotationUnit
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.sign
 
@@ -16,13 +18,14 @@ import kotlin.math.sign
  */
 class KOdometryDrive(
     private val scheduler: MultitaskScheduler,
-    robot: RobotConfiguration
+    robot: RobotConfiguration,
 ) {
     companion object {
         const val ACCEPTABLE_ERROR_STRAFE = .5
         const val ACCEPTABLE_ERROR_FWDBCK = 1.0
         const val kpFwd = 0.2
         const val kpStr = 0.8
+        const val kpRot = 0.002
         const val kiFwd = 1.0 // FIXME
         const val kiStr = 0.05
         val ForwardingCurve = ControlRamps(
@@ -32,6 +35,7 @@ class KOdometryDrive(
             6.0,
             8.0,
         )
+
         // previous version of this curve @ 9405a9d1f89cb164c81c14ca659724933698ae92
         val StrafingCurve = ControlRamps(
             .3,
@@ -39,6 +43,9 @@ class KOdometryDrive(
             .5,
             3.0,
             8.0,
+        )
+        val TurningCurve = ControlRamps(
+            0.37, 0.9, 0.0, 18.0
         )
     }
 
@@ -97,7 +104,15 @@ class KOdometryDrive(
                 driveMotors.backLeft.power = speed + correction
                 driveMotors.frontRight.power = speed - correction
                 driveMotors.backRight.power = speed - correction
-                Log.i("KOD", "SumOfError ${String.format("%+.8f", sumError)} in*sec ki=$kiFwd, Error ${String.format("%+.8f", pError)} kp=$kpFwd")
+                Log.i(
+                    "KOD",
+                    "SumOfError ${
+                        String.format(
+                            "%+.8f",
+                            sumError
+                        )
+                    } in*sec ki=$kiFwd, Error ${String.format("%+.8f", pError)} kp=$kpFwd"
+                )
             }
             isCompleted { -> complete || (timeout > 0 && timeoutT.time() >= timeout) }
             onFinish { ->
@@ -196,4 +211,73 @@ class KOdometryDrive(
 
     @JvmOverloads
     fun strafeLeft(target: LengthUnit, timeout: Double = -1.0) = strafeRight(-target, timeout)
+
+    // UNTESTED
+    /**
+     * Turn the robot counterclockwise (left) by the given angle.
+     * If the angle is negative, the robot will turn clockwise (right).
+     * Timeout currently does Absolutely Nothing.
+     */
+    @JvmOverloads
+    fun turnCounterClockwise(angle: RotationUnit, timeout: Double = -1.0): Task {
+        val robotRadius = 7.5
+        val target = abs(angle.to.degrees.value)
+        val switcher = angle.value.sign
+
+        // Every 45 degrees the error increases by about 2.5 degrees --> at power 0.6
+        // The error for 45 degrees is 9 degrees
+        val errorAdjustment = (abs(target) / 25.0) * 2.0 /* + 9.0 */
+        val turnDist = 2 * PI * robotRadius * ((abs(target) - errorAdjustment) / 360.0)
+        return scheduler.task {
+            +dmLock
+            var lBase = 0.0
+            var rBase = 0.0
+            var complete = false
+
+            onStart { ->
+                lBase = distanceLeft()
+                rBase = distanceRight()
+            }
+            onTick { ->
+                val lDist = (lBase - distanceLeft()) * switcher
+                val rDist = (distanceRight() - rBase) * switcher
+                val average = (lDist + rDist) / 2.0
+
+                if (average > turnDist - ACCEPTABLE_ERROR_FWDBCK) {
+                    complete = true
+                    return@onTick
+                }
+                val error = rDist + lDist // why is this not wrong?!?
+                Log.i(
+                    "KOD",
+                    String.format(
+                        "Turn: L %+.4f  R %+.4f  Avg %+.4f  errorP %+.4f",
+                        lDist,
+                        rDist,
+                        average,
+                        error
+                    )
+                )
+
+                val correction = kpRot * error * switcher
+                // Parity: there is no up-ramp here. see ForwardingCurve definition
+                val speed = ForwardingCurve.ramp(0.0, turnDist - average) * switcher
+                val power = MotorPowers(
+                    backLeft = -speed - correction,
+                    frontLeft = -speed - correction,
+                    frontRight = speed + correction,
+                    backRight = speed + correction
+                )
+                power.apply(driveMotors)
+            }
+            isCompleted { -> complete }
+            onFinish { ->
+                driveMotors.setAll(0.0)
+            }
+        }
+    }
+
+    @JvmOverloads
+    fun turnClockwise(angle: RotationUnit, timeout: Double = -1.0) =
+        turnCounterClockwise(-angle, timeout)
 }

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.tests
 
 import org.firstinspires.ftc.teamcode.odo.DriveForwardPID
 import org.firstinspires.ftc.teamcode.odo.KOdometryDrive
+import org.firstinspires.ftc.teamcode.odo.TurnPID
 import kotlin.math.min
 import kotlin.test.Test
 import kotlin.test.fail
@@ -56,6 +57,29 @@ class TestDriveImplParity {
             }
         }
         println("(Strafe ramps: ${run - throws.size} permutations passed, ${throws.size} failed)")
+        for (throwable in throws) {
+            System.err.println(throwable)
+        }
+        if (throws.size > 0) {
+            fail("${throws.size} parity errors found")
+        }
+    }
+
+    @Test
+    fun `test turning ramps, kod turning ramps`() {
+        var run = 0
+        val throws = mutableListOf<String>()
+        for (target in targets) {
+            for (position in positions) {
+                val kod = KOdometryDrive.TurningCurve.ramp(position, target - position)
+                val java = TurnPID.rampDown(target - position)
+                if (!decimalEquals(kod, java)) {
+                    throws.add("parity error: (kt) $kod != (java) $java. test: target $target position $position")
+                }
+                run++
+            }
+        }
+        println("(Turning ramps: ${run - throws.size} permutations passed, ${throws.size} failed)")
         for (throwable in throws) {
             System.err.println(throwable)
         }
