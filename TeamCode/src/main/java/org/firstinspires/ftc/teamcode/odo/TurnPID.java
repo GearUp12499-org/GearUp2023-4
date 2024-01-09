@@ -10,26 +10,28 @@ import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
 public class TurnPID {
+    public static final double RAMPS_DOWN = 18;
+    public static final double MAX_SPEED = 0.9;
+    public static final double MIN_SPEED_FINAL = 0.37;
+    public static final double acceptableError = 0.2; //in
     RobotConfiguration robot;
     MotorSet<DcMotor> driveMotors;
     DcMotor para1;
     DcMotor para2;
     DcMotor perp;
     double kp = 0.002;
-    public static final double RAMPS_DOWN = 18;
-    public static final double MAX_SPEED = 0.9;
-    public static final double MIN_SPEED_FINAL = 0.37;
 
-    public static double rampDown(double distToTarget) {
-        if (distToTarget <= 0) return 0.0;
-        if (distToTarget >= RAMPS_DOWN) return MAX_SPEED;
-        else return (MAX_SPEED - MIN_SPEED_FINAL) * (distToTarget / RAMPS_DOWN) + MIN_SPEED_FINAL;
-    }
     public TurnPID(RobotConfiguration robot) {
         this.robot = robot;
         this.driveMotors = robot.driveMotors();
         this.para1 = robot.odoParallelLeft();
         this.para2 = robot.odoParallelRight();
+    }
+
+    public static double rampDown(double distToTarget) {
+        if (distToTarget <= 0) return 0.0;
+        if (distToTarget >= RAMPS_DOWN) return MAX_SPEED;
+        else return (MAX_SPEED - MIN_SPEED_FINAL) * (distToTarget / RAMPS_DOWN) + MIN_SPEED_FINAL;
     }
 
     public double ticksToInches(int ticks) {
@@ -48,8 +50,9 @@ public class TurnPID {
         return ticksToInches(para1.getCurrentPosition());
     }
 
-    public static final double acceptableError = 0.2; //in
-
+    /**
+     * deg > 0 = counter-clockwise
+     */
     public void TurnRobot(double degrees, Telemetry telemetry) {
         double radius = 7.5;
         double l_base = LeftOdoDist();
@@ -80,8 +83,9 @@ public class TurnPID {
                 driveMotors.frontLeft.setPower(-speed - correction);
                 driveMotors.frontRight.setPower(speed + correction);
                 driveMotors.backRight.setPower(speed + correction);
-                telemetry.addData("Right Odometry: ", RightOdoDist());
-                telemetry.addData("Left Odometry: ", LeftOdoDist());
+                telemetry.addData("Right Odometry: ", r_dist);
+                telemetry.addData("Left Odometry: ", l_dist);
+                telemetry.addData("Error: ", error);
                 telemetry.update();
             }
             driveMotors.setAll(0);
@@ -106,8 +110,8 @@ public class TurnPID {
                 //Turns right, which means negative degrees according to the unit circle
                 driveMotors.frontRight.setPower(-speed - correction);
                 driveMotors.backRight.setPower(-speed - correction);
-                telemetry.addData("Right Odometry: ", RightOdoDist());
-                telemetry.addData("Left Odometry: ", LeftOdoDist());
+                telemetry.addData("Right Odometry: ", r_base - RightOdoDist());
+                telemetry.addData("Left Odometry: ", LeftOdoDist() - l_base);
                 telemetry.update();
             }
             driveMotors.setAll(0);
