@@ -30,6 +30,9 @@ data class MotorPowers(
         )
     }
 
+    /**
+     * Normalize powers. Warning: may PULL SMALL NUMBERS UP to 1.
+     */
     @JvmOverloads
     fun normalize(factor: Double = 1.0): MotorPowers {
         val den = maxOf(
@@ -39,6 +42,21 @@ data class MotorPowers(
             abs(backRight)
         )
         return (this / den) * factor
+    }
+
+    /**
+     * Normalize powers if they are too large.
+     */
+    @JvmOverloads
+    fun normalNoStretch(max: Double = 1.0): MotorPowers {
+        val den = maxOf(
+            abs(frontLeft),
+            abs(frontRight),
+            abs(backLeft),
+            abs(backRight),
+            max
+        )
+        return (this / den) * max
     }
 
     operator fun div(den: Double): MotorPowers {
