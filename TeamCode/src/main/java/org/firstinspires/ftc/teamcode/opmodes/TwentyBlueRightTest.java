@@ -5,8 +5,6 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
-import org.firstinspires.ftc.teamcode.Var;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.odo.DriveForwardPID;
 import org.firstinspires.ftc.teamcode.odo.TurnPID;
@@ -24,7 +22,6 @@ public class TwentyBlueRightTest extends LinearOpMode{
         DriveForwardPID drivePID = new DriveForwardPID(robot);
         TurnPID turnPID = new TurnPID(robot);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
         waitForStart();
         if (!opModeIsActive()) return;
         /*Left spike marker BlueRightAuto
