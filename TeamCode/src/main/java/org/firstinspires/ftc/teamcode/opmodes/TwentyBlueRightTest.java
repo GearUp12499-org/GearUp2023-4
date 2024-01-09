@@ -61,8 +61,5 @@ public class TwentyBlueRightTest extends LinearOpMode{
             telemetry.update();
             sleep(20);
         }
-
-
-
     }
 }
