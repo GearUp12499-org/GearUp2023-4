@@ -38,7 +38,7 @@ class KOdometryDrive(
             .25,
             .5,
             3.0,
-            6.0,
+            8.0,
         )
     }
 
@@ -112,13 +112,13 @@ class KOdometryDrive(
     }
 
     @JvmOverloads
-    fun strafeRight(target: LengthUnit, timeout: Double = -1.0): Task {
-        val distInch = abs(target.to.inches.value)
+    fun strafeRight(targetAnyUnit: LengthUnit, timeout: Double = -1.0): Task {
+        val target = abs(targetAnyUnit.to.inches.value)
         Log.i(
             "KOD",
-            String.format("strafe ${if (target.value < 0) "left" else "right"} $distInch inches")
+            String.format("strafe ${if (targetAnyUnit.value < 0) "left" else "right"} $target inches")
         )
-        val switcher = target.value.sign
+        val switcher = targetAnyUnit.value.sign
 
         return scheduler.task {
             +dmLock
@@ -128,7 +128,6 @@ class KOdometryDrive(
 
             val timeoutT = ElapsedTime()
             val deltaT = ElapsedTime()
-            var previousTime = deltaT.time()
 
             var sumErrorLeft = 0.0
             var sumErrorRight = 0.0
@@ -140,33 +139,30 @@ class KOdometryDrive(
                 lBase = distanceLeft()
                 rBase = distanceRight()
                 timeoutT.reset()
-                previousTime = deltaT.time()
+                deltaT.reset()
             }
             onTick { ->
                 val sDist = (distanceStrafe() - sBase) * switcher
                 val lErr = distanceLeft() - lBase
                 val rErr = distanceRight() - rBase
 
-                if (sDist > distInch - ACCEPTABLE_ERROR_STRAFE) {
+                if (sDist > target - ACCEPTABLE_ERROR_STRAFE) {
                     completed = true
                     return@onTick
                 }
 
-                val currentTime = deltaT.time()
-                val dt = currentTime - previousTime
-                previousTime = currentTime
+                val dt = deltaT.time()
+                deltaT.reset()
 
                 sumErrorLeft += lErr * dt
                 sumErrorRight += rErr * dt
 
                 val lCorrect = kpStr * lErr + kiStr * sumErrorLeft
                 val rCorrect = kpStr * rErr + kiStr * sumErrorRight
-                val speed = StrafingCurve.ramp(sDist, distInch - sDist) * switcher
+                val speed = StrafingCurve.ramp(sDist, target - sDist) * switcher
                 Log.i("Encoders", String.format("L %+.4f  R %+.4f  P %+.4f", lErr, rErr, sDist))
-                if (abs(lCorrect) > .5 || abs(rCorrect) > .5) {
-                    // we're screwed
-                    driveMotors.setAll(0.0)
-
+                if (abs(lCorrect) > 1 || abs(rCorrect) > 1) {
+                    // uh oh!!!
                     Log.e(
                         "KOdometryDrive", String.format(
                             "PANIC: base: %+.4f lC: %+.4f rC: %+.4f = " +
@@ -180,15 +176,16 @@ class KOdometryDrive(
                             speed + rCorrect
                         )
                     )
-                } else { // Divide (speed + correct) by max abs power
-                    val powers = MotorPowers(
-                        frontLeft = speed - lCorrect,
-                        frontRight = -speed - rCorrect,
-                        backLeft = -speed - lCorrect,
-                        backRight = speed - rCorrect
-                    )
-                    powers.normalize().apply(driveMotors)
                 }
+                val powers = MotorPowers(
+                    frontLeft = speed - lCorrect,
+                    frontRight = -speed - rCorrect,
+                    backLeft = -speed - lCorrect,
+                    backRight = speed - rCorrect
+                )
+//                powers.normalize().apply(driveMotors)
+                // for compatibility, we don't normalize
+                powers.apply(driveMotors)
             }
             isCompleted { -> completed || (timeout > 0 && timeoutT.time() >= timeout) }
             onFinish { ->
