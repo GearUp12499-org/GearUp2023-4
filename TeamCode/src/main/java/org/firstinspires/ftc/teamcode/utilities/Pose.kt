@@ -18,7 +18,7 @@ class Move(forward: LengthUnit, right: LengthUnit, turn: RotationUnit) {
     val turn = turn.to.radians
 
     companion object {
-        private const val RAMP_ALPHA = 0.25
+        private const val RAMP_ALPHA = 0.2
         private const val RAMP_EPSILON = 0.01
         fun ramp(speed: Double): Double {
             val sign = speed.sign

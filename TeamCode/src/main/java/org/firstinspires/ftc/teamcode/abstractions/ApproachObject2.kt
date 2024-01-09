@@ -1,11 +1,14 @@
 package org.firstinspires.ftc.teamcode.abstractions
 
+import android.util.Log
 import dev.aether.collaborative_multitasking.MultitaskScheduler
 import dev.aether.collaborative_multitasking.Task
 import dev.aether.collaborative_multitasking.ext.maxDuration
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration
 import org.firstinspires.ftc.teamcode.utilities.LengthUnit
+import org.firstinspires.ftc.teamcode.utilities.MotorPowers
+import org.firstinspires.ftc.teamcode.utilities.Move
 import org.firstinspires.ftc.teamcode.utilities.inches
 import org.firstinspires.ftc.teamcode.Var.ApproachObject as AOV
 
@@ -47,10 +50,25 @@ class ApproachObject2(private val scheduler: MultitaskScheduler, robot: RobotCon
                 val err = right - left
                 val correction = (kP * err)
                 val speed = -rampDown((avg - di).inches)
-                motors.frontLeft.power = speed + correction
-                motors.backLeft.power = speed + correction
-                motors.frontRight.power = speed - correction
-                motors.backRight.power = speed - correction
+                var speeds = MotorPowers(
+                    speed + correction,
+                    speed - correction,
+                    speed + correction,
+                    speed - correction
+                )
+                speeds = speeds.map(Move::ramp)
+                speeds.apply(motors)
+                Log.i(
+                    "ApproachObject2",
+                    String.format(
+                        "LR %.3f %.3f Avg %.3f Left %+.3f Right %+.3f",
+                        left,
+                        right,
+                        avg,
+                        speeds.frontLeft,
+                        speeds.frontRight
+                    )
+                )
             }
             isCompleted { -> completed }
             maxDuration(3000)

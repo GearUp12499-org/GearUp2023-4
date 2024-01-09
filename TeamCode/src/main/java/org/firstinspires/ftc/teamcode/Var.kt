@@ -147,13 +147,13 @@ object Var {
          * Minimum speed when approaching object, for ramping down when the distance read within
          * [stoppingDistance] of the target distance.
          */
-        const val minSpeed = 0.1
+        const val minSpeed = 0.05
 
         /**
          * Maximum speed when approaching object, for ramping up when the distance read is
          * more than [stoppingDistance] away from the target distance.
          */
-        const val maxSpeed = 0.5
+        const val maxSpeed = 0.15
 
         /**
          * Distance at which to start ramping down the speed when approaching an object.
@@ -184,5 +184,8 @@ object Var {
         val BlueLeft = Pose(RobotBackToOdo, 94.inches - RobotWidth / 2.0, 180.degrees)
         @JvmField
         val BlueLeftRightPixel = Pose(24.5.inches + RobotWidth / 2.0, 83.5.inches, (90).degrees)
+
+        // Lift scoring position: 1280
+        const val LiftScoring = 1335
     }
 }

@@ -159,6 +159,35 @@ public abstract class TwentyAuto extends LinearOpMode {
         forwardPID.DriveForward(16.0, telemetry);
     }
 
+    private void scoreYellowPixel(MultitaskScheduler scheduler, RobotConfiguration robot, ApproachObject2 xButton, KOdometryDrive drive) {
+        scheduler.task(e -> {
+                    e.onStart(() -> {
+                        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
+                        robot.dumperLatch().setPosition(Var.Box.latched);
+                        robot.dumperRotate().setPosition(Var.Box.dumpRotate);
+                        return kvoid;
+                    });
+                    e.isCompleted(() -> robot.liftLeft().getCurrentPosition() >= Var.AutoPositions.LiftScoring - 20);
+                    TimingKt.minDuration(e, 100);
+                    return kvoid;
+                })
+                .then(xButton.approach(new InchUnit(4.0)))
+                .then(e -> {
+                    TimingKt.delay(e, 200);
+                    return kvoid;
+                })
+                .then(e -> {
+                    e.onStart(() -> {
+                        robot.dumperLatch().setPosition(Var.Box.unlatched);
+                        return kvoid;
+                    });
+                    TimingKt.maxDuration(e, 1000);
+                    return kvoid;
+                })
+                .then(drive.driveForward(new InchUnit(2.0)));
+        scheduler.runToCompletion(this::opModeIsActive);
+    }
+
     @Override
     public void runOpMode() throws InterruptedException {
         // Get robot hardware configs
@@ -206,11 +235,17 @@ public abstract class TwentyAuto extends LinearOpMode {
         waitForStart();
         if (!opModeIsActive()) return;
 
-        // Capture the result and stop the camera to save resources
+        // Capture the result
         AdvSphereProcess.Result result = sphere.getResult();
         RobotLog.ii("TwentyAuto", "woah it's a " + result);
         telemetry.addData("Action", result);
         telemetry.update();
+
+        scoreYellowPixel(scheduler, robot, theXButton, newOdo);
+        while (opModeIsActive()) {
+            sleep(100);
+        }
+        if (true) return;
 
         boolean posLeft = positionConf() == StartPosition.LeftOfTruss;
         Runnable left = posLeft ? this::leftLeft : this::leftRight;

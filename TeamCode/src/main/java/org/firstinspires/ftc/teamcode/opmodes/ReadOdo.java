@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 
 // Parallel 1       -46289
@@ -34,6 +35,8 @@ public class ReadOdo extends LinearOpMode {
             telemetry.addData("Par1", robot.odoParallelLeft().getCurrentPosition());
             telemetry.addData("Par2", robot.odoParallelRight().getCurrentPosition());
             telemetry.addData("Perp", robot.odoPerpendicular().getCurrentPosition());
+            telemetry.addData("Left Dist", robot.distanceLeft().getDistance(DistanceUnit.INCH));
+            telemetry.addData("Right Dist", robot.distanceRight().getDistance(DistanceUnit.INCH));
             telemetry.addData("Left lift", robot.liftLeft().getCurrentPosition());
             telemetry.addData("Right lift", robot.liftRight().getCurrentPosition());
             telemetry.update();
