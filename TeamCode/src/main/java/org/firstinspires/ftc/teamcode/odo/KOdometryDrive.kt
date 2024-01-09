@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration
 import org.firstinspires.ftc.teamcode.odo.EncoderMath.tick2inch
 import org.firstinspires.ftc.teamcode.utilities.LengthUnit
 import org.firstinspires.ftc.teamcode.utilities.MotorPowers
+import org.firstinspires.ftc.teamcode.utilities.Move
 import org.firstinspires.ftc.teamcode.utilities.RotationUnit
 import kotlin.math.PI
 import kotlin.math.abs
@@ -28,24 +29,33 @@ class KOdometryDrive(
         const val kpRot = 0.002
         const val kiFwd = 1.0 // FIXME
         const val kiStr = 0.05
+
+        const val ForwardMaxSpeed = 0.3
         val ForwardingCurve = ControlRamps(
-            0.25,
-            0.15,
-            0.3,
+            0.05,
+            0.00, // TODO: is this too low?
+            ForwardMaxSpeed,
             6.0,
             8.0,
         )
 
+        const val StrafingMaxSpeed = 0.5
+
         // previous version of this curve @ 9405a9d1f89cb164c81c14ca659724933698ae92
         val StrafingCurve = ControlRamps(
-            .3,
-            .25,
-            .5,
+            .05,
+            .00, // TODO: is this too low?
+            StrafingMaxSpeed,
             3.0,
             8.0,
         )
+
+        const val TurningMaxSpeed = 0.9
         val TurningCurve = ControlRamps(
-            0.37, 0.9, 0.0, 18.0
+            0.37,
+            TurningMaxSpeed,
+            0.0,
+            18.0
         )
     }
 
@@ -100,10 +110,18 @@ class KOdometryDrive(
 
                 val correction = (kpFwd * pError + kiFwd * sumError) * switcher
                 val speed = ForwardingCurve.ramp(average, distInch - average) * switcher
-                driveMotors.frontLeft.power = speed + correction
-                driveMotors.backLeft.power = speed + correction
-                driveMotors.frontRight.power = speed - correction
-                driveMotors.backRight.power = speed - correction
+
+                var speeds = MotorPowers(
+                    frontLeft = speed + correction,
+                    backLeft = speed + correction,
+                    frontRight = speed - correction,
+                    backRight = speed - correction
+                )
+                speeds = speeds.normalNoStretch(ForwardMaxSpeed)
+                // normalization on the next line only to keep consistency with rotation
+                val powers = speeds.map(Move::rampSpeedToPower).normalNoStretch()
+                powers.apply(driveMotors)
+
                 Log.i(
                     "KOD",
                     "SumOfError ${
@@ -192,14 +210,15 @@ class KOdometryDrive(
                         )
                     )
                 }
-                val powers = MotorPowers(
+                var speeds = MotorPowers(
                     frontLeft = speed - lCorrect,
                     frontRight = -speed - rCorrect,
                     backLeft = -speed - lCorrect,
                     backRight = speed - rCorrect
                 )
-//                powers.normalize().apply(driveMotors)
-                // for compatibility, we don't normalize
+                speeds = speeds.normalNoStretch(StrafingMaxSpeed)
+                // normalization on the next line only to keep consistency with rotation
+                val powers = speeds.map(Move::rampSpeedToPower).normalNoStretch()
                 powers.apply(driveMotors)
             }
             isCompleted { -> completed || (timeout > 0 && timeoutT.time() >= timeout) }
@@ -212,7 +231,7 @@ class KOdometryDrive(
     @JvmOverloads
     fun strafeLeft(target: LengthUnit, timeout: Double = -1.0) = strafeRight(-target, timeout)
 
-    // UNTESTED
+    // !!! UNTESTED
     /**
      * Turn the robot counterclockwise (left) by the given angle.
      * If the angle is negative, the robot will turn clockwise (right).
@@ -262,13 +281,16 @@ class KOdometryDrive(
                 val correction = kpRot * error * switcher
                 // Parity: there is no up-ramp here. see ForwardingCurve definition
                 val speed = ForwardingCurve.ramp(0.0, turnDist - average) * switcher
-                val power = MotorPowers(
+                var speeds = MotorPowers(
                     backLeft = -speed - correction,
                     frontLeft = -speed - correction,
                     frontRight = speed + correction,
                     backRight = speed + correction
                 )
-                power.apply(driveMotors)
+                speeds = speeds.normalNoStretch(TurningMaxSpeed)
+                // because TurningMaxSpeed is .9, we might need to normalize here
+                val powers = speeds.map(Move::rampSpeedToPower).normalNoStretch()
+                powers.apply(driveMotors)
             }
             isCompleted { -> complete }
             onFinish { ->

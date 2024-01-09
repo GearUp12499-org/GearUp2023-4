@@ -56,7 +56,7 @@ class ApproachObject2(private val scheduler: MultitaskScheduler, robot: RobotCon
                     speed + correction,
                     speed - correction
                 )
-                speeds = speeds.map(Move::ramp)
+                speeds = speeds.map(Move::rampSpeedToPower)
                 speeds.apply(motors)
                 Log.i(
                     "ApproachObject2",

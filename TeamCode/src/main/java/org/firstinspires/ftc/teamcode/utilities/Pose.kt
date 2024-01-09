@@ -20,7 +20,8 @@ class Move(forward: LengthUnit, right: LengthUnit, turn: RotationUnit) {
     companion object {
         private const val RAMP_ALPHA = 0.2
         private const val RAMP_EPSILON = 0.01
-        fun ramp(speed: Double): Double {
+        @JvmStatic
+        fun rampSpeedToPower(speed: Double): Double {
             val sign = speed.sign
             return when {
                 abs(speed) < RAMP_EPSILON -> 0.0

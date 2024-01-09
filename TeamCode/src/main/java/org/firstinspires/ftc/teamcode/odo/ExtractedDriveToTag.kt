@@ -68,7 +68,7 @@ class ExtractedDriveToTag(
                     distance
                 )
             telemetry.addData("speeds", motion)
-            val correctedMotion = motion.map(Move::ramp)
+            val correctedMotion = motion.map(Move::rampSpeedToPower)
             telemetry.addData("powers", correctedMotion)
             correctedMotion.apply(motors)
             telemetry.update()

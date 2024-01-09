@@ -7,21 +7,24 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
+import org.firstinspires.ftc.teamcode.utilities.MotorPowers;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
+import org.firstinspires.ftc.teamcode.utilities.Move;
 
 public class DriveForwardPID {
-    public static final double MAX_SPEED = 0.5; // was 0.4
-    public static final double RAMPS_UP = 3; // in - too slow to go, make it lower
-    public static final double RAMPS_DOWN = 8; // in -
-    public static final double MIN_SPEED_INITIAL = 0.3; // was 0.25
-    public static final double MIN_SPEED_FINAL = 0.25; // was 0.15
-    public static final double acceptableError = 1.0; // in
+    public static final double MAX_SPEED_S = 0.5;
+    public static final double RAMPS_UP_S = 3; // in
+    public static final double RAMPS_DOWN_S = 8; // in
+    public static final double MIN_SPEED_INITIAL_S = 0.05;
+    public static final double MIN_SPEED_FINAL_S = 0.00;
+    public static final double acceptableError_S = 1.0; // in
+
 
     public static final double MAX_SPEED_D = 0.3; // drive forward/reverse
     public static final double RAMPS_UP_D = 6; // drive forward/reverse
     public static final double RAMPS_DOWN_D = 8; // drive forward/reverse
-    public static final double MIN_SPEED_INITIAL_D = 0.25; // drive forward/reverse
-    public static final double MIN_SPEED_FINAL_D = 0.15; // drive forward/reverse
+    public static final double MIN_SPEED_INITIAL_D = 0.05; // drive forward/reverse
+    public static final double MIN_SPEED_FINAL_D = 0.00; // drive forward/reverse
     public static final double acceptableError_D = 1.0; // drive forward/reverse
     public static final double kp = 0.8;
     public static final double ki = 0.05;
@@ -43,8 +46,8 @@ public class DriveForwardPID {
     // TODO: Migrate to Kotlin impl
     public static double rampDown(double distToTarget) {
         if (distToTarget <= 0) return 0.0;
-        if (distToTarget >= RAMPS_DOWN) return MAX_SPEED;
-        else return (MAX_SPEED - MIN_SPEED_FINAL) * (distToTarget / RAMPS_DOWN) + MIN_SPEED_FINAL;
+        if (distToTarget >= RAMPS_DOWN_S) return MAX_SPEED_S;
+        else return (MAX_SPEED_S - MIN_SPEED_FINAL_S) * (distToTarget / RAMPS_DOWN_S) + MIN_SPEED_FINAL_S;
     }
 
     public static double rampDownForward(double distToTarget) {
@@ -56,9 +59,9 @@ public class DriveForwardPID {
 
     // TODO: Migrate to Kotlin impl
     public static double rampUp(double distTravel) {
-        if (distTravel <= 0) return MIN_SPEED_INITIAL;
-        if (distTravel >= RAMPS_UP) return MAX_SPEED;
-        return (MAX_SPEED - MIN_SPEED_INITIAL) * (distTravel / RAMPS_UP) + MIN_SPEED_INITIAL;
+        if (distTravel <= 0) return MIN_SPEED_INITIAL_S;
+        if (distTravel >= RAMPS_UP_S) return MAX_SPEED_S;
+        return (MAX_SPEED_S - MIN_SPEED_INITIAL_S) * (distTravel / RAMPS_UP_S) + MIN_SPEED_INITIAL_S;
     }
 
     public static double rampUpForward(double distTravel) {
@@ -118,10 +121,16 @@ public class DriveForwardPID {
 
             double correction = kp * error + ki * overall_error;
             double speed = Math.min(rampUpForward(avg), rampDownForward(target - avg));
-            driveMotors.frontLeft.setPower(speed + correction);
-            driveMotors.backLeft.setPower(speed + correction);
-            driveMotors.frontRight.setPower(speed - correction);
-            driveMotors.backRight.setPower(speed - correction);
+
+            MotorPowers speeds = new MotorPowers(
+                    speed + correction,
+                    speed - correction,
+                    speed + correction,
+                    speed - correction
+            );
+            speeds = speeds.normalNoStretch(MAX_SPEED_D);
+            MotorPowers powers = speeds.map(Move::rampSpeedToPower).normalNoStretch();
+            powers.apply(driveMotors);
         }
 
         driveMotors.setAll(0);
@@ -159,12 +168,16 @@ public class DriveForwardPID {
 
             double correction = kp * error + ki * overall_error;
             double speed = -Math.min(rampUpForward(avg), rampDownForward(target - avg));
-            driveMotors.frontLeft.setPower(speed - correction);
-            driveMotors.backLeft.setPower(speed - correction);
-            driveMotors.frontRight.setPower(speed + correction);
-            driveMotors.backRight.setPower(speed + correction);
-            //telemetry.addData("Target: ", target);
 
+            MotorPowers speeds = new MotorPowers(
+                    speed - correction,
+                    speed + correction,
+                    speed - correction,
+                    speed + correction
+            );
+            speeds = speeds.normalNoStretch(MAX_SPEED_D);
+            MotorPowers powers = speeds.map(Move::rampSpeedToPower).normalNoStretch();
+            powers.apply(driveMotors);
         }
 
         driveMotors.setAll(0);
@@ -195,7 +208,7 @@ public class DriveForwardPID {
             double l_err = LeftOdoDist() - l_base;
             double r_err = RightOdoDist() - r_base;
 
-            if (s_dist > target - acceptableError) break;
+            if (s_dist > target - acceptableError_S) break;
 
             double dt = stopwatch.time();
             stopwatch.reset();
@@ -206,10 +219,16 @@ public class DriveForwardPID {
             double right_correct = kp * r_err + ki * overall_right;
             double speed = Math.min(rampUp(s_dist), rampDown(target - s_dist));
 
-            driveMotors.frontLeft.setPower(speed - left_correct);
-            driveMotors.frontRight.setPower(-speed - right_correct);
-            driveMotors.backLeft.setPower(-speed - left_correct);
-            driveMotors.backRight.setPower(speed - right_correct);
+            MotorPowers speeds = new MotorPowers(
+                    speed - left_correct,
+                    -speed - right_correct,
+                    -speed - left_correct,
+                    speed - right_correct
+            );
+            speeds = speeds.normalNoStretch(MAX_SPEED_S);
+            MotorPowers powers = speeds.map(Move::rampSpeedToPower).normalNoStretch();
+            powers.apply(driveMotors);
+
             Log.i("Encoders", String.format("L %+.4f  R %+.4f  P %+.4f", l_err, r_err, s_dist));
         }
         driveMotors.setAll(0);
@@ -237,7 +256,7 @@ public class DriveForwardPID {
             double l_err = LeftOdoDist() - l_base;
             double r_err = RightOdoDist() - r_base;
 
-            if (s_dist > target - acceptableError) break;
+            if (s_dist > target - acceptableError_S) break;
 
             double dt = stopwatch.time();
             stopwatch.reset();
@@ -248,10 +267,15 @@ public class DriveForwardPID {
             double right_correct = kp * r_err + ki * overall_right;
             double speed = Math.min(rampUp(s_dist), rampDown(target - s_dist));
 
-            driveMotors.frontLeft.setPower(-speed - left_correct);
-            driveMotors.frontRight.setPower(speed - right_correct);
-            driveMotors.backLeft.setPower(speed - left_correct);
-            driveMotors.backRight.setPower(-speed - right_correct);
+            MotorPowers speeds = new MotorPowers(
+                    -speed - left_correct,
+                    speed - right_correct,
+                    speed - left_correct,
+                    -speed - right_correct
+            );
+            speeds = speeds.normalNoStretch(MAX_SPEED_S);
+            MotorPowers powers = speeds.map(Move::rampSpeedToPower).normalNoStretch();
+            powers.apply(driveMotors);
         }
         driveMotors.setAll(0);
     }
