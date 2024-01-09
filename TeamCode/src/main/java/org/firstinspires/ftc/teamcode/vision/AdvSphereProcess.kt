@@ -111,6 +111,7 @@ class AdvSphereProcess(var mode: Mode, var altBoxes: Boolean) : VisionProcessor 
     override fun init(width: Int, height: Int, calibration: CameraCalibration?) {
     }
 
+    private var origin = Mat()
     private var scratch = Mat()
     private var maskScratch = Mat()
     private var hsvColor = Mat()
@@ -149,6 +150,7 @@ class AdvSphereProcess(var mode: Mode, var altBoxes: Boolean) : VisionProcessor 
     override fun processFrame(frame: Mat?, captureTimeNanos: Long): Any? {
         frame ?: throw IllegalStateException("passed a null frame to processFrame")
         Imgproc.cvtColor(frame, scratch, Imgproc.COLOR_RGB2BGR)
+        Imgproc.cvtColor(frame, origin, Imgproc.COLOR_RGB2BGR)
         scalingFraction = 720.0 / scratch.width()
         Imgproc.resize(scratch, scratch, Size(), scalingFraction, scalingFraction)
         pos1 = (if (altBoxes) Position1B else Position1A).toRect(scratch)
@@ -347,6 +349,7 @@ class AdvSphereProcess(var mode: Mode, var altBoxes: Boolean) : VisionProcessor 
             Imgcodecs.imwrite("$path/left.png", left)
             Imgcodecs.imwrite("$path/center.png", center)
             Imgcodecs.imwrite("$path/right.png", right)
+            Imgcodecs.imwrite("$path/original_flipped.png", origin)
         }
     }
 
