@@ -43,8 +43,7 @@ public class DriveForwardPID {
         this.perp = robot.odoPerpendicular();
     }
 
-    // TODO: Migrate to Kotlin impl
-    public static double rampDown(double distToTarget) {
+    public static double rampDownStrafe(double distToTarget) {
         if (distToTarget <= 0) return 0.0;
         if (distToTarget >= RAMPS_DOWN_S) return MAX_SPEED_S;
         else return (MAX_SPEED_S - MIN_SPEED_FINAL_S) * (distToTarget / RAMPS_DOWN_S) + MIN_SPEED_FINAL_S;
@@ -57,8 +56,7 @@ public class DriveForwardPID {
             return (MAX_SPEED_D - MIN_SPEED_FINAL_D) * (distToTarget / RAMPS_DOWN_D) + MIN_SPEED_FINAL_D;
     }
 
-    // TODO: Migrate to Kotlin impl
-    public static double rampUp(double distTravel) {
+    public static double rampUpStrafe(double distTravel) {
         if (distTravel <= 0) return MIN_SPEED_INITIAL_S;
         if (distTravel >= RAMPS_UP_S) return MAX_SPEED_S;
         return (MAX_SPEED_S - MIN_SPEED_INITIAL_S) * (distTravel / RAMPS_UP_S) + MIN_SPEED_INITIAL_S;
@@ -217,7 +215,7 @@ public class DriveForwardPID {
 
             double left_correct = kp * l_err + ki * overall_left;
             double right_correct = kp * r_err + ki * overall_right;
-            double speed = Math.min(rampUp(s_dist), rampDown(target - s_dist));
+            double speed = Math.min(rampUpStrafe(s_dist), rampDownStrafe(target - s_dist));
 
             MotorPowers speeds = new MotorPowers(
                     speed - left_correct,
@@ -265,7 +263,7 @@ public class DriveForwardPID {
 
             double left_correct = kp * l_err + ki * overall_left;
             double right_correct = kp * r_err + ki * overall_right;
-            double speed = Math.min(rampUp(s_dist), rampDown(target - s_dist));
+            double speed = Math.min(rampUpStrafe(s_dist), rampDownStrafe(target - s_dist));
 
             MotorPowers speeds = new MotorPowers(
                     -speed - left_correct,

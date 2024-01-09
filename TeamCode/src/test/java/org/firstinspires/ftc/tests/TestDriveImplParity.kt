@@ -47,8 +47,8 @@ class TestDriveImplParity {
             for (position in positions) {
                 val kod = KOdometryDrive.StrafingCurve.ramp(position, target - position)
                 val java = min(
-                    DriveForwardPID.rampUp(position),
-                    DriveForwardPID.rampDown(target - position)
+                    DriveForwardPID.rampUpStrafe(position),
+                    DriveForwardPID.rampDownStrafe(target - position)
                 )
                 if (!decimalEquals(kod, java)) {
                     throws.add("parity error: (kt) $kod != (java) $java. test: target $target position $position")
