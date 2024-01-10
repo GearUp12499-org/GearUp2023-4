@@ -244,11 +244,13 @@ public abstract class TwentyAuto extends LinearOpMode {
         telemetry.addData("Action", result);
         telemetry.update();
 
-//        scoreYellowPixel(scheduler, robot, theXButton, newOdo);
-//        while (opModeIsActive()) {
-//            sleep(100);
-//        }
-//        if (true) return;
+        if (modeConf() == AdvSphereProcess.Mode.Blue && positionConf() == StartPosition.LeftOfTruss) {
+            scoreYellowPixel(scheduler, robot, theXButton, newOdo);
+            while (opModeIsActive()) {
+                sleep(100);
+            }
+            return;
+        }
 
         boolean posLeft = positionConf() == StartPosition.LeftOfTruss;
         Runnable left = posLeft ? this::leftLeft : this::leftRight;
