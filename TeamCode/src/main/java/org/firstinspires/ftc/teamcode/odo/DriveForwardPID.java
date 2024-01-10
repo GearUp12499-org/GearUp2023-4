@@ -13,18 +13,21 @@ import org.firstinspires.ftc.teamcode.utilities.Move;
 
 public class DriveForwardPID {
     public static final double MAX_SPEED_S = 0.5;
-    public static final double RAMPS_UP_S = 3; // in
-    public static final double RAMPS_DOWN_S = 8; // in
-    public static final double MIN_SPEED_INITIAL_S = 0.05;
-    public static final double MIN_SPEED_FINAL_S = 0.00;
     public static final double acceptableError_S = 1.0; // in
+    public static final RampProvider strafeRamp = new QuadraticDownRamps(
+            0.10,
+            0.05,
+            0.5,
+            3,
+            8
+    );
 
 
     public static final double MAX_SPEED_D = 0.3; // drive forward/reverse
     public static final double RAMPS_UP_D = 6; // drive forward/reverse
     public static final double RAMPS_DOWN_D = 8; // drive forward/reverse
     public static final double MIN_SPEED_INITIAL_D = 0.05; // drive forward/reverse
-    public static final double MIN_SPEED_FINAL_D = 0.00; // drive forward/reverse
+    public static final double MIN_SPEED_FINAL_D = 0.05; // drive forward/reverse
     public static final double acceptableError_D = 1.0; // drive forward/reverse
     public static final double kp = 0.8;
     public static final double ki = 0.05;
@@ -43,23 +46,11 @@ public class DriveForwardPID {
         this.perp = robot.odoPerpendicular();
     }
 
-    public static double rampDownStrafe(double distToTarget) {
-        if (distToTarget <= 0) return 0.0;
-        if (distToTarget >= RAMPS_DOWN_S) return MAX_SPEED_S;
-        else return (MAX_SPEED_S - MIN_SPEED_FINAL_S) * (distToTarget / RAMPS_DOWN_S) + MIN_SPEED_FINAL_S;
-    }
-
     public static double rampDownForward(double distToTarget) {
         if (distToTarget <= 0) return 0.0;
         if (distToTarget >= RAMPS_DOWN_D) return MAX_SPEED_D;
         else
             return (MAX_SPEED_D - MIN_SPEED_FINAL_D) * (distToTarget / RAMPS_DOWN_D) + MIN_SPEED_FINAL_D;
-    }
-
-    public static double rampUpStrafe(double distTravel) {
-        if (distTravel <= 0) return MIN_SPEED_INITIAL_S;
-        if (distTravel >= RAMPS_UP_S) return MAX_SPEED_S;
-        return (MAX_SPEED_S - MIN_SPEED_INITIAL_S) * (distTravel / RAMPS_UP_S) + MIN_SPEED_INITIAL_S;
     }
 
     public static double rampUpForward(double distTravel) {
@@ -215,7 +206,7 @@ public class DriveForwardPID {
 
             double left_correct = kp * l_err + ki * overall_left;
             double right_correct = kp * r_err + ki * overall_right;
-            double speed = Math.min(rampUpStrafe(s_dist), rampDownStrafe(target - s_dist));
+            double speed = strafeRamp.ramp(s_dist, target - s_dist);
 
             MotorPowers speeds = new MotorPowers(
                     speed - left_correct,
@@ -263,7 +254,7 @@ public class DriveForwardPID {
 
             double left_correct = kp * l_err + ki * overall_left;
             double right_correct = kp * r_err + ki * overall_right;
-            double speed = Math.min(rampUpStrafe(s_dist), rampDownStrafe(target - s_dist));
+            double speed = strafeRamp.ramp(s_dist, target - s_dist);
 
             MotorPowers speeds = new MotorPowers(
                     -speed - left_correct,

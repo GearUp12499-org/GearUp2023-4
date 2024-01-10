@@ -24,6 +24,7 @@ class KOdometryDrive(
     companion object {
         const val ACCEPTABLE_ERROR_STRAFE = .5
         const val ACCEPTABLE_ERROR_FWDBCK = 1.0
+        const val ACCEPTABLE_ERROR_TURN = 0.2
         const val kpFwd = 0.2
         const val kpStr = 0.8
         const val kpRot = 0.002
@@ -31,20 +32,20 @@ class KOdometryDrive(
         const val kiStr = 0.05
 
         const val ForwardMaxSpeed = 0.3
-        val ForwardingCurve = ControlRamps(
+        val ForwardingCurve = QuadraticDownRamps(
             0.05,
-            0.00, // TODO: is this too low?
+            0.05,
             ForwardMaxSpeed,
             6.0,
-            8.0,
+            12.0,
         )
 
         const val StrafingMaxSpeed = 0.5
 
         // previous version of this curve @ 9405a9d1f89cb164c81c14ca659724933698ae92
         val StrafingCurve = ControlRamps(
-            .05,
-            .00, // TODO: is this too low?
+            .1,
+            .1, // TODO: is this too low?
             StrafingMaxSpeed,
             3.0,
             8.0,
@@ -85,6 +86,8 @@ class KOdometryDrive(
             var sumError = 0.0
 
             var complete = false
+            var lastPower: MotorPowers? = null
+
             onStart { ->
                 lBase = distanceLeft()
                 rBase = distanceRight()
@@ -98,6 +101,16 @@ class KOdometryDrive(
                 val average = (lDist + rDist) / 2.0
 
                 if (average > distInch - ACCEPTABLE_ERROR_FWDBCK) {
+                    Log.i(
+                        "KOD",
+                        String.format(
+                            "L/R %+.4f %+.4f AVG %+.4f LastSpd %s",
+                            lDist,
+                            rDist,
+                            average,
+                            lastPower ?: "<none>"
+                        )
+                    )
                     complete = true
                     return@onTick
                 }
@@ -120,9 +133,10 @@ class KOdometryDrive(
                 speeds = speeds.normalNoStretch(ForwardMaxSpeed)
                 // normalization on the next line only to keep consistency with rotation
                 val powers = speeds.map(Move::rampSpeedToPower).normalNoStretch()
+                lastPower = powers
                 powers.apply(driveMotors)
 
-                Log.i(
+                /* Log.i(
                     "KOD",
                     "SumOfError ${
                         String.format(
@@ -130,7 +144,7 @@ class KOdometryDrive(
                             sumError
                         )
                     } in*sec ki=$kiFwd, Error ${String.format("%+.8f", pError)} kp=$kpFwd"
-                )
+                ) */
             }
             isCompleted { -> complete || (timeout > 0 && timeoutT.time() >= timeout) }
             onFinish { ->
@@ -281,16 +295,17 @@ class KOdometryDrive(
                 val correction = kpRot * error * switcher
                 // Parity: there is no up-ramp here. see ForwardingCurve definition
                 val speed = ForwardingCurve.ramp(0.0, turnDist - average) * switcher
-                var speeds = MotorPowers(
+                val speeds = MotorPowers(
                     backLeft = -speed - correction,
                     frontLeft = -speed - correction,
                     frontRight = speed + correction,
                     backRight = speed + correction
                 )
-                speeds = speeds.normalNoStretch(TurningMaxSpeed)
-                // because TurningMaxSpeed is .9, we might need to normalize here
-                val powers = speeds.map(Move::rampSpeedToPower).normalNoStretch()
-                powers.apply(driveMotors)
+                // oh well, compat
+//                speeds = speeds.normalNoStretch(TurningMaxSpeed)
+//                 because TurningMaxSpeed is .9, we might need to normalize here
+//                val powers = speeds.map(Move::rampSpeedToPower).normalNoStretch()
+                speeds.apply(driveMotors)
             }
             isCompleted { -> complete }
             onFinish { ->
