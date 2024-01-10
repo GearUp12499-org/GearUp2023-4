@@ -20,6 +20,7 @@ import org.firstinspires.ftc.teamcode.odo.DriveForwardPID;
 import org.firstinspires.ftc.teamcode.odo.ExtractedDriveToTag;
 import org.firstinspires.ftc.teamcode.odo.KOdometryDrive;
 import org.firstinspires.ftc.teamcode.odo.OdoTracker;
+import org.firstinspires.ftc.teamcode.odo.SyncFail;
 import org.firstinspires.ftc.teamcode.odo.TurnPID;
 import org.firstinspires.ftc.teamcode.utilities.InchUnit;
 import org.firstinspires.ftc.teamcode.utilities.Pose;
@@ -41,6 +42,7 @@ public abstract class TwentyAuto extends LinearOpMode {
     private AprilTagProcessor aprilTag;
     private DriveForwardPID forwardPID;
     private TurnPID turnPID;
+    private SyncFail why;
     private RobotConfiguration robot;
 
     /**
@@ -80,33 +82,33 @@ public abstract class TwentyAuto extends LinearOpMode {
 
     void leftRight() {
         RobotLog.ii("TwentyAuto", "LEFT");
-        forwardPID.DriveReverse(21.0, telemetry);
+        why.DriveReverse(21.0, telemetry);
         turnPID.TurnRobot(45.0, telemetry);
-        forwardPID.DriveReverse(3.0, telemetry);
+        why.DriveReverse(3.0, telemetry);
         placePixel();
     }
 
     void unLeftRight() {
         RobotLog.ii("TwentyAuto", "LEFT");
-        forwardPID.DriveForward(3.0, telemetry);
+        why.DriveForward(3.0, telemetry);
         turnPID.TurnRobot(-45.0, telemetry);
-        forwardPID.DriveForward(17.0, telemetry);
+        why.DriveForward(17.0, telemetry);
     }
 
     void centerRight() {
         RobotLog.ii("TwentyAuto", "CENTER");
-        forwardPID.DriveReverse(27.0, telemetry);
+        why.DriveReverse(24.0, telemetry);
         placePixel();
     }
 
     void unCenterRight() {
         RobotLog.ii("TwentyAuto", "CENTER");
-        forwardPID.DriveForward(23.0, telemetry);
+        why.DriveForward(21.0, telemetry);
     }
 
     void rightRight() {
         RobotLog.ii("TwentyAuto", "RIGHT");
-        forwardPID.DriveReverse(16.0, telemetry);
+        why.DriveReverse(16.0, telemetry);
         turnPID.TurnRobot(-60.0, telemetry);
         placePixel();
     }
@@ -115,12 +117,12 @@ public abstract class TwentyAuto extends LinearOpMode {
         RobotLog.ii("TwentyAuto", "RIGHT");
         turnPID.TurnRobot(60.0, telemetry);
         sleep(250);
-        forwardPID.DriveForward(12.0, telemetry);
+        why.DriveForward(12.0, telemetry);
     }
 
     void leftLeft() {
         RobotLog.ii("TwentyAuto", "LEFT");
-        forwardPID.DriveReverse(17.0, telemetry);
+        why.DriveReverse(17.0, telemetry);
         turnPID.TurnRobot(5.0, telemetry);
         placePixel();
     }
@@ -128,12 +130,12 @@ public abstract class TwentyAuto extends LinearOpMode {
     void unLeftLeft() {
         RobotLog.ii("TwentyAuto", "LEFT");
         turnPID.TurnRobot(-5.0, telemetry);
-        forwardPID.DriveForward(13.0, telemetry);
+        why.DriveForward(13.0, telemetry);
     }
 
     void centerLeft() {
         RobotLog.ii("TwentyAuto", "CENTER");
-        forwardPID.DriveReverse(24.0, telemetry);
+        why.DriveReverse(24.0, telemetry);
         turnPID.TurnRobot(-20.0, telemetry);
         placePixel();
     }
@@ -141,22 +143,22 @@ public abstract class TwentyAuto extends LinearOpMode {
     void unCenterLeft() {
         RobotLog.ii("TwentyAuto", "LEFT");
         turnPID.TurnRobot(20.0, telemetry);
-        forwardPID.DriveForward(20.0, telemetry);
+        why.DriveForward(20.0, telemetry);
     }
 
     void rightLeft() {
         RobotLog.ii("TwentyAuto", "RIGHT");
-        forwardPID.DriveReverse(20.0, telemetry);
+        why.DriveReverse(20.0, telemetry);
         turnPID.TurnRobot(-90.0, telemetry);
-        forwardPID.DriveReverse(2.0, telemetry);
+        why.DriveReverse(2.0, telemetry);
         placePixel();
     }
 
     void unRightLeft() {
         RobotLog.ii("TwentyAuto", "RIGHT");
-        forwardPID.DriveForward(2.0, telemetry);
+        why.DriveForward(2.0, telemetry);
         turnPID.TurnRobot(90.0, telemetry);
-        forwardPID.DriveForward(16.0, telemetry);
+        why.DriveForward(16.0, telemetry);
     }
 
     private void scoreYellowPixel(MultitaskScheduler scheduler, RobotConfiguration robot, ApproachObject2 xButton, KOdometryDrive drive) {
@@ -198,6 +200,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         forwardPID = new DriveForwardPID(robot);
         turnPID = new TurnPID(robot);
         KOdometryDrive newOdo = new KOdometryDrive(scheduler, robot);
+        why = new SyncFail(scheduler, newOdo);
         OdoTracker tracker = new OdoTracker(robot, Pose.zero);
         AprilTagUpdateTool trackerTagUpdate = new AprilTagUpdateTool(aprilTag, 2);
         ExtractedDriveToTag driveToTag = new ExtractedDriveToTag(
@@ -294,8 +297,39 @@ public abstract class TwentyAuto extends LinearOpMode {
             if (parkingConf() == Parking.OtherParking)
                 throw new IllegalStateException("Don't know how to handle OtherParking here");
             double modifier = parkingConf() == Parking.MoveLeft ? 1 : -1;
-            turnPID.TurnRobot(modifier * 100.0, telemetry);
-            forwardPID.DriveReverse(19.0, telemetry, 5.0);
+            turnPID.TurnRobot(modifier * 90.0, telemetry);
+            sleep(100);
+            if (modeConf() == AdvSphereProcess.Mode.Red) {
+                why.DriveReverse(32.0);
+                Task t1 = scheduler.task((x) -> {
+                    x.onStart(() -> {
+                        robot.liftLeft().setTargetPosition(1000);
+                        return kvoid;
+                    });
+                    x.isCompleted(() -> Math.abs(robot.liftLeft().getCurrentPosition() - 1000) < 50);
+                    return kvoid;
+                });
+                Pair<Task, Task> beforeAfter = dumper.autoDumpSecond();
+                t1
+                        .then(beforeAfter)
+                        .then((x) -> {
+                            TimingKt.maxDuration(x, 500);
+                            return kvoid;
+                        })
+                        .then(dumper.autoReset())
+                        .then(newOdo.driveForward(new InchUnit(2)))
+                        .then((x) -> {
+                            x.onStart(() -> {
+                                robot.liftLeft().setTargetPosition(0);
+                                return kvoid;
+                            });
+                            x.isCompleted(() -> Math.abs(robot.liftLeft().getCurrentPosition()) < 50);
+                            return kvoid;
+                        });
+                scheduler.runToCompletion(this::opModeIsActive);
+                return;
+            }
+            why.DriveReverse(19.0, telemetry, 5.0);
             // Left: 9.5", Center: 15", Right: 21.5"
             Task navigateInFrontOfTag;
 

@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.odo.DriveForwardPID
 import org.firstinspires.ftc.teamcode.odo.EncoderMath.tick2inch
 import org.firstinspires.ftc.teamcode.odo.KOdometryDrive
 import org.firstinspires.ftc.teamcode.odo.TurnPID
+import org.firstinspires.ftc.teamcode.utilities.inches
 
 @TeleOp
 class DriveForward2 : LinearOpMode() {
@@ -20,7 +21,7 @@ class DriveForward2 : LinearOpMode() {
         val reference = DriveForwardPID(robot)
         val rotateReference = TurnPID(robot)
         waitForStart()
-        reference.strafeRight(48.0, telemetry)
+        drive.driveForward(3.inches)
         sleep(100)
 
         try {
