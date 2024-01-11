@@ -43,11 +43,11 @@ class KOdometryDrive(
         const val StrafingMaxSpeed = 0.5
 
         // previous version of this curve @ 9405a9d1f89cb164c81c14ca659724933698ae92
-        val StrafingCurve = ControlRamps(
+        val StrafingCurve = QuadraticDownRamps(
             .1,
             .1, // TODO: is this too low?
             StrafingMaxSpeed,
-            3.0,
+            0.0,
             8.0,
         )
 
