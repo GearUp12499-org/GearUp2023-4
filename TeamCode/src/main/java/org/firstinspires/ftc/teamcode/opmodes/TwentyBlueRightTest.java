@@ -7,7 +7,11 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.odo.DriveForwardPID;
+import org.firstinspires.ftc.teamcode.odo.KOdometryDrive;
+import org.firstinspires.ftc.teamcode.odo.SyncFail;
 import org.firstinspires.ftc.teamcode.odo.TurnPID;
+
+import dev.aether.collaborative_multitasking.MultitaskScheduler;
 
 @Autonomous
 public class TwentyBlueRightTest extends LinearOpMode {
@@ -18,42 +22,48 @@ public class TwentyBlueRightTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         RobotConfiguration robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
+        MultitaskScheduler scheduler = new MultitaskScheduler();
+        KOdometryDrive odo2 = new KOdometryDrive(scheduler, robot);
         robot.clearEncoders();
         DriveForwardPID drivePID = new DriveForwardPID(robot);
         TurnPID turnPID = new TurnPID(robot);
+        SyncFail why = new SyncFail(scheduler, odo2);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         waitForStart();
         if (!opModeIsActive()) return;
-        /*Left spike marker BlueRightAuto
-        /drivePID.DriveReverse(21.0, telemetry);
+        // Ctrl-Slash to comment lines
+        /* Left spike marker BlueRightAuto */
+        drivePID.DriveReverse(21.0, telemetry);
         turnPID.TurnRobot(45.0, telemetry);
         drivePID.DriveReverse(3.0, telemetry);
+
         turnPID.TurnRobot(-45.0, telemetry);
         drivePID.strafeLeft(2, telemetry);
         drivePID.DriveReverse(25, telemetry);
         sleep(250);
         turnPID.TurnRobot(95, telemetry);
         drivePID.DriveReverse(80, telemetry);
-        drivePID.strafeRight(27, telemetry);*/
+        drivePID.strafeRight(27, telemetry);
 
-        /*Center spike marker BlueRightAuto
+        /* Center spike marker BlueRightAuto */
         drivePID.DriveReverse(27, telemetry);
+
         drivePID.strafeLeft(7, telemetry);
         drivePID.DriveReverse(24, telemetry);
         turnPID.TurnRobot(95, telemetry);
         drivePID.DriveReverse(87, telemetry);
-        drivePID.strafeRight(22, telemetry);*/
+        drivePID.strafeRight(22, telemetry);
 
         //Right spike marker BlueRightAuto
-        drivePID.DriveReverse(16.0, telemetry);
+        why.DriveReverse(16.0, telemetry);
         turnPID.TurnRobot(-60.0, telemetry);
         turnPID.TurnRobot(60, telemetry);
-        drivePID.strafeRight(4.5, telemetry);
-        drivePID.DriveReverse(34, telemetry);
+        why.StrafeRight(4.5, telemetry);
+        why.DriveReverse(34, telemetry);
         sleep(250);
         turnPID.TurnRobot(90, telemetry);
-        drivePID.DriveReverse(78, telemetry);
-        drivePID.strafeRight(20.5, telemetry);
+        why.DriveReverse(78, telemetry);
+        why.StrafeRight(20.5, telemetry);
 
         while (opModeIsActive()) {
             telemetry.addData("LEFT  ", drivePID.LeftOdoDist());

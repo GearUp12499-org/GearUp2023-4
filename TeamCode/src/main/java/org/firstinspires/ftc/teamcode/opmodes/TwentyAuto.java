@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 import static org.firstinspires.ftc.teamcode.AprilTagToPoseKt.detectSingleToPose;
 import static org.firstinspires.ftc.teamcode.opmodes.TeleOp.kvoid;
 
+import android.util.Log;
 import android.util.Size;
 
 import androidx.annotation.Nullable;
@@ -19,7 +20,6 @@ import org.firstinspires.ftc.teamcode.Var;
 import org.firstinspires.ftc.teamcode.abstractions.ApproachObject2;
 import org.firstinspires.ftc.teamcode.abstractions.Dumper;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
-import org.firstinspires.ftc.teamcode.odo.DriveForwardPID;
 import org.firstinspires.ftc.teamcode.odo.KOdometryDrive;
 import org.firstinspires.ftc.teamcode.odo.SyncFail;
 import org.firstinspires.ftc.teamcode.odo.TurnPID;
@@ -48,7 +48,6 @@ public abstract class TwentyAuto extends LinearOpMode {
     private VisionPortal portal;
     private AdvSphereProcess sphere;
     private AprilTagProcessor aprilTag;
-    private DriveForwardPID forwardPID;
     private TurnPID turnPID;
     private SyncFail why;
     private RobotConfiguration robot;
@@ -78,12 +77,29 @@ public abstract class TwentyAuto extends LinearOpMode {
      */
     protected abstract AdvSphereProcess.Mode modeConf();
 
+    protected abstract AllianceColor allianceColor();
+
+    protected abstract FieldGlobalPosition globalPosition();
+
     /**
      * Robot starting position
      *
      * @return Left of truss Or Right of truss
      */
-    protected abstract StartPosition positionConf();
+    protected StartPosition positionConf() {
+        if (allianceColor() == AllianceColor.Red) {
+            if (globalPosition() == FieldGlobalPosition.Backstage)
+                return StartPosition.RightOfTruss;
+            else
+                return StartPosition.LeftOfTruss;
+        } else {
+            if (globalPosition() == FieldGlobalPosition.Backstage) {
+                return StartPosition.LeftOfTruss;
+            } else {
+                return StartPosition.RightOfTruss;
+            }
+        }
+    }
 
     /**
      * Robot parking options
@@ -223,6 +239,7 @@ public abstract class TwentyAuto extends LinearOpMode {
      * @param targetID target tag id.
      */
     private void alignTag(AprilTagProcessor aprilTag, int targetID) {
+        Log.i("20auto", "Aligning with tag " + targetID);
         // Rotate right by theta + 90deg
         List<AprilTagDetection> detections = aprilTag.getDetections();
         @Nullable AprilTagDetection primary = null;
@@ -240,6 +257,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         }
 
         Pose posed = detectSingleToPose(primary).transform(cameraAdjustment);
+        Log.i("20auto", "    align: pose estimate: " + posed);
 
         double turnDegs = posed.getTheta()
                 .plus(new DegreeUnit(90))
@@ -264,7 +282,6 @@ public abstract class TwentyAuto extends LinearOpMode {
         setupVision(hardwareMap.get(CameraName.class, "Webcam 1"));
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
-        forwardPID = new DriveForwardPID(robot);
         turnPID = new TurnPID(robot);
         KOdometryDrive newOdo = new KOdometryDrive(scheduler, robot);
         why = new SyncFail(scheduler, newOdo);
@@ -314,8 +331,6 @@ public abstract class TwentyAuto extends LinearOpMode {
         Runnable right = posLeft ? this::rightLeft : this::rightRight;
         Runnable undoRight = posLeft ? this::unRightLeft : this::unRightRight;
 
-        boolean shouldUndo = parkingConf() != Parking.NoParking;
-
         int targetTag = 0;
         switch (result) {
             case Left:
@@ -333,9 +348,11 @@ public abstract class TwentyAuto extends LinearOpMode {
                 break;
         }
 
-        if (!posLeft) targetTag += 3;
+        if (allianceColor() == AllianceColor.Red) targetTag += 3;
 
-        if (shouldUndo) {
+        if (globalPosition() == FieldGlobalPosition.Backstage) {
+            // Return to common position. Not amazing efficiency but it's what we had.
+
             switch (result) {
                 case Left:
                     undoLeft.run();
@@ -348,57 +365,13 @@ public abstract class TwentyAuto extends LinearOpMode {
                     undoCenter.run();
                     break;
             }
-            // PUT IF STATEMENT TO BRANCH HERE
-
-            if (parkingConf() == Parking.OtherParking)
-                throw new IllegalStateException("Don't know how to handle OtherParking here");
-            double modifier = parkingConf() == Parking.MoveLeft ? 1 : -1;
-            turnPID.TurnRobot(modifier * 90.0, telemetry);
-            sleep(100);
-            why.DriveReverse(19.0, telemetry, 5.0);
-            // Left: 9.5", Center: 15", Right: 21.5"
-
-            int nearMedFar;
-            switch (result) {
-                case Left:
-                    nearMedFar = 0;
-                    break;
-                case None:
-                case Center:
-                default:
-                    nearMedFar = 1;
-                    break;
-                case Right:
-                    nearMedFar = 2;
-                    break;
-            }
-
-            if (!posLeft) nearMedFar = 2 - nearMedFar;
 
             Consumer<LengthUnit> awayFromWall =
                     posLeft ? newOdo::strafeLeft : newOdo::strafeRight;
             BiConsumer<LengthUnit, Double> toWallWithTimeout =
                     posLeft ? newOdo::strafeRight : newOdo::strafeLeft;
 
-            switch (nearMedFar) {
-                case 0:
-                    awayFromWall.accept(
-                            new InchUnit(11.0).plus(Var.AutoPositions.RobotWidth.div(2))
-                    );
-                    break;
-                case 1:
-                default:
-                    awayFromWall.accept(
-                            new InchUnit(16.5).plus(Var.AutoPositions.RobotWidth.div(2))
-                    );
-                    break;
-                case 2:
-                    awayFromWall.accept(
-                            new InchUnit(23.0).plus(Var.AutoPositions.RobotWidth.div(2))
-                    );
-                    break;
-            }
-            scheduler.runToCompletion(this::opModeIsActive);
+            navBackstage(scheduler, result, awayFromWall);
 
             sleep(200);
 
@@ -407,8 +380,10 @@ public abstract class TwentyAuto extends LinearOpMode {
             alignTag(aprilTag, targetTag);
             scoreYellowPixel(scheduler, robot, theXButton, newOdo);
 
+            //noinspection DataFlowIssue i am going to shove you into a box :))))
             LengthUnit strafeMotion = new InchUnit(tagXPositions.getOrDefault(targetTag, 35.5));
-            if (!posLeft) strafeMotion = new FootUnit(12).minus(strafeMotion);
+            if (allianceColor() == AllianceColor.Red)
+                strafeMotion = new FootUnit(12).minus(strafeMotion);
             strafeMotion = strafeMotion
                     .minus(Var.AutoPositions.RobotWidth.div(2))
                     .minus(new InchUnit(2));
@@ -442,12 +417,138 @@ public abstract class TwentyAuto extends LinearOpMode {
             });
 
             scheduler.runToCompletion(this::opModeIsActive);
+        } else { // Frontstage scripts
+            navFrontstage(scheduler, result);
+
+            alignTag(aprilTag, targetTag);
+            sleep(200);
+            alignTag(aprilTag, targetTag);
+            scoreYellowPixel(scheduler, robot, theXButton, newOdo);
+
+            // back off More
+            newOdo.driveForward(new InchUnit(2), 2.0) // this would be a REALLY BAD place to get stuck
+                    .then(e -> {
+                        e.onStart(() -> {
+                            robot.dumperRotate().setPosition(Var.Box.idleRotate);
+                            return kvoid;
+                        });
+                        TimingKt.maxDuration(e, 300);
+                        return kvoid;
+                    }).then(e -> {
+                        e.require(robot.getLiftLock());
+                        e.onStart(() -> {
+                            robot.liftLeft().setTargetPosition(0);
+                            robot.liftRight().setTargetPosition(0);
+                            return kvoid;
+                        });
+                        e.isCompleted(() ->
+                                !(robot.liftLeft().isBusy() || robot.liftRight().isBusy()));
+                        return kvoid;
+                    });
+
+            scheduler.runToCompletion(this::opModeIsActive);
         }
 
         // Stop motors just in case
         robot.driveMotors().setAll(0.0);
         while (opModeIsActive()) {
             sleep(50);
+        }
+    }
+
+    private void navBackstage(
+            MultitaskScheduler scheduler,
+            AdvSphereProcess.Result cvResult,
+            Consumer<LengthUnit> doAwayFromWall
+    ) {
+        double modifier = parkingConf() == Parking.MoveLeft ? 1 : -1;
+        turnPID.TurnRobot(modifier * 90.0, telemetry);
+        sleep(100);
+        why.DriveReverse(19.0, telemetry, 5.0);
+        // Left: 9.5", Center: 15", Right: 21.5"
+
+        int nearMedFar;
+        switch (cvResult) {
+            case Left:
+                nearMedFar = 0;
+                break;
+            case None:
+            case Center:
+            default:
+                nearMedFar = 1;
+                break;
+            case Right:
+                nearMedFar = 2;
+                break;
+        }
+
+        if (allianceColor() == AllianceColor.Red) nearMedFar = 2 - nearMedFar;
+
+        switch (nearMedFar) {
+            case 0:
+                doAwayFromWall.accept(
+                        new InchUnit(11.0).plus(Var.AutoPositions.RobotWidth.div(2))
+                );
+                break;
+            case 1:
+            default:
+                doAwayFromWall.accept(
+                        new InchUnit(16.5).plus(Var.AutoPositions.RobotWidth.div(2))
+                );
+                break;
+            case 2:
+                doAwayFromWall.accept(
+                        new InchUnit(23.0).plus(Var.AutoPositions.RobotWidth.div(2))
+                );
+                break;
+        }
+        scheduler.runToCompletion(this::opModeIsActive);
+    }
+
+    private void frontstageLeft() {
+        turnPID.TurnRobot(-45.0, telemetry);
+        why.StrafeLeft(2);
+        why.DriveReverse(27);
+        sleep(250);
+        turnPID.TurnRobot(95, telemetry);
+        why.DriveReverse(80);
+        why.StrafeRight(29);
+    }
+
+    private void frontstageCenter() {
+        why.StrafeLeft(7);
+        why.DriveReverse(24);
+        turnPID.TurnRobot(95, telemetry);
+        why.DriveReverse(87);
+        why.StrafeRight(22);
+    }
+
+    private void frontstageRight() {
+        turnPID.TurnRobot(60, telemetry);
+        why.StrafeRight(4.5);
+        why.DriveReverse(34);
+        sleep(250);
+        turnPID.TurnRobot(90, telemetry);
+        why.DriveReverse(78);
+        why.StrafeRight(20.5);
+    }
+
+    private void navFrontstage(
+            MultitaskScheduler scheduler,
+            AdvSphereProcess.Result cvResult
+    ) {
+        switch (cvResult) {
+            case Left:
+                frontstageLeft();
+                break;
+            case Center:
+            case None:
+            default:
+                frontstageCenter();
+                break;
+            case Right:
+                frontstageRight();
+                break;
         }
     }
 
@@ -478,5 +579,15 @@ public abstract class TwentyAuto extends LinearOpMode {
         MoveRight,
         NoParking,
         OtherParking
+    }
+
+    public enum AllianceColor {
+        Red,
+        Blue
+    }
+
+    public enum FieldGlobalPosition {
+        Frontstage,
+        Backstage
     }
 }

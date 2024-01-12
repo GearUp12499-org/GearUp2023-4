@@ -12,8 +12,13 @@ public class TwentyAutoRedLeft extends TwentyAuto {
     }
 
     @Override
-    protected StartPosition positionConf() {
-        return StartPosition.LeftOfTruss;
+    protected AllianceColor allianceColor() {
+        return AllianceColor.Red;
+    }
+
+    @Override
+    protected FieldGlobalPosition globalPosition() {
+        return FieldGlobalPosition.Frontstage;
     }
 
     @Override

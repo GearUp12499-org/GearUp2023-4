@@ -45,9 +45,9 @@ class KOdometryDrive(
         // previous version of this curve @ 9405a9d1f89cb164c81c14ca659724933698ae92
         val StrafingCurve = QuadraticDownRamps(
             .1,
-            .1, // TODO: is this too low?
+            .1,
             StrafingMaxSpeed,
-            0.0,
+            .5, // in SECONDS, not inches
             8.0,
         )
 
@@ -206,7 +206,7 @@ class KOdometryDrive(
 
                 val lCorrect = kpStr * lErr + kiStr * sumErrorLeft
                 val rCorrect = kpStr * rErr + kiStr * sumErrorRight
-                val speed = StrafingCurve.ramp(sDist, target - sDist) * switcher
+                val speed = StrafingCurve.ramp(timeoutT.time(), target - sDist) * switcher
                 Log.i("Encoders", String.format("L %+.4f  R %+.4f  P %+.4f", lErr, rErr, sDist))
                 if (abs(lCorrect) > 1 || abs(rCorrect) > 1) {
                     // uh oh!!!
