@@ -31,7 +31,7 @@ public class BlueTeamProp implements VisionProcessor {
     public Object processFrame(Mat frame, long captureTimeNanos) {
         Imgproc.cvtColor(frame, rgbResult, Imgproc.COLOR_BGR2RGB);
         Imgproc.cvtColor(rgbResult, hsvResult, Imgproc.COLOR_RGB2HSV);
-        
+
         return null;
     }
 

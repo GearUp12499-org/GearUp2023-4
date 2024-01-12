@@ -54,7 +54,8 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
             : DcMotor? = map.typedMaybeGet("drone")
 
 
-    override val driveMotors: MotorSet<DcMotor> = MotorSet(frontLeft, frontRight, backLeft, backRight)
+    override val driveMotors: MotorSet<DcMotor> =
+        MotorSet(frontLeft, frontRight, backLeft, backRight)
     override val driveMotorLock: SharedResource
         get() = SharedResource("driveMotors") {
             driveMotors.setAll(

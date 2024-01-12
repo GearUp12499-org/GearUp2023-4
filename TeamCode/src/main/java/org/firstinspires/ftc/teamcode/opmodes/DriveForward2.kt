@@ -10,7 +10,6 @@ import org.firstinspires.ftc.teamcode.odo.EncoderMath.tick2inch
 import org.firstinspires.ftc.teamcode.odo.KOdometryDrive
 import org.firstinspires.ftc.teamcode.odo.TurnPID
 import org.firstinspires.ftc.teamcode.utilities.feet
-import org.firstinspires.ftc.teamcode.utilities.inches
 
 @TeleOp
 class DriveForward2 : LinearOpMode() {

@@ -87,7 +87,7 @@ data class MotorPowers(
     }
 }
 
-data class MotorSet<out T: DcMotor>(
+data class MotorSet<out T : DcMotor>(
     @JvmField val frontLeft: T,
     @JvmField val frontRight: T,
     @JvmField val backLeft: T,

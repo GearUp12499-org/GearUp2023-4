@@ -19,6 +19,7 @@ class AprilTagUpdateTool(
     companion object {
         val CameraOffset = Move(6.75.inches, 0.inches, 0.radians)
     }
+
     var acquired: Boolean = false
         private set
     private var lastReadData: AprilTagPoseFtc? = null

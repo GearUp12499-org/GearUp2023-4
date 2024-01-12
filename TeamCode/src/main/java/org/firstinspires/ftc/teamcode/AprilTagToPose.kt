@@ -16,6 +16,10 @@ val tagPositions = mapOf(
     1 to Vector2(29.5, DISTANCE_FROM_FRONT),
     2 to Vector2(35.5, DISTANCE_FROM_FRONT),
     3 to Vector2(41.5, DISTANCE_FROM_FRONT),
+
+    4 to Vector2(101.5, DISTANCE_FROM_FRONT),
+    5 to Vector2(107.5, DISTANCE_FROM_FRONT),
+    6 to Vector2(113.5, DISTANCE_FROM_FRONT),
 )
 
 /**
@@ -53,7 +57,8 @@ fun detectPairToPose(first: AprilTagDetection, second: AprilTagDetection): Pose 
 
 fun detectSingleToPose(detection: AprilTagDetection): Pose {
     val k = detection.ftcPose.range
-    val criticalAngle: Double = (-detection.ftcPose.yaw.degrees.to.radians.value) + (detection.ftcPose.bearing.degrees.to.radians.value)
+    val criticalAngle: Double =
+        (-detection.ftcPose.yaw.degrees.to.radians.value) + (detection.ftcPose.bearing.degrees.to.radians.value)
     // the yaw happens to be the angle at the camera
     // such that the two legs of a right triangle w/ phi are aligned with the tag
     val globalX = k * sin(criticalAngle) // would be Y rel. to camera

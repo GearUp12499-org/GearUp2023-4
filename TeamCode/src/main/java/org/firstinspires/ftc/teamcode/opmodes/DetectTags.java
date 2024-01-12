@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import static org.firstinspires.ftc.teamcode.utilities.CollectionUtils.pairs;
-
-import android.util.Pair;
 import android.util.Size;
 
 import com.acmerobotics.dashboard.FtcDashboard;

@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.odo.DriveForwardPID;
 import org.firstinspires.ftc.teamcode.odo.TurnPID;
 
 @Autonomous
-public class TwentyBlueRightTest extends LinearOpMode{
+public class TwentyBlueRightTest extends LinearOpMode {
     private DriveForwardPID forwardPID;
     private TurnPID turnPID;
     private RobotConfiguration robot;

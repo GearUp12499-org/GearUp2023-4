@@ -13,19 +13,18 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.external.Consumer;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.teamcode.Var;
 import org.firstinspires.ftc.teamcode.abstractions.ApproachObject2;
 import org.firstinspires.ftc.teamcode.abstractions.Dumper;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
-import org.firstinspires.ftc.teamcode.odo.AprilTagUpdateTool;
 import org.firstinspires.ftc.teamcode.odo.DriveForwardPID;
-import org.firstinspires.ftc.teamcode.odo.ExtractedDriveToTag;
 import org.firstinspires.ftc.teamcode.odo.KOdometryDrive;
-import org.firstinspires.ftc.teamcode.odo.OdoTracker;
 import org.firstinspires.ftc.teamcode.odo.SyncFail;
 import org.firstinspires.ftc.teamcode.odo.TurnPID;
 import org.firstinspires.ftc.teamcode.utilities.DegreeUnit;
+import org.firstinspires.ftc.teamcode.utilities.FootUnit;
 import org.firstinspires.ftc.teamcode.utilities.InchUnit;
 import org.firstinspires.ftc.teamcode.utilities.LengthUnit;
 import org.firstinspires.ftc.teamcode.utilities.Move;
@@ -40,11 +39,10 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.BiConsumer;
 
 import dev.aether.collaborative_multitasking.MultitaskScheduler;
-import dev.aether.collaborative_multitasking.Task;
 import dev.aether.collaborative_multitasking.ext.TimingKt;
-import kotlin.Pair;
 
 public abstract class TwentyAuto extends LinearOpMode {
     private VisionPortal portal;
@@ -67,6 +65,10 @@ public abstract class TwentyAuto extends LinearOpMode {
         tagXPositions.put(1, 29.5);
         tagXPositions.put(2, 35.5);
         tagXPositions.put(3, 41.5);
+
+        tagXPositions.put(4, 101.5);
+        tagXPositions.put(5, 107.5);
+        tagXPositions.put(6, 113.5);
     }
 
     /**
@@ -121,13 +123,13 @@ public abstract class TwentyAuto extends LinearOpMode {
 
     void centerRight() {
         RobotLog.ii("TwentyAuto", "CENTER");
-        why.DriveReverse(24.0, telemetry);
+        why.DriveReverse(27.0, telemetry);
         placePixel();
     }
 
     void unCenterRight() {
         RobotLog.ii("TwentyAuto", "CENTER");
-        why.DriveForward(21.0, telemetry);
+        why.DriveForward(23.0, telemetry);
     }
 
     void rightRight() {
@@ -266,11 +268,6 @@ public abstract class TwentyAuto extends LinearOpMode {
         turnPID = new TurnPID(robot);
         KOdometryDrive newOdo = new KOdometryDrive(scheduler, robot);
         why = new SyncFail(scheduler, newOdo);
-        OdoTracker tracker = new OdoTracker(robot, Pose.zero);
-        AprilTagUpdateTool trackerTagUpdate = new AprilTagUpdateTool(aprilTag, 2);
-        ExtractedDriveToTag driveToTag = new ExtractedDriveToTag(
-                robot, trackerTagUpdate, tracker, 2, telemetry
-        );
         ApproachObject2 theXButton = new ApproachObject2(scheduler, robot);
         Dumper dumper = new Dumper(scheduler, robot);
 
@@ -309,14 +306,6 @@ public abstract class TwentyAuto extends LinearOpMode {
         telemetry.addData("Action", result);
         telemetry.update();
 
-//        if (modeConf() == AdvSphereProcess.Mode.Blue && positionConf() == StartPosition.LeftOfTruss) {
-//
-//            while (opModeIsActive()) {
-//                sleep(100);
-//            }
-//            return;
-//        }
-
         boolean posLeft = positionConf() == StartPosition.LeftOfTruss;
         Runnable left = posLeft ? this::leftLeft : this::leftRight;
         Runnable undoLeft = posLeft ? this::unLeftLeft : this::unLeftRight;
@@ -344,6 +333,8 @@ public abstract class TwentyAuto extends LinearOpMode {
                 break;
         }
 
+        if (!posLeft) targetTag += 3;
+
         if (shouldUndo) {
             switch (result) {
                 case Left:
@@ -364,58 +355,48 @@ public abstract class TwentyAuto extends LinearOpMode {
             double modifier = parkingConf() == Parking.MoveLeft ? 1 : -1;
             turnPID.TurnRobot(modifier * 90.0, telemetry);
             sleep(100);
-            if (modeConf() == AdvSphereProcess.Mode.Red) {
-                why.DriveReverse(32.0);
-                Task t1 = scheduler.task((x) -> {
-                    x.onStart(() -> {
-                        robot.liftLeft().setTargetPosition(1000);
-                        return kvoid;
-                    });
-                    x.isCompleted(() -> Math.abs(robot.liftLeft().getCurrentPosition() - 1000) < 50);
-                    return kvoid;
-                });
-                Pair<Task, Task> beforeAfter = dumper.autoDumpSecond();
-                t1
-                        .then(beforeAfter)
-                        .then((x) -> {
-                            TimingKt.maxDuration(x, 500);
-                            return kvoid;
-                        })
-                        .then(dumper.autoReset())
-                        .then(newOdo.driveForward(new InchUnit(2)))
-                        .then((x) -> {
-                            x.onStart(() -> {
-                                robot.liftLeft().setTargetPosition(0);
-                                return kvoid;
-                            });
-                            x.isCompleted(() -> Math.abs(robot.liftLeft().getCurrentPosition()) < 50);
-                            return kvoid;
-                        });
-                scheduler.runToCompletion(this::opModeIsActive);
-                return;
-            }
             why.DriveReverse(19.0, telemetry, 5.0);
             // Left: 9.5", Center: 15", Right: 21.5"
 
+            int nearMedFar;
             switch (result) {
                 case Left:
-                    newOdo.strafeLeft(
-                            new InchUnit(11.0).plus(Var.AutoPositions.RobotWidth.div(2))
-                    );
+                    nearMedFar = 0;
                     break;
                 case None:
                 case Center:
-                    newOdo.strafeLeft(
+                default:
+                    nearMedFar = 1;
+                    break;
+                case Right:
+                    nearMedFar = 2;
+                    break;
+            }
+
+            if (!posLeft) nearMedFar = 2 - nearMedFar;
+
+            Consumer<LengthUnit> awayFromWall =
+                    posLeft ? newOdo::strafeLeft : newOdo::strafeRight;
+            BiConsumer<LengthUnit, Double> toWallWithTimeout =
+                    posLeft ? newOdo::strafeRight : newOdo::strafeLeft;
+
+            switch (nearMedFar) {
+                case 0:
+                    awayFromWall.accept(
+                            new InchUnit(11.0).plus(Var.AutoPositions.RobotWidth.div(2))
+                    );
+                    break;
+                case 1:
+                default:
+                    awayFromWall.accept(
                             new InchUnit(16.5).plus(Var.AutoPositions.RobotWidth.div(2))
                     );
                     break;
-                case Right:
-                    newOdo.strafeLeft(
+                case 2:
+                    awayFromWall.accept(
                             new InchUnit(23.0).plus(Var.AutoPositions.RobotWidth.div(2))
                     );
                     break;
-                default:
-                    throw new IllegalStateException();
             }
             scheduler.runToCompletion(this::opModeIsActive);
 
@@ -427,18 +408,14 @@ public abstract class TwentyAuto extends LinearOpMode {
             scoreYellowPixel(scheduler, robot, theXButton, newOdo);
 
             LengthUnit strafeMotion = new InchUnit(tagXPositions.getOrDefault(targetTag, 35.5));
+            if (!posLeft) strafeMotion = new FootUnit(12).minus(strafeMotion);
             strafeMotion = strafeMotion
                     .minus(Var.AutoPositions.RobotWidth.div(2))
                     .minus(new InchUnit(2));
 
-            newOdo.strafeRight(strafeMotion, 3.0);
+            toWallWithTimeout.accept(strafeMotion, 3.0);
             scheduler.runToCompletion(this::opModeIsActive);
 
-//            robot.liftLeft().setTargetPosition(1000);
-
-            // encoder ticks
-            int target = 1000;
-            int acceptError = 50;
             /*
              * 1. go to the target position within the acceptError
              * 2. dump the box
