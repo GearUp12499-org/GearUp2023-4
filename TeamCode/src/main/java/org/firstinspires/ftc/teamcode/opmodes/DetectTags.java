@@ -12,7 +12,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.AprilTagToPoseKt;
+import org.firstinspires.ftc.teamcode.utilities.InchUnit;
+import org.firstinspires.ftc.teamcode.utilities.Move;
 import org.firstinspires.ftc.teamcode.utilities.Pose;
+import org.firstinspires.ftc.teamcode.utilities.RadianUnit;
 import org.firstinspires.ftc.teamcode.utilities.Vector2;
 import org.firstinspires.ftc.teamcode.vision.AdvSphereProcess;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -30,6 +33,12 @@ public class DetectTags extends LinearOpMode {
     public static final Map<Integer, Vector2> TAG_POSITION = new HashMap<>();
     // Change this if you switch the angle mode on the AprilTags.
     private static final double APRIL_TAG_ANGLE_CONVERSION_FACTOR = Math.PI / 180.0;
+
+    public static final Move cameraAdjustment = new Move(
+            new InchUnit(6.75),
+            new InchUnit(0),
+            new RadianUnit(0)
+    );
 
     static {
         final double DISTANCE_FROM_WALL = 10.75/* in */;
@@ -67,18 +76,11 @@ public class DetectTags extends LinearOpMode {
                     telemetry.addData("Visible Tags", Arrays.toString(detections.stream().map(k -> k.id).toArray()));
                     for (AprilTagDetection detection : detections) {
                         telemetry.addData("with", detection.id);
-                        Pose solution = AprilTagToPoseKt.detectSingleToPose(detection);
+                        Pose solution = AprilTagToPoseKt.detectSingleToPose(detection)
+                                .transform(cameraAdjustment);
                         telemetry.addLine(solution.toString());
                         telemetry.addLine();
 
-                    }
-
-                    List<Pair<AprilTagDetection, AprilTagDetection>> pairs = pairs(aprilTag.getDetections());
-                    for (Pair<AprilTagDetection, AprilTagDetection> pair : pairs) {
-                        telemetry.addData("with", pair.first.id + " and " + pair.second.id);
-                        Pose solution = AprilTagToPoseKt.detectPairToPose(pair.first, pair.second);
-                        telemetry.addLine(solution.toString());
-                        telemetry.addLine();
                     }
                     telemetry.update();
                     sleep(1000);

@@ -1,8 +1,11 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import static org.firstinspires.ftc.teamcode.AprilTagToPoseKt.detectSingleToPose;
 import static org.firstinspires.ftc.teamcode.opmodes.TeleOp.kvoid;
 
 import android.util.Size;
+
+import androidx.annotation.Nullable;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -22,13 +25,20 @@ import org.firstinspires.ftc.teamcode.odo.KOdometryDrive;
 import org.firstinspires.ftc.teamcode.odo.OdoTracker;
 import org.firstinspires.ftc.teamcode.odo.SyncFail;
 import org.firstinspires.ftc.teamcode.odo.TurnPID;
+import org.firstinspires.ftc.teamcode.utilities.DegreeUnit;
 import org.firstinspires.ftc.teamcode.utilities.InchUnit;
+import org.firstinspires.ftc.teamcode.utilities.LengthUnit;
+import org.firstinspires.ftc.teamcode.utilities.Move;
 import org.firstinspires.ftc.teamcode.utilities.Pose;
+import org.firstinspires.ftc.teamcode.utilities.RadianUnit;
 import org.firstinspires.ftc.teamcode.vision.AdvSphereProcess;
 import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 
 import dev.aether.collaborative_multitasking.MultitaskScheduler;
@@ -44,6 +54,20 @@ public abstract class TwentyAuto extends LinearOpMode {
     private TurnPID turnPID;
     private SyncFail why;
     private RobotConfiguration robot;
+
+    public static final Move cameraAdjustment = new Move(
+            new InchUnit(6.75),
+            new InchUnit(0),
+            new RadianUnit(0)
+    );
+
+    private static final HashMap<Integer, Double> tagXPositions = new HashMap<>();
+
+    static {
+        tagXPositions.put(1, 29.5);
+        tagXPositions.put(2, 35.5);
+        tagXPositions.put(3, 41.5);
+    }
 
     /**
      * Detection mode (Red or Blue.)
@@ -190,6 +214,47 @@ public abstract class TwentyAuto extends LinearOpMode {
         scheduler.runToCompletion(this::opModeIsActive);
     }
 
+    /**
+     * ideally wait 100ms before calling.
+     *
+     * @param aprilTag april tag vision source.
+     * @param targetID target tag id.
+     */
+    private void alignTag(AprilTagProcessor aprilTag, int targetID) {
+        // Rotate right by theta + 90deg
+        List<AprilTagDetection> detections = aprilTag.getDetections();
+        @Nullable AprilTagDetection primary = null;
+        for (AprilTagDetection detection : detections) {
+            if (detection.id == targetID) primary = detection;
+        }
+        if (primary == null) {
+            if (detections.size() > 0)
+                primary = detections.get(0);
+            else {
+                // uhhhh
+//                throw new IllegalStateException("what the hell am i supposed to do here");
+                return; // whelp
+            }
+        }
+
+        Pose posed = detectSingleToPose(primary).transform(cameraAdjustment);
+
+        double turnDegs = posed.getTheta()
+                .plus(new DegreeUnit(90))
+                .to().getDegrees()
+                .getValue();
+
+        turnPID.TurnRobot(-turnDegs, telemetry);
+        sleep(100);
+        // haha unboxing
+        Double t = tagXPositions.get(targetID);
+        if (t == null)
+            throw new IllegalArgumentException("Not sure what " + targetID + "'s tag position is");
+        double xPosition = t;
+
+        why.StrafeLeft(xPosition - posed.getX().getValue());
+    }
+
     @Override
     public void runOpMode() throws InterruptedException {
         // Get robot hardware configs
@@ -244,13 +309,13 @@ public abstract class TwentyAuto extends LinearOpMode {
         telemetry.addData("Action", result);
         telemetry.update();
 
-        if (modeConf() == AdvSphereProcess.Mode.Blue && positionConf() == StartPosition.LeftOfTruss) {
-            scoreYellowPixel(scheduler, robot, theXButton, newOdo);
-            while (opModeIsActive()) {
-                sleep(100);
-            }
-            return;
-        }
+//        if (modeConf() == AdvSphereProcess.Mode.Blue && positionConf() == StartPosition.LeftOfTruss) {
+//
+//            while (opModeIsActive()) {
+//                sleep(100);
+//            }
+//            return;
+//        }
 
         boolean posLeft = positionConf() == StartPosition.LeftOfTruss;
         Runnable left = posLeft ? this::leftLeft : this::leftRight;
@@ -278,8 +343,6 @@ public abstract class TwentyAuto extends LinearOpMode {
                 center.run();
                 break;
         }
-        trackerTagUpdate.setInitialTarget(targetTag);
-        driveToTag.setTargetPosition(targetTag);
 
         if (shouldUndo) {
             switch (result) {
@@ -333,41 +396,44 @@ public abstract class TwentyAuto extends LinearOpMode {
             }
             why.DriveReverse(19.0, telemetry, 5.0);
             // Left: 9.5", Center: 15", Right: 21.5"
-            Task navigateInFrontOfTag;
-
-            scheduler.task(tracker.getTaskFactory());
-            scheduler.task(trackerTagUpdate.updateTool(tracker));
-
 
             switch (result) {
                 case Left:
-                    navigateInFrontOfTag = newOdo.strafeLeft(
+                    newOdo.strafeLeft(
                             new InchUnit(11.0).plus(Var.AutoPositions.RobotWidth.div(2))
                     );
                     break;
                 case None:
                 case Center:
-                    navigateInFrontOfTag = newOdo.strafeLeft(
+                    newOdo.strafeLeft(
                             new InchUnit(16.5).plus(Var.AutoPositions.RobotWidth.div(2))
                     );
                     break;
                 case Right:
-                    navigateInFrontOfTag = newOdo.strafeLeft(
+                    newOdo.strafeLeft(
                             new InchUnit(23.0).plus(Var.AutoPositions.RobotWidth.div(2))
                     );
                     break;
                 default:
                     throw new IllegalStateException();
             }
-            navigateInFrontOfTag
-                    .then(e -> {
-                        TimingKt.maxDuration(e, 200);
-                        return kvoid;
-                    })
-                    .then(driveToTag.getTaskFactory())
-                    .then(theXButton.approach(new InchUnit(3.5)));
-
             scheduler.runToCompletion(this::opModeIsActive);
+
+            sleep(200);
+
+            alignTag(aprilTag, targetTag);
+            sleep(200);
+            alignTag(aprilTag, targetTag);
+            scoreYellowPixel(scheduler, robot, theXButton, newOdo);
+
+            LengthUnit strafeMotion = new InchUnit(tagXPositions.getOrDefault(targetTag, 35.5));
+            strafeMotion = strafeMotion
+                    .minus(Var.AutoPositions.RobotWidth.div(2))
+                    .minus(new InchUnit(2));
+
+            newOdo.strafeRight(strafeMotion, 3.0);
+            scheduler.runToCompletion(this::opModeIsActive);
+
 //            robot.liftLeft().setTargetPosition(1000);
 
             // encoder ticks
@@ -382,34 +448,21 @@ public abstract class TwentyAuto extends LinearOpMode {
              *
              * run to completion.
              */
-            Task t1 = scheduler.task((x) -> {
-                x.onStart(() -> {
-                    robot.liftLeft().setTargetPosition(target);
+            robot.dumperRotate().setPosition(Var.Box.idleRotate);
+            scheduler.task(e -> {
+                TimingKt.maxDuration(e, 300);
+                return kvoid;
+            }).then(e -> {
+                e.require(robot.getLiftLock());
+                e.onStart(() -> {
+                    robot.liftLeft().setTargetPosition(0);
+                    robot.liftRight().setTargetPosition(0);
                     return kvoid;
                 });
-                x.isCompleted(() -> Math.abs(robot.liftLeft().getCurrentPosition() - target) < acceptError);
+                e.isCompleted(() ->
+                        !(robot.liftLeft().isBusy() || robot.liftRight().isBusy()));
                 return kvoid;
             });
-            Pair<Task, Task> beforeAfter = dumper.autoDumpSecond();
-            t1.then(beforeAfter.getFirst());
-            beforeAfter.getSecond()
-                    .then((x) -> {
-                        TimingKt.maxDuration(x, 500);
-                        return kvoid;
-                    })
-                    .then(dumper.autoReset())
-                    .then(newOdo.driveForward(new InchUnit(2)))
-                    .then((x) -> {
-                        x.onStart(() -> {
-                            robot.liftLeft().setTargetPosition(0);
-                            return kvoid;
-                        });
-                        x.isCompleted(() -> Math.abs(robot.liftLeft().getCurrentPosition()) < acceptError);
-                        return kvoid;
-                    })
-                    // TODO: make this number depend on detection result
-                    .then(newOdo.strafeRight(new InchUnit(24)));
-            // TODO: Potentially back up to be sure
 
             scheduler.runToCompletion(this::opModeIsActive);
         }
