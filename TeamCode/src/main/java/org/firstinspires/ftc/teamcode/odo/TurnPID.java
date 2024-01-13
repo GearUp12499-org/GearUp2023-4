@@ -5,7 +5,6 @@ import android.util.Log;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
@@ -53,7 +52,7 @@ public class TurnPID {
     /**
      * deg > 0 = counter-clockwise
      */
-    public void TurnRobot(double degrees, Telemetry telemetry) {
+    public void TurnRobot(double degrees) {
         double radius = 7.5;
         double l_base = LeftOdoDist();
         double r_base = RightOdoDist();
@@ -83,10 +82,10 @@ public class TurnPID {
                 driveMotors.frontLeft.setPower(-speed - correction);
                 driveMotors.frontRight.setPower(speed + correction);
                 driveMotors.backRight.setPower(speed + correction);
-                telemetry.addData("Right Odometry: ", r_dist);
-                telemetry.addData("Left Odometry: ", l_dist);
-                telemetry.addData("Error: ", error);
-                telemetry.update();
+//                telemetry.addData("Right Odometry: ", r_dist);
+//                telemetry.addData("Left Odometry: ", l_dist);
+//                telemetry.addData("Error: ", error);
+//                telemetry.update();
             }
             driveMotors.setAll(0);
         } else {
@@ -110,9 +109,9 @@ public class TurnPID {
                 //Turns right, which means negative degrees according to the unit circle
                 driveMotors.frontRight.setPower(-speed - correction);
                 driveMotors.backRight.setPower(-speed - correction);
-                telemetry.addData("Right Odometry: ", r_base - RightOdoDist());
-                telemetry.addData("Left Odometry: ", LeftOdoDist() - l_base);
-                telemetry.update();
+//                telemetry.addData("Right Odometry: ", r_base - RightOdoDist());
+//                telemetry.addData("Left Odometry: ", LeftOdoDist() - l_base);
+//                telemetry.update();
             }
             driveMotors.setAll(0);
         }

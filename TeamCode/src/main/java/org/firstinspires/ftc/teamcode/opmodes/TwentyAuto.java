@@ -52,6 +52,11 @@ public abstract class TwentyAuto extends LinearOpMode {
     private SyncFail why;
     private RobotConfiguration robot;
 
+    private static final double RedArrivalTime = 2.5;
+
+    private double clearDuration = 0.0;
+    private ElapsedTime timer = new ElapsedTime();
+
     public static final Move cameraAdjustment = new Move(
             new InchUnit(6.75),
             new InchUnit(0),
@@ -125,7 +130,7 @@ public abstract class TwentyAuto extends LinearOpMode {
     void leftRight() {
         RobotLog.ii("TwentyAuto", "LEFT");
         why.DriveReverse(21.0, telemetry);
-        turnPID.TurnRobot(45.0, telemetry);
+        turnPID.TurnRobot(45.0);
         why.DriveReverse(3.0, telemetry);
         placePixel();
     }
@@ -133,7 +138,7 @@ public abstract class TwentyAuto extends LinearOpMode {
     void unLeftRight() {
         RobotLog.ii("TwentyAuto", "LEFT");
         why.DriveForward(3.0, telemetry);
-        turnPID.TurnRobot(-45.0, telemetry);
+        turnPID.TurnRobot(-45.0);
         why.DriveForward(17.0, telemetry);
     }
 
@@ -151,13 +156,13 @@ public abstract class TwentyAuto extends LinearOpMode {
     void rightRight() {
         RobotLog.ii("TwentyAuto", "RIGHT");
         why.DriveReverse(16.0, telemetry);
-        turnPID.TurnRobot(-60.0, telemetry);
+        turnPID.TurnRobot(-60.0);
         placePixel();
     }
 
     void unRightRight() {
         RobotLog.ii("TwentyAuto", "RIGHT");
-        turnPID.TurnRobot(60.0, telemetry);
+        turnPID.TurnRobot(60.0);
         sleep(250);
         why.DriveForward(12.0, telemetry);
     }
@@ -165,41 +170,41 @@ public abstract class TwentyAuto extends LinearOpMode {
     void leftLeft() {
         RobotLog.ii("TwentyAuto", "LEFT");
         why.DriveReverse(17.0, telemetry);
-        turnPID.TurnRobot(5.0, telemetry);
+        turnPID.TurnRobot(5.0);
         placePixel();
     }
 
     void unLeftLeft() {
         RobotLog.ii("TwentyAuto", "LEFT");
-        turnPID.TurnRobot(-5.0, telemetry);
+        turnPID.TurnRobot(-5.0);
         why.DriveForward(13.0, telemetry);
     }
 
     void centerLeft() {
         RobotLog.ii("TwentyAuto", "CENTER");
         why.DriveReverse(24.0, telemetry);
-        turnPID.TurnRobot(-20.0, telemetry);
+        turnPID.TurnRobot(-20.0);
         placePixel();
     }
 
     void unCenterLeft() {
         RobotLog.ii("TwentyAuto", "LEFT");
-        turnPID.TurnRobot(20.0, telemetry);
+        turnPID.TurnRobot(20.0);
         why.DriveForward(20.0, telemetry);
     }
 
     void rightLeft() {
         RobotLog.ii("TwentyAuto", "RIGHT");
         why.DriveReverse(20.0, telemetry);
-        turnPID.TurnRobot(-90.0, telemetry);
-        why.DriveReverse(2.0, telemetry);
+        turnPID.TurnRobot(-90.0);
+        why.DriveReverse(4.0, telemetry);
         placePixel();
     }
 
     void unRightLeft() {
         RobotLog.ii("TwentyAuto", "RIGHT");
         why.DriveForward(2.0, telemetry);
-        turnPID.TurnRobot(90.0, telemetry);
+        turnPID.TurnRobot(90.0);
         why.DriveForward(16.0, telemetry);
     }
 
@@ -264,7 +269,7 @@ public abstract class TwentyAuto extends LinearOpMode {
                 .to().getDegrees()
                 .getValue();
 
-        turnPID.TurnRobot(-turnDegs, telemetry);
+        turnPID.TurnRobot(-turnDegs);
         sleep(100);
         // haha unboxing
         Double t = tagXPositions.get(targetID);
@@ -292,6 +297,16 @@ public abstract class TwentyAuto extends LinearOpMode {
         robot.clearEncoders();
         robot.purpleDropper().setPosition(Var.PixelDropper.up);
 
+        double buttonRepeatDelay = 0.4;
+        double buttonRepeatRate = 0.2;
+        double maxAwait = 22.0;
+
+        ElapsedTime dUpRepeat = new ElapsedTime();
+        double upNextInterval = buttonRepeatRate;
+        boolean lastDUp = false;
+        ElapsedTime dDownRepeat = new ElapsedTime();
+        double downNextInterval = buttonRepeatRate;
+        boolean lastDDown = false;
 
         // Display current detection results
         while (opModeInInit()) {
@@ -312,10 +327,50 @@ public abstract class TwentyAuto extends LinearOpMode {
                     sphere.getCirclesCenter(),
                     sphere.getCirclesRight()
             ));
+            telemetry.addLine();
+            telemetry.addLine("Configuration (GP1)");
+            telemetry.addData("TimeToPartnerCleared", clearDuration);
+            telemetry.addLine("dpad +/- 1s");
             telemetry.update();
+            if (gamepad1.dpad_up && !lastDUp) {
+                clearDuration += 1.0;
+                upNextInterval = 0.0;
+                dUpRepeat.reset();
+            }
+            if (gamepad1.dpad_up) {
+                double timer = dUpRepeat.time() - buttonRepeatDelay;
+                if (timer >= 0 && timer >= upNextInterval) {
+                    upNextInterval += buttonRepeatRate;
+                    clearDuration += 1.0;
+                }
+            }
+            if (gamepad1.dpad_down && !lastDDown) {
+                clearDuration -= 1.0;
+                downNextInterval = 0.0;
+                dDownRepeat.reset();
+            }
+            if (gamepad1.dpad_down) {
+                double timer = dDownRepeat.time() - buttonRepeatDelay;
+                if (timer >= 0 && timer >= downNextInterval) {
+                    downNextInterval += buttonRepeatRate;
+                    clearDuration -= 1.0;
+                }
+            }
+            if (clearDuration < 0) clearDuration = 0;
+            if (clearDuration > maxAwait) clearDuration = maxAwait;
+
+            lastDUp = gamepad1.dpad_up;
+            lastDDown = gamepad1.dpad_down;
         }
         waitForStart();
         if (!opModeIsActive()) return;
+
+        if (allianceColor() == AllianceColor.Red) {
+            clearDuration -= RedArrivalTime;
+        } else {
+            clearDuration -= RedArrivalTime; // TODO
+        }
+        timer.reset();
 
         // Capture the result
         AdvSphereProcess.Result result = sphere.getResult();
@@ -418,7 +473,8 @@ public abstract class TwentyAuto extends LinearOpMode {
 
             scheduler.runToCompletion(this::opModeIsActive);
         } else { // Frontstage scripts
-            navFrontstage(scheduler, result);
+            Consumer<Double> rightOnBlue = allianceColor() == AllianceColor.Blue ? why::StrafeRight : why::StrafeLeft;
+            navFrontstage(result, rightOnBlue);
 
             alignTag(aprilTag, targetTag);
             sleep(200);
@@ -462,7 +518,7 @@ public abstract class TwentyAuto extends LinearOpMode {
             Consumer<LengthUnit> doAwayFromWall
     ) {
         double modifier = parkingConf() == Parking.MoveLeft ? 1 : -1;
-        turnPID.TurnRobot(modifier * 90.0, telemetry);
+        turnPID.TurnRobot(modifier * 90.0);
         sleep(100);
         why.DriveReverse(19.0, telemetry, 5.0);
         // Left: 9.5", Center: 15", Right: 21.5"
@@ -505,51 +561,164 @@ public abstract class TwentyAuto extends LinearOpMode {
         scheduler.runToCompletion(this::opModeIsActive);
     }
 
+    public static final double[] frontstageTravelDistances = {18.5, 20.0, 27.0};
+
     private void frontstageLeft() {
-        turnPID.TurnRobot(-45.0, telemetry);
+        turnPID.TurnRobot(-45.0);
         why.StrafeLeft(2);
         why.DriveReverse(27);
         sleep(250);
-        turnPID.TurnRobot(95, telemetry);
-        why.DriveReverse(80);
-        why.StrafeRight(29);
+        turnPID.TurnRobot(95);
+        why.DriveReverse(48);
+        while (timer.time() < clearDuration) {
+            telemetry.addLine(String.format(
+                    Locale.getDefault(),
+                    "Waiting to continue %.2fs / %.2fs",
+                    timer.time(),
+                    clearDuration
+            ));
+            telemetry.update();
+            sleep(50);
+        }
+        why.DriveReverse(32);
+    }
+
+    private void frontstageLeftB() {
+        turnPID.TurnRobot(-5.0);
+        why.StrafeLeft(4);
+        why.DriveReverse(32);
+        sleep(250);
+        turnPID.TurnRobot(-95);
+        why.DriveReverse(48);
+        while (timer.time() < clearDuration) {
+            telemetry.addLine(String.format(
+                    Locale.getDefault(),
+                    "Waiting to continue %.2fs / %.2fs",
+                    timer.time(),
+                    clearDuration
+            ));
+            telemetry.update();
+            sleep(50);
+        }
+        why.DriveReverse(30);
     }
 
     private void frontstageCenter() {
         why.StrafeLeft(7);
         why.DriveReverse(24);
-        turnPID.TurnRobot(95, telemetry);
-        why.DriveReverse(87);
-        why.StrafeRight(22);
+        turnPID.TurnRobot(95);
+        why.DriveReverse(48);
+        while (timer.time() < clearDuration) {
+            telemetry.addLine(String.format(
+                    Locale.getDefault(),
+                    "Waiting to continue %.2fs / %.2fs",
+                    timer.time(),
+                    clearDuration
+            ));
+            telemetry.update();
+            sleep(50);
+        }
+        why.DriveReverse(39);
+    }
+
+    private void frontstageCenterB() {
+        turnPID.TurnRobot(20);
+        why.StrafeRight(18);
+        why.DriveReverse(24);
+        turnPID.TurnRobot(-90);
+        why.DriveReverse(72);
+        while (timer.time() < clearDuration) {
+            telemetry.addLine(String.format(
+                    Locale.getDefault(),
+                    "Waiting to continue %.2fs / %.2fs",
+                    timer.time(),
+                    clearDuration
+            ));
+            telemetry.update();
+            sleep(50);
+        }
+        why.DriveReverse(22);
     }
 
     private void frontstageRight() {
-        turnPID.TurnRobot(60, telemetry);
+        turnPID.TurnRobot(60);
         why.StrafeRight(4.5);
         why.DriveReverse(34);
         sleep(250);
-        turnPID.TurnRobot(90, telemetry);
-        why.DriveReverse(78);
-        why.StrafeRight(20.5);
+        turnPID.TurnRobot(90);
+        why.DriveReverse(48);
+        while (timer.time() < clearDuration) {
+            telemetry.addLine(String.format(
+                    Locale.getDefault(),
+                    "Waiting to continue %.2fs / %.2fs",
+                    timer.time(),
+                    clearDuration
+            ));
+            telemetry.update();
+            sleep(50);
+        }
+        why.DriveReverse(30);
+    }
+
+    private void frontstageRightB() {
+        why.DriveForward(2.0);
+        turnPID.TurnRobot(90);
+        why.DriveReverse(28);
+        sleep(250);
+        turnPID.TurnRobot(-90);
+        why.DriveReverse(48);
+        while (timer.time() < clearDuration) {
+            telemetry.addLine(String.format(
+                    Locale.getDefault(),
+                    "Waiting to continue %.2fs / %.2fs",
+                    timer.time(),
+                    clearDuration
+            ));
+            telemetry.update();
+            sleep(50);
+        }
+        why.DriveReverse(30);
     }
 
     private void navFrontstage(
-            MultitaskScheduler scheduler,
-            AdvSphereProcess.Result cvResult
+            AdvSphereProcess.Result cvResult,
+            Consumer<Double> rightOnBlue
     ) {
+        boolean main = allianceColor() == AllianceColor.Blue;
+
+        int travelDistanceIdx;
         switch (cvResult) {
             case Left:
-                frontstageLeft();
+                travelDistanceIdx = 2;
+                if (main)
+                    frontstageLeft();
+                else
+                    frontstageLeftB();
                 break;
             case Center:
             case None:
             default:
-                frontstageCenter();
+                travelDistanceIdx = 1;
+                if (main)
+                    frontstageCenter();
+                else
+                    frontstageCenterB();
                 break;
             case Right:
-                frontstageRight();
+                travelDistanceIdx = 0;
+                if (main)
+                    frontstageRight();
+                else
+                    frontstageRightB();
                 break;
         }
+
+        if (allianceColor() == AllianceColor.Red) {
+            travelDistanceIdx = 2 - travelDistanceIdx;
+        }
+
+        double distance = frontstageTravelDistances[travelDistanceIdx];
+        rightOnBlue.accept(distance);
     }
 
     void setupVision(CameraName camera) {
@@ -577,8 +746,7 @@ public abstract class TwentyAuto extends LinearOpMode {
     public enum Parking {
         MoveLeft,
         MoveRight,
-        NoParking,
-        OtherParking
+        NoParking
     }
 
     public enum AllianceColor {

@@ -34,14 +34,14 @@ public class TwentyBlueRightTest extends LinearOpMode {
         // Ctrl-Slash to comment lines
         /* Left spike marker BlueRightAuto */
         drivePID.DriveReverse(21.0, telemetry);
-        turnPID.TurnRobot(45.0, telemetry);
+        turnPID.TurnRobot(45.0);
         drivePID.DriveReverse(3.0, telemetry);
 
-        turnPID.TurnRobot(-45.0, telemetry);
+        turnPID.TurnRobot(-45.0);
         drivePID.strafeLeft(2, telemetry);
         drivePID.DriveReverse(25, telemetry);
         sleep(250);
-        turnPID.TurnRobot(95, telemetry);
+        turnPID.TurnRobot(95);
         drivePID.DriveReverse(80, telemetry);
         drivePID.strafeRight(27, telemetry);
 
@@ -50,18 +50,18 @@ public class TwentyBlueRightTest extends LinearOpMode {
 
         drivePID.strafeLeft(7, telemetry);
         drivePID.DriveReverse(24, telemetry);
-        turnPID.TurnRobot(95, telemetry);
+        turnPID.TurnRobot(95);
         drivePID.DriveReverse(87, telemetry);
         drivePID.strafeRight(22, telemetry);
 
         //Right spike marker BlueRightAuto
         why.DriveReverse(16.0, telemetry);
-        turnPID.TurnRobot(-60.0, telemetry);
-        turnPID.TurnRobot(60, telemetry);
+        turnPID.TurnRobot(-60.0);
+        turnPID.TurnRobot(60);
         why.StrafeRight(4.5, telemetry);
         why.DriveReverse(34, telemetry);
         sleep(250);
-        turnPID.TurnRobot(90, telemetry);
+        turnPID.TurnRobot(90);
         why.DriveReverse(78, telemetry);
         why.StrafeRight(20.5, telemetry);
 
