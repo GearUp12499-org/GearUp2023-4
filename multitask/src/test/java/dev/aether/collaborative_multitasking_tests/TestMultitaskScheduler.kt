@@ -53,7 +53,7 @@ internal class TestMultitaskScheduler {
         val task = scheduler.task {
             isCompleted { _, scheduler -> scheduler.getTicks() >= tickCount }
         }
-        scheduler.runToCompletion() // blocking
+        scheduler.runToCompletion { true } // blocking
         assertEquals(Task.State.Finished, task.state, "task not in Finished state")
         assert(scheduler.getTicks() >= tickCount) { "scheduler stopped early" }
     }
@@ -95,7 +95,7 @@ internal class TestMultitaskScheduler {
                 }
             }
         }
-        scheduler.runToCompletion()
+        scheduler.runToCompletion { true }
         assertNotEquals(null, task2start, "task2 not started")
         val task1finish = task1start!! + task1life
         assert(task2start!! >= task1finish) { "task2 started before task1 finished $task1finish $task2start" }
