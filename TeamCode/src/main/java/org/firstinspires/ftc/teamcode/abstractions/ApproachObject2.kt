@@ -16,6 +16,7 @@ class ApproachObject2(private val scheduler: MultitaskScheduler, robot: RobotCon
     companion object {
         const val kP = 0.1
         const val ACCEPTABLE_ERROR = 0.25
+        const val SensorOverflow = 100.0
     }
 
     private val motors = robot.driveMotors()
@@ -37,9 +38,26 @@ class ApproachObject2(private val scheduler: MultitaskScheduler, robot: RobotCon
         return scheduler.task {
             +dmLock
             var completed = false
+            var backupValue = 50.0
+            onStart { ->
+                // don't stop immediately lmao
+                backupValue = 50.0
+            }
             onTick { ->
-                val left = distanceLeft.getDistance(DistanceUnit.INCH)
-                val right = distanceRight.getDistance(DistanceUnit.INCH)
+                var left = distanceLeft.getDistance(DistanceUnit.INCH)
+                var right = distanceRight.getDistance(DistanceUnit.INCH)
+
+                if (left < SensorOverflow) backupValue = left
+                if (right < SensorOverflow) backupValue = right
+                if (left > SensorOverflow && right > SensorOverflow) {
+                    left = backupValue
+                    right = backupValue
+                } else if (left > SensorOverflow) {
+                    left = right
+                } else if (right > SensorOverflow) {
+                    right = left
+                }
+
                 val avg = (left + right) / 2.0
 
                 if (avg < di + ACCEPTABLE_ERROR) {
