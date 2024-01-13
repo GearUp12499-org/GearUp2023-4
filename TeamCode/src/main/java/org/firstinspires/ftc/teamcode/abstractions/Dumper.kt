@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.abstractions
 import dev.aether.collaborative_multitasking.MultitaskScheduler
 import dev.aether.collaborative_multitasking.Task
 import dev.aether.collaborative_multitasking.ext.maxDuration
-import org.firstinspires.ftc.teamcode.Var
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration
 
 class Dumper(
@@ -17,6 +16,12 @@ class Dumper(
     private val lock = config.dumperLock
 
     companion object {
+        // TODO get values
+        const val ROTATE_IDLE = 0.540
+        const val ROTATE_DUMP = 0.338
+        const val UNLATCHED = 0.4
+        const val LATCHED = 0.78
+
         // TODO trim timings
         const val RotateTime = 1000 // ms
         const val LatchTime = 200 // ms
@@ -37,8 +42,8 @@ class Dumper(
             +lock
             onStart { ->
                 dumperState = State.Dump
-                rotate.position = Var.Box.dumpRotate
-                latch.position = Var.Box.latched
+                rotate.position = ROTATE_DUMP
+                latch.position = LATCHED
             }
             maxDuration(RotateTime)
         }
@@ -51,8 +56,8 @@ class Dumper(
             +lock
             onStart { ->
                 dumperState = State.Dump
-                rotate.position = Var.Box.dumpRotate
-                latch.position = Var.Box.latched
+                rotate.position = ROTATE_DUMP
+                latch.position = LATCHED
             }
             maxDuration(RotateTime)
         }
@@ -61,7 +66,7 @@ class Dumper(
             +lock
             onStart { ->
                 dumperState = State.Dump2
-                latch.position = Var.Box.unlatched
+                latch.position = UNLATCHED
             }
             maxDuration(LatchTime)
         }
@@ -74,8 +79,8 @@ class Dumper(
             +lock
             onStart { ->
                 dumperState = State.Idle
-                rotate.position = Var.Box.idleRotate
-                latch.position = Var.Box.latched
+                rotate.position = ROTATE_IDLE
+                latch.position = LATCHED
             }
             maxDuration(RotateTime)
         }
@@ -84,8 +89,4 @@ class Dumper(
 
     val state: State get() = dumperState
 
-    fun defaultPos() {
-        rotate.position = Var.Box.idleRotate
-        latch.position = Var.Box.latched
-    }
 }

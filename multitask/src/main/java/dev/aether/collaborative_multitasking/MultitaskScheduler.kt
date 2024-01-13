@@ -119,7 +119,7 @@ class MultitaskScheduler : Scheduler() {
     }
 
     fun hasJobs(): Boolean {
-        return tasks.values.any { it.state != Task.State.Finished && !it.daemon }
+        return tasks.values.any { it.state != Task.State.Finished }
     }
 
     fun runToCompletion() {

@@ -1,13 +1,13 @@
 package org.firstinspires.ftc.tests
 
-import org.firstinspires.ftc.teamcode.opmodes.DriveToTagBacking
-import org.firstinspires.ftc.teamcode.opmodes.DriveToTagBacking.Companion.MAX_SPEED
-import org.firstinspires.ftc.teamcode.opmodes.DriveToTagBacking.Companion.MIN_SPEED
-import org.firstinspires.ftc.teamcode.opmodes.DriveToTagBacking.Companion.STOPPING_ANGLE
-import org.firstinspires.ftc.teamcode.opmodes.DriveToTagBacking.Companion.THRESHOLD_ANGLE
-import org.firstinspires.ftc.teamcode.opmodes.DriveToTagBacking.Companion.THRESHOLD_DISTANCE
-import org.firstinspires.ftc.teamcode.opmodes.DriveToTagBacking.Companion.cvtAngleToPower
-import org.firstinspires.ftc.teamcode.opmodes.DriveToTagBacking.Companion.cvtRangeToPower
+import org.firstinspires.ftc.teamcode.DriveToTagBacking
+import org.firstinspires.ftc.teamcode.DriveToTagBacking.Companion.MAX_SPEED
+import org.firstinspires.ftc.teamcode.DriveToTagBacking.Companion.MIN_SPEED
+import org.firstinspires.ftc.teamcode.DriveToTagBacking.Companion.STOPPING_ANGLE
+import org.firstinspires.ftc.teamcode.DriveToTagBacking.Companion.THRESHOLD_ANGLE
+import org.firstinspires.ftc.teamcode.DriveToTagBacking.Companion.THRESHOLD_DISTANCE
+import org.firstinspires.ftc.teamcode.DriveToTagBacking.Companion.cvtAngleToPower
+import org.firstinspires.ftc.teamcode.DriveToTagBacking.Companion.cvtRangeToPower
 import kotlin.math.abs
 import kotlin.test.Test
 
