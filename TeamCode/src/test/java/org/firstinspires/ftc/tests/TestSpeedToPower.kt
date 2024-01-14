@@ -49,7 +49,7 @@ class TestSpeedToPower {
     @Test
     fun `test positive spread`() {
         for (i in 1 until 100) {
-            assert(Move.rampSpeedToPower(i / 100.0) in (0.2).rangeTo(1.0)) {
+            assert(Move.rampSpeedToPower(i / 100.0) in (Move.RAMP_ALPHA).rangeTo(1.0)) {
                 "${Move.rampSpeedToPower(i / 100.0)} (for k=${i/100.0}) is too small"
             }
         }
@@ -58,7 +58,7 @@ class TestSpeedToPower {
     @Test
     fun `test negative spread`() {
         for (i in 1 until 100) {
-            assert(Move.rampSpeedToPower(i / -100.0) in (-1.0).rangeTo(-.2)) {
+            assert(Move.rampSpeedToPower(i / -100.0) in (-1.0).rangeTo(-Move.RAMP_ALPHA)) {
                 "${Move.rampSpeedToPower(i / -100.0)} (for k=${i / -100.0}) is too small"
             }
         }
