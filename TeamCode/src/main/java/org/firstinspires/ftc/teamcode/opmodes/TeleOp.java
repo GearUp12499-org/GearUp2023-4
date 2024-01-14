@@ -321,7 +321,8 @@ public class TeleOp extends LinearOpMode {
             telemetry.addData("Distance Driven Forward:",
                     OdoToInches((para2.getCurrentPosition() + para1.getCurrentPosition()) / 2.0));
             telemetry.addData("Inches Strafed: ", OdoToInches(robot.intake().getCurrentPosition()));
-            telemetry.addData("Slide Motor Ticks: ", slideTicks);
+            telemetry.addData("Left Slide Ticks", robot.liftLeft().getCurrentPosition());
+            telemetry.addData("Right Slide Ticks", robot.liftRight().getCurrentPosition());
             telemetry.addData("dt", "%.2f ms", dt * 1000);
             telemetry.addData("Heading", new RadianUnit(botHeading).to().getDegrees());
             telemetry.addData("Left Target", targetLeft);

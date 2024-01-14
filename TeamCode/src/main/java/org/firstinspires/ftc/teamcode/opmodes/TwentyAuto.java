@@ -144,13 +144,13 @@ public abstract class TwentyAuto extends LinearOpMode {
 
     void centerRight() {
         RobotLog.ii("TwentyAuto", "CENTER");
-        why.DriveReverse(27.0, telemetry);
+        why.DriveReverse(25.0, telemetry);
         placePixel();
     }
 
     void unCenterRight() {
         RobotLog.ii("TwentyAuto", "CENTER");
-        why.DriveForward(23.0, telemetry);
+        why.DriveForward(21.0, telemetry);
     }
 
     void rightRight() {
@@ -182,7 +182,7 @@ public abstract class TwentyAuto extends LinearOpMode {
 
     void centerLeft() {
         RobotLog.ii("TwentyAuto", "CENTER");
-        why.DriveReverse(24.0, telemetry);
+        why.DriveReverse(22.0, telemetry);
         turnPID.TurnRobot(-20.0);
         placePixel();
     }
@@ -190,7 +190,7 @@ public abstract class TwentyAuto extends LinearOpMode {
     void unCenterLeft() {
         RobotLog.ii("TwentyAuto", "LEFT");
         turnPID.TurnRobot(20.0);
-        why.DriveForward(20.0, telemetry);
+        why.DriveForward(18.0, telemetry);
     }
 
     void rightLeft() {
@@ -220,7 +220,7 @@ public abstract class TwentyAuto extends LinearOpMode {
                     TimingKt.minDuration(e, 100);
                     return kvoid;
                 })
-                .then(xButton.approach(new InchUnit(4.0)))
+                .then(xButton.approach(new InchUnit(3.0)))
                 .then(e -> {
                     TimingKt.delay(e, 200);
                     return kvoid;
@@ -233,7 +233,7 @@ public abstract class TwentyAuto extends LinearOpMode {
                     TimingKt.maxDuration(e, 1000);
                     return kvoid;
                 })
-                .then(drive.driveForward(new InchUnit(2.0)));
+                .then(drive.driveForward(new InchUnit(5.0)));
         scheduler.runToCompletion(this::opModeIsActive);
     }
 
@@ -257,6 +257,7 @@ public abstract class TwentyAuto extends LinearOpMode {
             else {
                 // uhhhh
 //                throw new IllegalStateException("what the hell am i supposed to do here");
+                Log.w("TwentyAuto", "OH SHIT WE CAN'T SEE THE TAGS");
                 return; // whelp
             }
         }
@@ -539,6 +540,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         }
 
         if (allianceColor() == AllianceColor.Red) nearMedFar = 2 - nearMedFar;
+        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
 
         switch (nearMedFar) {
             case 0:
@@ -570,6 +572,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         sleep(250);
         turnPID.TurnRobot(95);
         why.DriveReverse(48);
+        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
         while (timer.time() < clearDuration) {
             telemetry.addLine(String.format(
                     Locale.getDefault(),
@@ -590,6 +593,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         sleep(250);
         turnPID.TurnRobot(-95);
         why.DriveReverse(48);
+        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
         while (timer.time() < clearDuration) {
             telemetry.addLine(String.format(
                     Locale.getDefault(),
@@ -608,6 +612,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         why.DriveReverse(24);
         turnPID.TurnRobot(95);
         why.DriveReverse(48);
+        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
         while (timer.time() < clearDuration) {
             telemetry.addLine(String.format(
                     Locale.getDefault(),
@@ -627,6 +632,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         why.DriveReverse(24);
         turnPID.TurnRobot(-90);
         why.DriveReverse(72);
+        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
         while (timer.time() < clearDuration) {
             telemetry.addLine(String.format(
                     Locale.getDefault(),
@@ -647,6 +653,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         sleep(250);
         turnPID.TurnRobot(90);
         why.DriveReverse(48);
+        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
         while (timer.time() < clearDuration) {
             telemetry.addLine(String.format(
                     Locale.getDefault(),
@@ -667,6 +674,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         sleep(250);
         turnPID.TurnRobot(-90);
         why.DriveReverse(48);
+        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
         while (timer.time() < clearDuration) {
             telemetry.addLine(String.format(
                     Locale.getDefault(),
