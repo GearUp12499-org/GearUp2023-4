@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode.odo;
 import android.util.Log;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
@@ -19,7 +20,16 @@ public class TurnPID {
     DcMotor para2;
     DcMotor perp;
     double kp = 0.002;
+    double ki = 0.05;
+    public static final double RAMPS_DOWN = 18;
+    public static final double MAX_SPEED = 0.9;
+    public static final double MIN_SPEED_FINAL = 0.37;
 
+    public static double rampDown(double distToTarget) {
+        if (distToTarget <= 0) return 0.0; // return an epsilon instead of 0 here?
+        if (distToTarget >= RAMPS_DOWN) return MAX_SPEED;
+        else return (MAX_SPEED - MIN_SPEED_FINAL) * (distToTarget / RAMPS_DOWN) + MIN_SPEED_FINAL;
+    }
     public TurnPID(RobotConfiguration robot) {
         this.robot = robot;
         this.driveMotors = robot.driveMotors();
@@ -64,6 +74,7 @@ public class TurnPID {
         // 2 * pi * r * degrees/360
         double turnDist = 2 * Math.PI * radius * ((Math.abs(degrees) - errorFix) / 360.0);
         if (degrees > 0) {
+            ElapsedTime stopwatch = new ElapsedTime();
             while (true) {
                 // TURNING COUNTER-CLOCKWISE:
                 //  Left Encoder  : NEGATIVE
@@ -74,8 +85,11 @@ public class TurnPID {
 
                 if (average > turnDist - acceptableError) break;
                 double error = r_dist + l_dist; // could be negative (left wheel has turned more) or positive (right wheel has turned more)
+                double dt = stopwatch.time();
+                stopwatch.reset();
+                double overall_err = error * dt;
 
-                double correction = kp * error;
+                double correction = kp * error + ki * overall_err;
                 double speed = rampDown(turnDist - average);
                 Log.i("TurnPID", String.format("speed: %.2f / turnDist: %.2f average: %.2f / correction: %.4f", speed, turnDist, average, correction));
                 driveMotors.backLeft.setPower(-speed - correction);

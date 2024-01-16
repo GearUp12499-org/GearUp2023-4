@@ -193,9 +193,10 @@ public class DriveForwardPID {
         double overall_right = 0.0;
 
         while (timeout < 0 || timer.time() < timeout) {
-            double s_dist = StrafeOdoDist() - s_base;
+            double s_dist = StrafeOdoDist() - s_base; //Positive value since odo reads a positive value
             double l_err = LeftOdoDist() - l_base;
             double r_err = RightOdoDist() - r_base;
+            double error = l_err - r_err; // changed for polishing
 
             if (s_dist > target - acceptableError_S) break;
 
@@ -204,8 +205,8 @@ public class DriveForwardPID {
             overall_left += l_err * dt;
             overall_right += r_err * dt;
 
-            double left_correct = kp * l_err + ki * overall_left;
-            double right_correct = kp * r_err + ki * overall_right;
+            double left_correct = kp * error + ki * overall_left;
+            double right_correct = kp * error + ki * overall_right;
             double speed = strafeRamp.ramp(s_dist, target - s_dist);
 
             MotorPowers speeds = new MotorPowers(
@@ -241,7 +242,7 @@ public class DriveForwardPID {
         double overall_right = 0.0;
 
         while (timeout < 0 || timer.time() < timeout) {
-            double s_dist = s_base - StrafeOdoDist();
+            double s_dist = s_base - StrafeOdoDist(); // Positive number because we are subtracting a negative number
             double l_err = LeftOdoDist() - l_base;
             double r_err = RightOdoDist() - r_base;
 
