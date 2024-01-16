@@ -52,7 +52,7 @@ public abstract class TwentyAuto extends LinearOpMode {
     private SyncFail why;
     private RobotConfiguration robot;
 
-    private static final double RedArrivalTime = 2.5;
+    private static final double RedArrivalTime = .75;
 
     private double clearDuration = 0.0;
     private ElapsedTime timer = new ElapsedTime();
@@ -120,8 +120,8 @@ public abstract class TwentyAuto extends LinearOpMode {
         // interpolate.
         ElapsedTime dt = new ElapsedTime();
         dt.reset();
-        while (dt.time() < 1.0) {
-            robot.purpleDropper().setPosition(dt.time() * 0.1 + Var.PixelDropper.down);
+        while (dt.time() < 0.5) {
+            robot.purpleDropper().setPosition(dt.time() * 0.2 + Var.PixelDropper.down);
         }
         robot.purpleDropper().setPosition(Var.PixelDropper.back);
         sleep(500);
@@ -290,7 +290,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
         turnPID = new TurnPID(robot);
         KOdometryDrive newOdo = new KOdometryDrive(scheduler, robot);
-        why = new SyncFail(scheduler, newOdo);
+        why = new SyncFail(scheduler, newOdo, this::opModeIsActive);
         ApproachObject2 theXButton = new ApproachObject2(scheduler, robot);
         Dumper dumper = new Dumper(scheduler, robot);
 

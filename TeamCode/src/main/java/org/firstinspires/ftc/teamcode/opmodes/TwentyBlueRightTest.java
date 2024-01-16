@@ -27,7 +27,7 @@ public class TwentyBlueRightTest extends LinearOpMode {
         robot.clearEncoders();
         DriveForwardPID drivePID = new DriveForwardPID(robot);
         TurnPID turnPID = new TurnPID(robot);
-        SyncFail why = new SyncFail(scheduler, odo2);
+        SyncFail why = new SyncFail(scheduler, odo2, this::opModeIsActive);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         waitForStart();
         if (!opModeIsActive()) return;
