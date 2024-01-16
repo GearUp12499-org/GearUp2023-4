@@ -21,9 +21,6 @@ public class TurnPID {
     DcMotor perp;
     double kp = 0.002;
     double ki = 0.05;
-    public static final double RAMPS_DOWN = 18;
-    public static final double MAX_SPEED = 0.9;
-    public static final double MIN_SPEED_FINAL = 0.37;
 
     public static double rampDown(double distToTarget) {
         if (distToTarget <= 0) return 0.0; // return an epsilon instead of 0 here?
@@ -35,12 +32,6 @@ public class TurnPID {
         this.driveMotors = robot.driveMotors();
         this.para1 = robot.odoParallelLeft();
         this.para2 = robot.odoParallelRight();
-    }
-
-    public static double rampDown(double distToTarget) {
-        if (distToTarget <= 0) return 0.0;
-        if (distToTarget >= RAMPS_DOWN) return MAX_SPEED;
-        else return (MAX_SPEED - MIN_SPEED_FINAL) * (distToTarget / RAMPS_DOWN) + MIN_SPEED_FINAL;
     }
 
     public double ticksToInches(int ticks) {
