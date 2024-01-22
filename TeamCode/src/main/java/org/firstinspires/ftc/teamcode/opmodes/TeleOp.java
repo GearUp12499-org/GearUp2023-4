@@ -305,10 +305,10 @@ public class TeleOp extends LinearOpMode {
 
             if (gamepad2.left_trigger > Var.TeleOp.triggerPct) {
                 robot.intake().setPower(Var.TeleOp.intakePower);
-                intakeAssist.setPower(1.0);
+                intakeAssist.setPower(-1.0);
             } else if (gamepad2.right_trigger > Var.TeleOp.triggerPct) {
                 robot.intake().setPower(-Var.TeleOp.intakePower);
-                intakeAssist.setPower(-1.0);
+                intakeAssist.setPower(1.0);
             } else {
                 robot.intake().setPower(0);
                 intakeAssist.setPower(0);
