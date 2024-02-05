@@ -82,6 +82,10 @@ abstract class RobotConfiguration {
     fun odoParallelRight(): DcMotor = odoParallelRight
         ?: throw NullPointerException("Robot configuration has no Perpendicular Odometry Wheel.")
 
+    protected abstract val dropDownServo: Servo?
+    fun dropDownServo(): Servo = dropDownServo
+        ?: throw NullPointerException("Robot configuration has no Drop Down Servo.")
+
     private fun deviceStatus(name: String, device: Any?): String = "$name: " + when (device) {
         (device == null) -> "DISCONNECTED"
         is DcMotor -> "${device.mode} P${device.power}"

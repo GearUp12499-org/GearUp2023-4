@@ -89,6 +89,10 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
     override val odoParallelLeft: DcMotor = frontLeft
     override val odoParallelRight: DcMotor = frontRight
 
+    override val dropDownServo: Servo? by lazy {
+        map.typedMaybeGet("dropDown")
+    }
+
 
     init {
         setReverse(frontLeft)
