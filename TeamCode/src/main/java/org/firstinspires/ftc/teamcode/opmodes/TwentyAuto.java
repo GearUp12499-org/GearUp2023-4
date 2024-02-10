@@ -182,14 +182,14 @@ public abstract class TwentyAuto extends LinearOpMode {
 
     void centerLeft() {
         RobotLog.ii("TwentyAuto", "CENTER");
-        why.DriveReverse(22.0, telemetry);
+        why.DriveReverse(24.0, telemetry);
         turnPID.TurnRobot(-20.0);
         placePixel();
     }
 
     void unCenterLeft() {
         RobotLog.ii("TwentyAuto", "LEFT");
-        turnPID.TurnRobot(20.0);
+        turnPID.TurnRobot(22.0);
         why.DriveForward(18.0, telemetry);
     }
 
@@ -457,6 +457,7 @@ public abstract class TwentyAuto extends LinearOpMode {
              * run to completion.
              */
             robot.dumperRotate().setPosition(Var.Box.idleRotate);
+            newOdo.driveReverse(new InchUnit(6.0), 2.0);
             scheduler.task(e -> {
                 TimingKt.maxDuration(e, 300);
                 return kvoid;

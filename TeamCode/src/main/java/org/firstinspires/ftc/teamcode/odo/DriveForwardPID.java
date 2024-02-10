@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.odo;
 
-import android.util.Log;
-
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -219,7 +217,7 @@ public class DriveForwardPID {
             MotorPowers powers = speeds.map(Move::rampSpeedToPower).normalNoStretch();
             powers.apply(driveMotors);
 
-            Log.i("Encoders", String.format("L %+.4f  R %+.4f  P %+.4f", l_err, r_err, s_dist));
+//            Log.i("Encoders", String.format("L %+.4f  R %+.4f  P %+.4f", l_err, r_err, s_dist));
         }
         driveMotors.setAll(0);
     }

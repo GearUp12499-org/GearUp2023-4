@@ -24,7 +24,7 @@ class KOdometryDrive(
     companion object {
         const val ACCEPTABLE_ERROR_STRAFE = .5
         const val ACCEPTABLE_ERROR_FWDBCK = 1.0
-        const val ACCEPTABLE_ERROR_TURN = 0.2
+//        const val ACCEPTABLE_ERROR_TURN = 0.2
         const val kpFwd = 0.2
         const val kpStr = 0.8
         const val kpRot = 0.002
@@ -122,6 +122,7 @@ class KOdometryDrive(
                 sumError += pError * dt
 
                 val correction = (kpFwd * pError + kiFwd * sumError) * switcher
+                // FIXME timeoutT.time()
                 val speed = ForwardingCurve.ramp(average, distInch - average) * switcher
 
                 var speeds = MotorPowers(
@@ -159,7 +160,7 @@ class KOdometryDrive(
     }
 
     @JvmOverloads
-    fun strafeRight(targetAnyUnit: LengthUnit, timeout: Double = -1.0): Task {
+    fun strafeRight(targetAnyUnit: LengthUnit, timeout: Double = 3.0): Task {
         val target = abs(targetAnyUnit.to.inches.value)
         Log.i(
             "KOD",
@@ -207,7 +208,7 @@ class KOdometryDrive(
                 val lCorrect = kpStr * lErr + kiStr * sumErrorLeft
                 val rCorrect = kpStr * rErr + kiStr * sumErrorRight
                 val speed = StrafingCurve.ramp(timeoutT.time(), target - sDist) * switcher
-                Log.i("Encoders", String.format("L %+.4f  R %+.4f  P %+.4f", lErr, rErr, sDist))
+//                Log.i("Encoders", String.format("L %+.4f  R %+.4f  P %+.4f", lErr, rErr, sDist))
                 if (abs(lCorrect) > 1 || abs(rCorrect) > 1) {
                     // uh oh!!!
                     Log.e(

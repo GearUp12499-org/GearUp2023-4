@@ -18,7 +18,7 @@ class Move(forward: LengthUnit, right: LengthUnit, turn: RotationUnit) {
     val turn = turn.to.radians
 
     companion object {
-        const val RAMP_ALPHA = 0.15
+        const val RAMP_ALPHA = 0.175
         private const val RAMP_EPSILON = 0.01
 
         @JvmStatic
