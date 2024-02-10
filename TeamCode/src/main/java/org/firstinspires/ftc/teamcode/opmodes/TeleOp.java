@@ -62,14 +62,6 @@ public class TeleOp extends LinearOpMode {
         return (num_wheel_rotations * 2 * Math.PI * radius_inches);
     }
 
-    public static final double[] DropdownPositions = {
-            0.60, // X button
-            0.49,
-            0.45,
-            0.41,
-            0.35
-    };
-
     @Override
     public void runOpMode() {
 
@@ -87,7 +79,7 @@ public class TeleOp extends LinearOpMode {
         MotorSet<DcMotor> driveMotors = robot.driveMotors();
 
         int dropCycle = 0;
-        robot.dropDownServo().setPosition(DropdownPositions[dropCycle]);
+        robot.dropDownServo().setPosition(Var.DropDownServo.positions[dropCycle]);
 
         Servo dumperServo = robot.dumperRotate();
         Servo latch = robot.dumperLatch();
@@ -275,13 +267,14 @@ public class TeleOp extends LinearOpMode {
 
             if (gamepad2.y && !lastAdvDropper) {
                 dropCycle++;
-                if (dropCycle >= DropdownPositions.length) dropCycle = DropdownPositions.length - 1;
-                robot.dropDownServo().setPosition(DropdownPositions[dropCycle]);
+                if (dropCycle >= Var.DropDownServo.positions.length)
+                    dropCycle = Var.DropDownServo.positions.length - 1;
+                robot.dropDownServo().setPosition(Var.DropDownServo.positions[dropCycle]);
             }
             lastAdvDropper = gamepad2.y;
             if (gamepad2.x) {
                 dropCycle = 0;
-                robot.dropDownServo().setPosition(DropdownPositions[dropCycle]);
+                robot.dropDownServo().setPosition(Var.DropDownServo.up);
             }
 
             if (gamepad2.right_bumper) {

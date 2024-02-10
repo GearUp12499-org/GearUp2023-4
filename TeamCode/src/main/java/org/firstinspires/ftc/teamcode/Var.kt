@@ -56,6 +56,20 @@ object Var {
         const val back = 1.0
     }
 
+    object DropDownServo {
+        @JvmField
+        val positions = doubleArrayOf(
+            0.60,
+//            0.4944,
+//            0.4538,
+//            0.3999,
+//            0.3760,
+            0.2892
+        )
+        @JvmField
+        val up = positions[0]
+    }
+
     object TeleOp {
         /**
          * Target distance for approaching objects with the 'x' button on Gamepad 1.

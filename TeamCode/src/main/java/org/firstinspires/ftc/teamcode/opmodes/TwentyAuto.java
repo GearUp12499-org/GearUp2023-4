@@ -297,6 +297,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         // Set up robot hardware
         robot.clearEncoders();
         robot.purpleDropper().setPosition(Var.PixelDropper.up);
+        robot.dropDownServo().setPosition(Var.DropDownServo.up);
 
         double buttonRepeatDelay = 0.4;
         double buttonRepeatRate = 0.2;

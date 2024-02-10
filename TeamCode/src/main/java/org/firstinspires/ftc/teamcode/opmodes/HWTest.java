@@ -17,6 +17,8 @@ public class HWTest extends LinearOpMode {
     boolean lastA = false;
     boolean lastB = false;
 
+    boolean verbalize = false;
+
     RobotConfiguration robot;
 
     /**
@@ -30,6 +32,9 @@ public class HWTest extends LinearOpMode {
         lastB = gamepad1.b;
         for (String line : message.split("\n")) {
             telemetry.addLine(line);
+        }
+        if (verbalize) {
+            telemetry.speak(message);
         }
         telemetry.addLine();
         telemetry.addLine("[A]: YES or [B]: NO");
@@ -55,6 +60,9 @@ public class HWTest extends LinearOpMode {
         for (String line : message.split("\n")) {
             telemetry.addLine(line);
         }
+        if (verbalize) {
+            telemetry.speak(message);
+        }
         telemetry.addLine();
         telemetry.addLine("[A]: Confirm");
         telemetry.update();
@@ -68,11 +76,15 @@ public class HWTest extends LinearOpMode {
     }
 
     void testMotor(String label, DcMotor theMotor) {
+        testMotor(label, theMotor, "moving forward");
+    }
+
+    void testMotor(String label, DcMotor theMotor, String action) {
         lastA = gamepad1.a;
         lastB = gamepad1.b;
         theMotor.setPower(0.25);
         telemetry.addLine("The " + label + " motor should");
-        telemetry.addLine("be moving forward...");
+        telemetry.addLine("be " + action + "...");
         telemetry.addLine();
         telemetry.addLine("[A]: OK [B]: STOP");
         telemetry.update();
@@ -100,6 +112,9 @@ public class HWTest extends LinearOpMode {
         testMotor("Front Right", motors.frontRight);
         testMotor("Back Left", motors.backLeft);
         testMotor("Back Right", motors.backRight);
+        testMotor("Intake", robot.intake(), "turning reverse (outtaking)");
+        alert("Remove the drone from the launcher if it is present...");
+        testMotor("Drone", robot.drone(), "spinning");
     }
 
     void testEncoder(String label, DcMotor encoded) {
@@ -175,6 +190,7 @@ public class HWTest extends LinearOpMode {
         robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
         waitForStart();
         try {
+            verbalize = confirm("Say instructions out loud?");
             testMotors();
             testEncoders();
             testSensors();
