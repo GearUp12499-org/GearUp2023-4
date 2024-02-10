@@ -64,9 +64,9 @@ public class TeleOp extends LinearOpMode {
 
     public static final double[] DropdownPositions = {
             0.60, // X button
-            0.50,
+            0.49,
             0.45,
-            0.40,
+            0.41,
             0.35
     };
 
