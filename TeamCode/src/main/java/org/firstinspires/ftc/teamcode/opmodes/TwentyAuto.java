@@ -155,7 +155,7 @@ public abstract class TwentyAuto extends LinearOpMode {
 
     void rightRight() {
         RobotLog.ii("TwentyAuto", "RIGHT");
-        why.DriveReverse(16.0, telemetry);
+        why.DriveReverse(14.0, telemetry);
         turnPID.TurnRobot(-60.0);
         placePixel();
     }
@@ -164,7 +164,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         RobotLog.ii("TwentyAuto", "RIGHT");
         turnPID.TurnRobot(60.0);
         sleep(250);
-        why.DriveForward(12.0, telemetry);
+        why.DriveForward(10.0, telemetry);
     }
 
     void leftLeft() {
