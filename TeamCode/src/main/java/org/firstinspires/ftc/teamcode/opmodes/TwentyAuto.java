@@ -131,13 +131,13 @@ public abstract class TwentyAuto extends LinearOpMode {
         RobotLog.ii("TwentyAuto", "LEFT");
         why.DriveReverse(21.0, telemetry);
         turnPID.TurnRobot(45.0);
-        why.DriveReverse(3.0, telemetry);
+        why.DriveReverse(2.0, telemetry);
         placePixel();
     }
 
     void unLeftRight() {
         RobotLog.ii("TwentyAuto", "LEFT");
-        why.DriveForward(3.0, telemetry);
+        why.DriveForward(2.0, telemetry);
         turnPID.TurnRobot(-45.0);
         why.DriveForward(17.0, telemetry);
     }
@@ -182,14 +182,14 @@ public abstract class TwentyAuto extends LinearOpMode {
 
     void centerLeft() {
         RobotLog.ii("TwentyAuto", "CENTER");
-        why.DriveReverse(24.0, telemetry);
+        why.DriveReverse(22.0, telemetry);
         turnPID.TurnRobot(-20.0);
         placePixel();
     }
 
     void unCenterLeft() {
         RobotLog.ii("TwentyAuto", "LEFT");
-        turnPID.TurnRobot(22.0);
+        turnPID.TurnRobot(20.0);
         why.DriveForward(18.0, telemetry);
     }
 
@@ -291,7 +291,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         turnPID = new TurnPID(robot);
         KOdometryDrive newOdo = new KOdometryDrive(scheduler, robot);
         why = new SyncFail(scheduler, newOdo, this::opModeIsActive);
-        ApproachObject2 theXButton = new ApproachObject2(scheduler, robot);
+        ApproachObject2 theXButton = new ApproachObject2(scheduler, robot, 18.0);
         Dumper dumper = new Dumper(scheduler, robot);
 
         // Set up robot hardware
@@ -479,6 +479,7 @@ public abstract class TwentyAuto extends LinearOpMode {
             Consumer<Double> rightOnBlue = allianceColor() == AllianceColor.Blue ? why::StrafeRight : why::StrafeLeft;
             navFrontstage(result, rightOnBlue);
 
+            sleep(200);
             alignTag(aprilTag, targetTag);
             sleep(200);
             alignTag(aprilTag, targetTag);

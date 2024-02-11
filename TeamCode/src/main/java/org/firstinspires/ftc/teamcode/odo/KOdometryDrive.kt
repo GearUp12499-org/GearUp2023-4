@@ -26,7 +26,7 @@ class KOdometryDrive(
         const val ACCEPTABLE_ERROR_FWDBCK = 1.0
 //        const val ACCEPTABLE_ERROR_TURN = 0.2
         const val kpFwd = 0.2
-        const val kpStr = 0.8
+        const val kpStr = 0.6
         const val kpRot = 0.002
         const val kiFwd = 1.0 // FIXME
         const val kiStr = 0.05

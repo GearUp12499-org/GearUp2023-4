@@ -12,11 +12,14 @@ import org.firstinspires.ftc.teamcode.utilities.Move
 import org.firstinspires.ftc.teamcode.utilities.inches
 import org.firstinspires.ftc.teamcode.Var.ApproachObject as AOV
 
-class ApproachObject2(private val scheduler: MultitaskScheduler, robot: RobotConfiguration) {
+class ApproachObject2 @JvmOverloads constructor(
+    private val scheduler: MultitaskScheduler,
+    robot: RobotConfiguration,
+    val SensorOverflow: Double = 100.0
+) {
     companion object {
         const val kP = 0.1
         const val ACCEPTABLE_ERROR = 0.25
-        const val SensorOverflow = 100.0
     }
 
     private val motors = robot.driveMotors()
@@ -76,7 +79,7 @@ class ApproachObject2(private val scheduler: MultitaskScheduler, robot: RobotCon
                 )
                 speeds = speeds.map(Move::rampSpeedToPower)
                 speeds.apply(motors)
-                Log.i(
+                Log.d(
                     "ApproachObject2",
                     String.format(
                         "LR %.3f %.3f Avg %.3f Left %+.3f Right %+.3f",

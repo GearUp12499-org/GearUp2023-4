@@ -82,7 +82,7 @@ public class TurnPID {
 
                 double correction = kp * error + ki * overall_err;
                 double speed = rampDown(turnDist - average);
-                Log.i("TurnPID", String.format("speed: %.2f / turnDist: %.2f average: %.2f / correction: %.4f", speed, turnDist, average, correction));
+                Log.d("TurnPID", String.format("speed: %.2f / turnDist: %.2f average: %.2f / correction: %.4f", speed, turnDist, average, correction));
                 driveMotors.backLeft.setPower(-speed - correction);
                 driveMotors.frontLeft.setPower(-speed - correction);
                 driveMotors.frontRight.setPower(speed + correction);
@@ -107,7 +107,7 @@ public class TurnPID {
 
                 double correction = kp * error;
                 double speed = rampDown(turnDist - average);
-                Log.i("TurnPID", String.format("speed: %.2f / turnDist: %.2f average: %.2f / correction: %.4f", speed, turnDist, average, correction));
+                Log.d("TurnPID", String.format("speed: %.2f / turnDist: %.2f average: %.2f / correction: %.4f", speed, turnDist, average, correction));
 
                 driveMotors.backLeft.setPower(speed + correction);
                 driveMotors.frontLeft.setPower(speed + correction);
