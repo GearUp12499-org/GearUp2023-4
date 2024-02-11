@@ -241,14 +241,33 @@ class MultitaskScheduler
      * Resources owned by matching tasks are guaranteed to be released after this call.
      */
 
-    override fun filteredStop(predicate: (Task) -> Boolean, cancel: Boolean) {
+    override fun filteredStop(
+        predicate: (Task) -> Boolean,
+        cancel: Boolean,
+        dropNonStarted: Boolean
+    ) {
         tasks.values
             .filter { it.state != Task.State.Finished && it.state != Task.State.NotStarted && it.state != Task.State.Cancelled }
             .filter(predicate)
             .forEach {
                 release(it, cancel)
             }
+        if (dropNonStarted) {
+            val dropped = tasks.filterInPlace { k, v ->
+                v.state == Task.State.NotStarted && predicate(v)
+            }
+            println("dropped ${dropped.size} tasks: ${dropped.joinToString(", ")}")
+        }
     }
 
-    override fun filteredStop(predicate: (Task) -> Boolean) = filteredStop(predicate, true)
+    override fun filteredStop(predicate: (Task) -> Boolean, cancel: Boolean) = filteredStop(
+        predicate,
+        cancel = cancel, dropNonStarted = false
+    )
+
+    override fun filteredStop(predicate: (Task) -> Boolean) = filteredStop(
+        predicate,
+        cancel = true,
+        dropNonStarted = false
+    )
 }

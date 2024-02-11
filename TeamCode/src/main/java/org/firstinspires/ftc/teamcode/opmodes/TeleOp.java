@@ -298,7 +298,8 @@ public class TeleOp extends LinearOpMode {
             double slideTicks = (robot.liftRight().getCurrentPosition() + robot.liftLeft().getCurrentPosition()) / 2.0;
 
             if (gamepad1.y) {
-                // FIXME this class is not being used elsewhere
+                // Cancel any lift related tasks, including WAITING tasks, in favor of this one
+                scheduler.filteredStop((task) -> task.requirements().contains(robot.getLiftLock()), true, true);
                 dumper.autoReset();
                 targetLeft.set(hangTarget);
                 targetRight.set(hangTarget);

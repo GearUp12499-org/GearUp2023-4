@@ -13,4 +13,9 @@ abstract class Scheduler {
 
     abstract fun filteredStop(predicate: (Task) -> Boolean, cancel: Boolean)
     abstract fun filteredStop(predicate: (Task) -> Boolean)
+    abstract fun filteredStop(
+        predicate: (Task) -> Boolean,
+        cancel: Boolean,
+        dropNonStarted: Boolean
+    )
 }
