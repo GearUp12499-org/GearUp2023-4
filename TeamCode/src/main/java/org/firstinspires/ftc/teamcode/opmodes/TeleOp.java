@@ -316,8 +316,22 @@ public class TeleOp extends LinearOpMode {
                 });
             }
 
-            if (gamepad1.options) {
-                robot.imu().resetYaw();
+            if (gamepad2.options) {
+                // something broke
+                // freeze the robot
+                // fuck it we block who cares anymore
+                robot.driveMotors().setAll(0.0);
+                robot.liftLeft().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                robot.liftLeft().setPower(-0.25);
+                while (gamepad2.options) {
+                    sleep(20);
+                }
+                robot.liftLeft().setPower(0.0);
+                robot.liftLeft().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                targetLeft.set(0);
+                robot.liftLeft().setTargetPosition(targetLeft.get());
+                robot.liftLeft().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                robot.liftLeft().setPower(1.0);
             }
 
             if (gamepad2.left_trigger > Var.TeleOp.triggerPct) {

@@ -85,6 +85,24 @@ public abstract class TwentyAuto extends LinearOpMode {
     protected abstract AllianceColor allianceColor();
 
     protected abstract FieldGlobalPosition globalPosition();
+    
+    private ElapsedTime timer2 = new ElapsedTime();
+    private MultitaskScheduler scheduler = null;
+    
+
+    private boolean panic_button() {
+        if (timer2.time() >= 28.5) {
+            scheduler.filteredStop(e -> true);
+            scheduler.panic();
+            robot.dumperRotate().setPosition(Var.Box.idleRotate);
+            robot.liftLeft().setTargetPosition(0);
+            while (opModeIsActive()) {
+                sleep(10);
+            }
+            throw new Panic();
+        }
+        return opModeIsActive();
+    }
 
     /**
      * Robot starting position
@@ -234,7 +252,7 @@ public abstract class TwentyAuto extends LinearOpMode {
                     return kvoid;
                 })
                 .then(drive.driveForward(new InchUnit(5.0)));
-        scheduler.runToCompletion(this::opModeIsActive);
+        scheduler.runToCompletion(this::panic_button);
     }
 
     /**
@@ -283,14 +301,21 @@ public abstract class TwentyAuto extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        try {
+            run();
+        } catch (Panic e) {
+            Log.e("20auto", "panic failed");
+        }
+    }
+    public void run() throws InterruptedException {
         // Get robot hardware configs
-        MultitaskScheduler scheduler = new MultitaskScheduler();
+        scheduler = new MultitaskScheduler();
         setupVision(hardwareMap.get(CameraName.class, "Webcam 1"));
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
         turnPID = new TurnPID(robot);
         KOdometryDrive newOdo = new KOdometryDrive(scheduler, robot);
-        why = new SyncFail(scheduler, newOdo, this::opModeIsActive);
+        why = new SyncFail(scheduler, newOdo, this::panic_button);
         ApproachObject2 theXButton = new ApproachObject2(scheduler, robot, 18.0);
         Dumper dumper = new Dumper(scheduler, robot);
 
@@ -373,6 +398,7 @@ public abstract class TwentyAuto extends LinearOpMode {
             clearDuration -= RedArrivalTime; // TODO
         }
         timer.reset();
+        timer2.reset();
 
         // Capture the result
         AdvSphereProcess.Result result = sphere.getResult();
@@ -446,7 +472,7 @@ public abstract class TwentyAuto extends LinearOpMode {
                     .minus(new InchUnit(2));
 
             toWallWithTimeout.accept(strafeMotion, 3.0);
-            scheduler.runToCompletion(this::opModeIsActive);
+            scheduler.runToCompletion(this::panic_button);
 
             /*
              * 1. go to the target position within the acceptError
@@ -474,7 +500,7 @@ public abstract class TwentyAuto extends LinearOpMode {
                 return kvoid;
             });
 
-            scheduler.runToCompletion(this::opModeIsActive);
+            scheduler.runToCompletion(this::panic_button);
         } else { // Frontstage scripts
             Consumer<Double> rightOnBlue = allianceColor() == AllianceColor.Blue ? why::StrafeRight : why::StrafeLeft;
             navFrontstage(result, rightOnBlue);
@@ -506,7 +532,7 @@ public abstract class TwentyAuto extends LinearOpMode {
                         return kvoid;
                     });
 
-            scheduler.runToCompletion(this::opModeIsActive);
+            scheduler.runToCompletion(this::panic_button);
         }
 
         // Stop motors just in case
@@ -563,7 +589,7 @@ public abstract class TwentyAuto extends LinearOpMode {
                 );
                 break;
         }
-        scheduler.runToCompletion(this::opModeIsActive);
+        scheduler.runToCompletion(this::panic_button);
     }
 
     public static final double[] frontstageTravelDistances = {18.5, 20.0, 27.0};

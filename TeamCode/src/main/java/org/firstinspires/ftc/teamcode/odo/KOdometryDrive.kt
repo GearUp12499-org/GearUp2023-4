@@ -72,7 +72,7 @@ class KOdometryDrive(
     private fun distanceStrafe() = -tick2inch(strafeOdo.currentPosition)
 
     @JvmOverloads
-    fun driveForward(target: LengthUnit, timeout: Double = -1.0): Task {
+    fun driveForward(target: LengthUnit, timeout: Double = 4.0): Task {
         val distInch = abs(target.to.inches.value)
         val switcher = target.value.sign
 
