@@ -158,7 +158,7 @@ object Var {
         /**
          * How hard we spin the intake?
          */
-        const val intakePower = 0.8
+        const val intakePower = 0.6
     }
 
     object ApproachObject {
