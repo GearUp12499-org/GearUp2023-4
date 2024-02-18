@@ -20,6 +20,8 @@ import org.opencv.imgproc.Imgproc
 import kotlin.math.max
 import kotlin.math.min
 
+typealias ARect = android.graphics.Rect
+
 class AdvSphereProcess(var mode: Mode, var altBoxes: Boolean) : VisionProcessor {
     enum class Mode {
         Red,
