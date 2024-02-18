@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.util.RobotLog
@@ -8,6 +9,7 @@ import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration
 import org.firstinspires.ftc.teamcode.odo.OdoTracker
 import org.firstinspires.ftc.teamcode.utilities.Pose
 
+@Disabled
 @TeleOp
 class OdoTrackerTest : LinearOpMode() {
     override fun runOpMode() {

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.hardware.lynx.LynxServoController;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -16,6 +17,7 @@ import java.lang.reflect.Method;
  * We have reached the point in the season that java.lang.reflect is fair game.
  * P.S. Hey, SDK authors - why didn't you expose this method? lul
  */
+@Disabled
 @TeleOp
 public class ServoReflectionHax extends LinearOpMode {
     @Override

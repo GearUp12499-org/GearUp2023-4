@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -7,14 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 
-// Parallel 1       -46289
-// Parallel 2       +39138
-// Perpendicular    -32947
-
-// Parallel 1       -45182
-// Parallel 2       +40068
-// Perpendicular    -34579
-
+@Disabled
 @TeleOp
 public class ReadOdo extends LinearOpMode {
     @Override
