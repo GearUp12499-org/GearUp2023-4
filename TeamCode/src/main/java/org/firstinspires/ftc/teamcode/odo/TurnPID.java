@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.odo;
 
 
+import static org.firstinspires.ftc.teamcode.odo.EncoderMath.tick2inch;
+
 import android.util.Log;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -34,20 +36,12 @@ public class TurnPID {
         this.para2 = robot.odoParallelRight();
     }
 
-    public double ticksToInches(int ticks) {
-        double ticksPerRotation = 8192.0;
-        double radius_Inches = 0.69;
-        double num_wheel_rotation = ticks / ticksPerRotation;
-        return num_wheel_rotation * 2 * Math.PI * radius_Inches;
-        // inches = (ticks/8192.0) * 0.69 * 6.28
-    }
-
     public double RightOdoDist() {
-        return ticksToInches(para2.getCurrentPosition());
+        return tick2inch(para2.getCurrentPosition());
     }
 
     public double LeftOdoDist() {
-        return ticksToInches(para1.getCurrentPosition());
+        return tick2inch(para1.getCurrentPosition());
     }
 
     /**

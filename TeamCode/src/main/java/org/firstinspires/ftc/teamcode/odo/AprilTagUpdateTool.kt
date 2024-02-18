@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.odo
 
 import android.util.Log
 import dev.aether.collaborative_multitasking.Task
-import org.firstinspires.ftc.teamcode.detectSingleToPose
+import org.firstinspires.ftc.teamcode.abstractions.detectSingleToPose
 import org.firstinspires.ftc.teamcode.utilities.Move
 import org.firstinspires.ftc.teamcode.utilities.Pose
 import org.firstinspires.ftc.teamcode.utilities.inches

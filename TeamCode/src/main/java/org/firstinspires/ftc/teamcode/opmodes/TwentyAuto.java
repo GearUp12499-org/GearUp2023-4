@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import static org.firstinspires.ftc.teamcode.AprilTagToPoseKt.detectSingleToPose;
+import static org.firstinspires.ftc.teamcode.abstractions.AprilTagToPoseKt.detectSingleToPose;
 import static org.firstinspires.ftc.teamcode.opmodes.TeleOp.kvoid;
 
 import android.util.Log;

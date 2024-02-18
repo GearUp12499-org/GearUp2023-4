@@ -4,7 +4,7 @@ import android.util.Log
 import dev.aether.collaborative_multitasking.Task
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration
-import org.firstinspires.ftc.teamcode.tagPositions
+import org.firstinspires.ftc.teamcode.abstractions.tagPositions
 import org.firstinspires.ftc.teamcode.utilities.Move
 import org.firstinspires.ftc.teamcode.utilities.Pose
 import org.firstinspires.ftc.teamcode.utilities.Vector2

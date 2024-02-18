@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.odo;
 
+import static org.firstinspires.ftc.teamcode.odo.EncoderMath.tick2inch;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -57,24 +59,16 @@ public class DriveForwardPID {
         return (MAX_SPEED_D - MIN_SPEED_INITIAL_D) * (distTravel / RAMPS_UP_D) + MIN_SPEED_INITIAL_D;
     }
 
-    public double ticksToInches(int ticks) {
-        double ticksPerRotation = 8192.0;
-        double radius_Inches = 0.69;
-        double num_wheel_rotation = ticks / ticksPerRotation;
-        return num_wheel_rotation * 2 * 3.14 * radius_Inches;
-        // inches = (ticks/8192.0) * 0.69 * 6.28
-    }
-
     public double RightOdoDist() {
-        return ticksToInches(paraRight.getCurrentPosition());
+        return tick2inch(paraRight.getCurrentPosition());
     }
 
     public double LeftOdoDist() {
-        return ticksToInches(paraLeft.getCurrentPosition());
+        return tick2inch(paraLeft.getCurrentPosition());
     }
 
     public double StrafeOdoDist() {
-        return -ticksToInches(perp.getCurrentPosition());
+        return -tick2inch(perp.getCurrentPosition());
     }
 
     public void DriveForward(double target, Telemetry telemetry) {

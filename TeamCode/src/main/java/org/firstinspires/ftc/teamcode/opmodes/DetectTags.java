@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.AprilTagToPoseKt;
+import org.firstinspires.ftc.teamcode.abstractions.AprilTagToPoseKt;
 import org.firstinspires.ftc.teamcode.utilities.InchUnit;
 import org.firstinspires.ftc.teamcode.utilities.Move;
 import org.firstinspires.ftc.teamcode.utilities.Pose;
