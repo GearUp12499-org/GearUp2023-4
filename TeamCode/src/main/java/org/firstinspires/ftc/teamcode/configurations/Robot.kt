@@ -7,7 +7,11 @@ import com.qualcomm.robotcore.hardware.DistanceSensor
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.IMU
 import com.qualcomm.robotcore.hardware.Servo
+import dev.aether.collaborative_multitasking.Scheduler
 import dev.aether.collaborative_multitasking.SharedResource
+import dev.aether.collaborative_multitasking.Task
+import dev.aether.collaborative_multitasking.ext.maxDuration
+import org.firstinspires.ftc.teamcode.Var
 import org.firstinspires.ftc.teamcode.utilities.MotorSet
 import org.firstinspires.ftc.teamcode.utilities.typedGet
 import org.firstinspires.ftc.teamcode.utilities.typedMaybeGet
@@ -151,5 +155,16 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
                 target.mode = lastMode
             }
         }
+    }
+}
+
+fun resetBox(scheduler: Scheduler, boxLock: SharedResource, rotate: Servo, latch: Servo): Task {
+    return scheduler.task {
+        +boxLock
+        onStart { ->
+            rotate.position = Var.Box.idleRotate
+            latch.position = Var.Box.latched
+        }
+        maxDuration(Var.Box.RotateTime)
     }
 }

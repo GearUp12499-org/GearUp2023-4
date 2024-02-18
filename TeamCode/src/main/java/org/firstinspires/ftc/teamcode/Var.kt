@@ -48,6 +48,9 @@ object Var {
          * Latch position such that it blocks movement of the bottom pixel in the box.
          */
         const val latched = 0.029
+
+        const val RotateTime = 1000 // ms
+        const val LatchTime = 200 // ms
     }
 
     object PixelDropper {

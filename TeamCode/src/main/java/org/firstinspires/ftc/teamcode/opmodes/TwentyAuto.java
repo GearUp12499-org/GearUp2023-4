@@ -18,7 +18,6 @@ import org.firstinspires.ftc.robotcore.external.Consumer;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.teamcode.Var;
 import org.firstinspires.ftc.teamcode.abstractions.ApproachObject2;
-import org.firstinspires.ftc.teamcode.abstractions.Dumper;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.odo.KOdometryDrive;
 import org.firstinspires.ftc.teamcode.odo.SyncFail;
@@ -317,7 +316,6 @@ public abstract class TwentyAuto extends LinearOpMode {
         KOdometryDrive newOdo = new KOdometryDrive(scheduler, robot);
         why = new SyncFail(scheduler, newOdo, this::panic_button);
         ApproachObject2 theXButton = new ApproachObject2(scheduler, robot, 18.0);
-        Dumper dumper = new Dumper(scheduler, robot);
 
         // Set up robot hardware
         robot.clearEncoders();

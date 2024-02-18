@@ -12,9 +12,9 @@ import com.qualcomm.robotcore.util.RobotLog;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Var;
 import org.firstinspires.ftc.teamcode.abstractions.ApproachObject2;
-import org.firstinspires.ftc.teamcode.abstractions.Dumper;
 import org.firstinspires.ftc.teamcode.configurations.Robot;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
+import org.firstinspires.ftc.teamcode.configurations.RobotKt;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 import org.firstinspires.ftc.teamcode.utilities.RadianUnit;
 
@@ -83,7 +83,6 @@ public class TeleOp extends LinearOpMode {
 
         Servo dumperServo = robot.dumperRotate();
         Servo latch = robot.dumperLatch();
-        Dumper dumper = new Dumper(scheduler, robot);
         ApproachObject2 approachBackdrop = new ApproachObject2(scheduler, robot);
 
         dumperServo.setPosition(Var.Box.idleRotate);
@@ -300,7 +299,7 @@ public class TeleOp extends LinearOpMode {
             if (gamepad1.y) {
                 // Cancel any lift related tasks, including WAITING tasks, in favor of this one
                 scheduler.filteredStop((task) -> task.requirements().contains(robot.getLiftLock()), true, true);
-                dumper.autoReset();
+                RobotKt.resetBox(scheduler, robot.getDumperLock(), robot.dumperRotate(), robot.dumperLatch());
                 targetLeft.set(hangTarget);
                 targetRight.set(hangTarget);
                 scheduler.task(c -> {
