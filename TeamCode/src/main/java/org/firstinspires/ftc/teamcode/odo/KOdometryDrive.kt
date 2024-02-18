@@ -4,6 +4,7 @@ import android.util.Log
 import com.qualcomm.robotcore.util.ElapsedTime
 import dev.aether.collaborative_multitasking.MultitaskScheduler
 import dev.aether.collaborative_multitasking.Task
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration
 import org.firstinspires.ftc.teamcode.odo.EncoderMath.tick2inch
 import org.firstinspires.ftc.teamcode.utilities.LengthUnit
@@ -12,6 +13,7 @@ import org.firstinspires.ftc.teamcode.utilities.Move
 import org.firstinspires.ftc.teamcode.utilities.RotationUnit
 import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.min
 import kotlin.math.sign
 
 /**
@@ -24,7 +26,8 @@ class KOdometryDrive(
     companion object {
         const val ACCEPTABLE_ERROR_STRAFE = .5
         const val ACCEPTABLE_ERROR_FWDBCK = 1.0
-//        const val ACCEPTABLE_ERROR_TURN = 0.2
+
+        //        const val ACCEPTABLE_ERROR_TURN = 0.2
         const val kpFwd = 0.2
         const val kpStr = 0.6
         const val kpRot = 0.002
@@ -58,6 +61,15 @@ class KOdometryDrive(
             0.0,
             18.0
         )
+
+        val CollideRamp = QuadraticDownRamp(
+            .05,
+            ForwardMaxSpeed,
+            12.0
+        )
+
+        const val CollisionDetectionDistance = 24.0 // inches
+        const val CollisionTargetDistance = 4.0
     }
 
     private val driveMotors = robot.driveMotors()
@@ -65,6 +77,9 @@ class KOdometryDrive(
     private val leftOdo = robot.odoParallelLeft()
     private val strafeOdo = robot.odoPerpendicular()
     private val dmLock = robot.driveMotorLock
+
+    private val collisionA = robot.distanceLeft()
+    private val collisionB = robot.distanceRight()
 
     // Which of these are reversed!?!?
     private fun distanceLeft() = tick2inch(leftOdo.currentPosition)
@@ -75,6 +90,8 @@ class KOdometryDrive(
     fun driveForward(target: LengthUnit, timeout: Double = 4.0): Task {
         val distInch = abs(target.to.inches.value)
         val switcher = target.value.sign
+
+        val isCollisionPreventionViable = target.value < 0
 
         return scheduler.task {
             +dmLock
@@ -123,7 +140,19 @@ class KOdometryDrive(
 
                 val correction = (kpFwd * pError + kiFwd * sumError) * switcher
                 // FIXME timeoutT.time()
-                val speed = ForwardingCurve.ramp(average, distInch - average) * switcher
+                val rampBase = ForwardingCurve.ramp(average, distInch - average)
+
+                var afterFactor = 1.0
+                if (isCollisionPreventionViable) {
+                    val collider = min(
+                        collisionA.getDistance(DistanceUnit.INCH),
+                        collisionB.getDistance(DistanceUnit.INCH)
+                    )
+                    if (collider < CollisionDetectionDistance) {
+                        afterFactor = min(rampBase, CollideRamp.rampDown(collider - CollisionTargetDistance))
+                    }
+                }
+                val speed = rampBase * switcher
 
                 var speeds = MotorPowers(
                     frontLeft = speed + correction,
@@ -131,7 +160,7 @@ class KOdometryDrive(
                     frontRight = speed - correction,
                     backRight = speed - correction
                 )
-                speeds = speeds.normalNoStretch(ForwardMaxSpeed)
+                speeds = speeds.normalNoStretch(ForwardMaxSpeed * afterFactor)
                 // normalization on the next line only to keep consistency with rotation
                 val powers = speeds.map(Move::rampSpeedToPower).normalNoStretch()
                 lastPower = powers

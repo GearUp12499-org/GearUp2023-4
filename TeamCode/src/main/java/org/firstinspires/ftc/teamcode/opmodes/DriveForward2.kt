@@ -21,7 +21,7 @@ class DriveForward2 : LinearOpMode() {
         val reference = DriveForwardPID(robot)
         val rotateReference = TurnPID(robot)
         waitForStart()
-        drive.strafeLeft(2.feet);
+        drive.driveReverse(4.feet);
         sleep(100)
 
         try {
