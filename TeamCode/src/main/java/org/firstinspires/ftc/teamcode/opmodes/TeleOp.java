@@ -293,8 +293,6 @@ public class TeleOp extends LinearOpMode {
             } else {
                 robot.drone().setPower(0);
             }
-            // Gets the average ticks of both the slide motors --> Ticks for perfect hang position is 1340 ticks use hangTarget variable
-            double slideTicks = (robot.liftRight().getCurrentPosition() + robot.liftLeft().getCurrentPosition()) / 2.0;
 
             if (gamepad1.y) {
                 // Cancel any lift related tasks, including WAITING tasks, in favor of this one

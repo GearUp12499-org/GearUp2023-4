@@ -306,7 +306,7 @@ public abstract class TwentyAuto extends LinearOpMode {
             Log.e("20auto", "panic failed");
         }
     }
-    public void run() throws InterruptedException {
+    public void run() {
         // Get robot hardware configs
         scheduler = new MultitaskScheduler();
         setupVision(hardwareMap.get(CameraName.class, "Webcam 1"));
