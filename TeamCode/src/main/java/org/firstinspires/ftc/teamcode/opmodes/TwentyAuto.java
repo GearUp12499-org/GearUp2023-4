@@ -196,7 +196,7 @@ public abstract class TwentyAuto extends LinearOpMode {
     void unLeftLeft() {
         RobotLog.ii("TwentyAuto", "LEFT");
         turnPID.TurnRobot(-5.0);
-        why.DriveForward(13.0, telemetry);
+        why.DriveForward(1.0, telemetry);
     }
 
     void centerLeft() {
@@ -209,7 +209,7 @@ public abstract class TwentyAuto extends LinearOpMode {
     void unCenterLeft() {
         RobotLog.ii("TwentyAuto", "LEFT");
         turnPID.TurnRobot(20.0);
-        why.DriveForward(18.0, telemetry);
+        why.DriveForward(6.0, telemetry);
     }
 
     void rightLeft() {
@@ -222,9 +222,8 @@ public abstract class TwentyAuto extends LinearOpMode {
 
     void unRightLeft() {
         RobotLog.ii("TwentyAuto", "RIGHT");
-        why.DriveForward(2.0, telemetry);
+        why.DriveForward(4.0, telemetry);
         turnPID.TurnRobot(90.0);
-        why.DriveForward(16.0, telemetry);
     }
 
     private void scoreYellowPixel(MultitaskScheduler scheduler, RobotConfiguration robot, ApproachObject2 xButton, KOdometryDrive drive) {
@@ -585,24 +584,24 @@ public abstract class TwentyAuto extends LinearOpMode {
         if (allianceColor() == AllianceColor.Red) nearMedFar = 2 - nearMedFar;
         robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
 
-        switch (nearMedFar) {
-            case 0:
-                doAwayFromWall.accept(
-                        new InchUnit(11.0).plus(Var.AutoPositions.RobotWidth.div(2))
-                );
-                break;
-            case 1:
-            default:
-                doAwayFromWall.accept(
-                        new InchUnit(16.5).plus(Var.AutoPositions.RobotWidth.div(2))
-                );
-                break;
-            case 2:
-                doAwayFromWall.accept(
-                        new InchUnit(23.0).plus(Var.AutoPositions.RobotWidth.div(2))
-                );
-                break;
-        }
+//        switch (nearMedFar) {
+//            case 0:
+//                doAwayFromWall.accept(
+//                        new InchUnit(-1).plus(Var.AutoPositions.RobotWidth.div(2))
+//                );
+//                break;
+//            case 1:
+//            default:
+//                doAwayFromWall.accept(
+//                        new InchUnit(4.5).plus(Var.AutoPositions.RobotWidth.div(2))
+//                );
+//                break;
+//            case 2:
+//                doAwayFromWall.accept(
+//                        new InchUnit(11.0).plus(Var.AutoPositions.RobotWidth.div(2))
+//                );
+//                break;
+//        }
         scheduler.runToCompletion(this::panic_button);
     }
 

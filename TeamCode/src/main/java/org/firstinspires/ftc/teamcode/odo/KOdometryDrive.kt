@@ -86,12 +86,14 @@ class KOdometryDrive(
     private fun distanceRight() = tick2inch(rightOdo.currentPosition)
     private fun distanceStrafe() = -tick2inch(strafeOdo.currentPosition)
 
+    // DO NOT RENAME collide2 to collide -- this will cause a method signature conflict
+    fun driveForward(target: LengthUnit, collide2: Boolean) = driveForward(target=target, collide=collide2)
     @JvmOverloads
-    fun driveForward(target: LengthUnit, timeout: Double = 4.0): Task {
+    fun driveForward(target: LengthUnit, timeout: Double = 4.0, collide: Boolean = false): Task {
         val distInch = abs(target.to.inches.value)
         val switcher = target.value.sign
 
-        val isCollisionPreventionViable = target.value < 0
+        val isCollisionPreventionViable = target.value < 0 && collide
 
         return scheduler.task {
             +dmLock
@@ -173,8 +175,10 @@ class KOdometryDrive(
         }
     }
 
+    fun driveReverse(target: LengthUnit, collide2: Boolean) = driveReverse(target=target, collide=collide2)
+
     @JvmOverloads
-    fun driveReverse(target: LengthUnit, timeout: Double = -1.0): Task {
+    fun driveReverse(target: LengthUnit, timeout: Double = 4.0, collide: Boolean = false): Task {
         return driveForward(-target, timeout)
     }
 
@@ -263,7 +267,7 @@ class KOdometryDrive(
     }
 
     @JvmOverloads
-    fun strafeLeft(target: LengthUnit, timeout: Double = -1.0) = strafeRight(-target, timeout)
+    fun strafeLeft(target: LengthUnit, timeout: Double = 3.0) = strafeRight(-target, timeout)
 
     // !!! UNTESTED DO NOT USE AAAAAAAAAAAAAAAAAA
     /**

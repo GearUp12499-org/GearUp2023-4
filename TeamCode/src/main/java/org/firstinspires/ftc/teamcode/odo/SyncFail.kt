@@ -8,9 +8,17 @@ class SyncFail(val scheduler: MultitaskScheduler, val kOdometryDrive: KOdometryD
         kOdometryDrive.driveForward(distance.inches)
         scheduler.runToCompletion(crasher)
     }
+    fun DriveForwardWithCollision(distance: Double) {
+        kOdometryDrive.driveForward(distance.inches, true)
+        scheduler.runToCompletion(crasher)
+    }
 
     fun DriveReverse(distance: Double, vararg whoTFCares: Any?) {
         kOdometryDrive.driveReverse(distance.inches)
+        scheduler.runToCompletion(crasher)
+    }
+    fun DriveReverseWithCollision(distance: Double) {
+        kOdometryDrive.driveReverse(distance.inches, true)
         scheduler.runToCompletion(crasher)
     }
 
