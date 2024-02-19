@@ -63,11 +63,11 @@ object Var {
         @JvmField
         val positions = doubleArrayOf(
             0.60,
-//            0.4944,
+            0.4744,
 //            0.4538,
 //            0.3999,
 //            0.3760,
-            0.2892
+            0.3580
         )
         @JvmField
         val up = positions[0]

@@ -116,6 +116,7 @@ public class TeleOp extends LinearOpMode {
             return kvoid;
         });
         scheduler.runToCompletion(this::opModeInInit);
+        scheduler.filteredStop(task -> true, true, true);
 
         waitForStart();
         AtomicInteger targetLeft = new AtomicInteger();
