@@ -39,7 +39,7 @@ class KOdometryDrive(
             0.05,
             0.05,
             ForwardMaxSpeed,
-            6.0,
+            .5,
             12.0,
         )
 
