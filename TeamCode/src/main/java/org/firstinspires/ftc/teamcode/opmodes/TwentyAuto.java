@@ -50,6 +50,8 @@ public abstract class TwentyAuto extends LinearOpMode {
     private TurnPID turnPID;
     private SyncFail why;
     private RobotConfiguration robot;
+    private ApproachObject2 theXButton;
+    private KOdometryDrive newOdo;
 
     private static final double RedArrivalTime = .75;
 
@@ -84,10 +86,10 @@ public abstract class TwentyAuto extends LinearOpMode {
     protected abstract AllianceColor allianceColor();
 
     protected abstract FieldGlobalPosition globalPosition();
-    
+
     private ElapsedTime timer2 = new ElapsedTime();
     private MultitaskScheduler scheduler = null;
-    
+
 
     private boolean panic_button() {
         if (timer2.time() >= 28.5) {
@@ -307,6 +309,7 @@ public abstract class TwentyAuto extends LinearOpMode {
             Log.e("20auto", "panic failed");
         }
     }
+
     public void run() {
         // Get robot hardware configs
         scheduler = new MultitaskScheduler();
@@ -314,9 +317,9 @@ public abstract class TwentyAuto extends LinearOpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
         turnPID = new TurnPID(robot);
-        KOdometryDrive newOdo = new KOdometryDrive(scheduler, robot);
+        newOdo = new KOdometryDrive(scheduler, robot);
         why = new SyncFail(scheduler, newOdo, this::panic_button);
-        ApproachObject2 theXButton = new ApproachObject2(scheduler, robot, 18.0);
+        theXButton = new ApproachObject2(scheduler, robot, 18.0);
 
         // Set up robot hardware
         robot.clearEncoders();
@@ -406,14 +409,13 @@ public abstract class TwentyAuto extends LinearOpMode {
         telemetry.update();
 
         boolean posLeft = positionConf() == StartPosition.LeftOfTruss;
-        Runnable left = posLeft ? this::leftLeft : this::leftRight;
-        Runnable undoLeft = posLeft ? this::unLeftLeft : this::unLeftRight;
-        Runnable center = posLeft ? this::centerLeft : this::centerRight;
-        Runnable undoCenter = posLeft ? this::unCenterLeft : this::unCenterRight;
-        Runnable right = posLeft ? this::rightLeft : this::rightRight;
-        Runnable undoRight = posLeft ? this::unRightLeft : this::unRightRight;
 
         int targetTag = 0;
+
+        Runnable left = posLeft ? this::leftLeft : this::leftRight;
+        Runnable center = posLeft ? this::centerLeft : this::centerRight;
+        Runnable right = posLeft ? this::rightLeft : this::rightRight;
+
         switch (result) {
             case Left:
                 targetTag = 1;
@@ -434,106 +436,9 @@ public abstract class TwentyAuto extends LinearOpMode {
 
         if (globalPosition() == FieldGlobalPosition.Backstage) {
             // Return to common position. Not amazing efficiency but it's what we had.
-
-            switch (result) {
-                case Left:
-                    undoLeft.run();
-                    break;
-                case Right:
-                    undoRight.run();
-                    break;
-                case None:
-                case Center:
-                    undoCenter.run();
-                    break;
-            }
-
-            Consumer<LengthUnit> awayFromWall =
-                    posLeft ? newOdo::strafeLeft : newOdo::strafeRight;
-            BiConsumer<LengthUnit, Double> toWallWithTimeout =
-                    posLeft ? newOdo::strafeRight : newOdo::strafeLeft;
-
-            navBackstage(scheduler, result, awayFromWall);
-
-            sleep(200);
-
-            alignTag(aprilTag, targetTag);
-            sleep(200);
-            alignTag(aprilTag, targetTag);
-            scoreYellowPixel(scheduler, robot, theXButton, newOdo);
-
-            //noinspection DataFlowIssue i am going to shove you into a box :))))
-            LengthUnit strafeMotion = new InchUnit(tagXPositions.getOrDefault(targetTag, 35.5));
-            if (allianceColor() == AllianceColor.Red)
-                strafeMotion = new FootUnit(12).minus(strafeMotion);
-            strafeMotion = strafeMotion
-                    .minus(Var.AutoPositions.RobotWidth.div(2))
-                    .minus(new InchUnit(2));
-
-            toWallWithTimeout.accept(strafeMotion, 3.0);
-            scheduler.runToCompletion(this::panic_button);
-
-            /*
-             * 1. go to the target position within the acceptError
-             * 2. dump the box
-             * 3. wait 500ms
-             * 4. reset the box
-             * 5. go to 0 within acceptError
-             *
-             * run to completion.
-             */
-            robot.dumperRotate().setPosition(Var.Box.idleRotate);
-            newOdo.driveReverse(new InchUnit(6.0), 2.0);
-            scheduler.task(e -> {
-                TimingKt.maxDuration(e, 300);
-                return kvoid;
-            }).then(e -> {
-                e.require(robot.getLiftLock());
-                e.onStart(() -> {
-                    robot.liftLeft().setTargetPosition(0);
-                    robot.liftRight().setTargetPosition(0);
-                    return kvoid;
-                });
-                e.isCompleted(() ->
-                        !(robot.liftLeft().isBusy() || robot.liftRight().isBusy()));
-                TimingKt.maxDuration(e, 3000);
-                return kvoid;
-            });
-
-            scheduler.runToCompletion(this::panic_button);
+            backstage(result, posLeft, targetTag);
         } else { // Frontstage scripts
-            Consumer<Double> rightOnBlue = allianceColor() == AllianceColor.Blue ? why::StrafeRight : why::StrafeLeft;
-            navFrontstage(result, rightOnBlue);
-
-            sleep(200);
-            alignTag(aprilTag, targetTag);
-            sleep(200);
-            alignTag(aprilTag, targetTag);
-            scoreYellowPixel(scheduler, robot, theXButton, newOdo);
-
-            // back off More
-            newOdo.driveForward(new InchUnit(2), 2.0) // this would be a REALLY BAD place to get stuck
-                    .then(e -> {
-                        e.onStart(() -> {
-                            robot.dumperRotate().setPosition(Var.Box.idleRotate);
-                            return kvoid;
-                        });
-                        TimingKt.maxDuration(e, 300);
-                        return kvoid;
-                    }).then(e -> {
-                        e.require(robot.getLiftLock());
-                        e.onStart(() -> {
-                            robot.liftLeft().setTargetPosition(0);
-                            robot.liftRight().setTargetPosition(0);
-                            return kvoid;
-                        });
-                        e.isCompleted(() ->
-                                !(robot.liftLeft().isBusy() || robot.liftRight().isBusy()));
-                        TimingKt.maxDuration(e, 3000);
-                        return kvoid;
-                    });
-
-            scheduler.runToCompletion(this::panic_button);
+            frontstage(result, targetTag);
         }
 
         // Stop motors just in case
@@ -541,6 +446,114 @@ public abstract class TwentyAuto extends LinearOpMode {
         while (opModeIsActive()) {
             sleep(50);
         }
+    }
+
+    private void frontstage(AdvSphereProcess.Result result, int targetTag) {
+        Consumer<Double> rightOnBlue = allianceColor() == AllianceColor.Blue ? why::StrafeRight : why::StrafeLeft;
+        navFrontstage(result, rightOnBlue);
+
+        sleep(200);
+        alignTag(aprilTag, targetTag);
+        sleep(200);
+        alignTag(aprilTag, targetTag);
+        scoreYellowPixel(scheduler, robot, theXButton, newOdo);
+
+        // back off More
+        newOdo.driveForward(new InchUnit(2), 2.0) // this would be a REALLY BAD place to get stuck
+                .then(e -> {
+                    e.onStart(() -> {
+                        robot.dumperRotate().setPosition(Var.Box.idleRotate);
+                        return kvoid;
+                    });
+                    TimingKt.maxDuration(e, 300);
+                    return kvoid;
+                }).then(e -> {
+                    e.require(robot.getLiftLock());
+                    e.onStart(() -> {
+                        robot.liftLeft().setTargetPosition(0);
+                        robot.liftRight().setTargetPosition(0);
+                        return kvoid;
+                    });
+                    e.isCompleted(() ->
+                            !(robot.liftLeft().isBusy() || robot.liftRight().isBusy()));
+                    TimingKt.maxDuration(e, 3000);
+                    return kvoid;
+                });
+
+        scheduler.runToCompletion(this::panic_button);
+    }
+
+    private void backstage(AdvSphereProcess.Result result, boolean posLeft, int targetTag) {
+        Runnable undoLeft = posLeft ? this::unLeftLeft : this::unLeftRight;
+        Runnable undoCenter = posLeft ? this::unCenterLeft : this::unCenterRight;
+        Runnable undoRight = posLeft ? this::unRightLeft : this::unRightRight;
+
+        switch (result) {
+            case Left:
+                undoLeft.run();
+                break;
+            case Right:
+                undoRight.run();
+                break;
+            case None:
+            case Center:
+                undoCenter.run();
+                break;
+        }
+
+        Consumer<LengthUnit> awayFromWall =
+                posLeft ? newOdo::strafeLeft : newOdo::strafeRight;
+        BiConsumer<LengthUnit, Double> toWallWithTimeout =
+                posLeft ? newOdo::strafeRight : newOdo::strafeLeft;
+
+        navBackstage(scheduler, result, awayFromWall);
+
+        sleep(200);
+
+        alignTag(aprilTag, targetTag);
+        sleep(200);
+        alignTag(aprilTag, targetTag);
+        scoreYellowPixel(scheduler, robot, theXButton, newOdo);
+
+        //noinspection DataFlowIssue i am going to shove you into a box :))))
+        LengthUnit strafeMotion = new InchUnit(tagXPositions.getOrDefault(targetTag, 35.5));
+        if (allianceColor() == AllianceColor.Red)
+            strafeMotion = new FootUnit(12).minus(strafeMotion);
+        strafeMotion = strafeMotion
+                .minus(Var.AutoPositions.RobotWidth.div(2))
+                .minus(new InchUnit(2));
+
+        toWallWithTimeout.accept(strafeMotion, 3.0);
+        scheduler.runToCompletion(this::panic_button);
+
+        /*
+         * 1. go to the target position within the acceptError
+         * 2. dump the box
+         * 3. wait 500ms
+         * 4. reset the box
+         * 5. go to 0 within acceptError
+         *
+         * run to completion.
+         */
+        robot.dumperRotate().setPosition(Var.Box.idleRotate);
+        newOdo.driveReverse(new InchUnit(6.0), 2.0);
+        scheduler.task(e -> {
+            TimingKt.maxDuration(e, 300);
+            return kvoid;
+        }).then(e -> {
+            e.require(robot.getLiftLock());
+            e.onStart(() -> {
+                robot.liftLeft().setTargetPosition(0);
+                robot.liftRight().setTargetPosition(0);
+                return kvoid;
+            });
+            e.isCompleted(() ->
+                    !(robot.liftLeft().isBusy() || robot.liftRight().isBusy()));
+            TimingKt.maxDuration(e, 3000);
+            return kvoid;
+        });
+
+        scheduler.runToCompletion(this::panic_button);
     }
 
     private void navBackstage(

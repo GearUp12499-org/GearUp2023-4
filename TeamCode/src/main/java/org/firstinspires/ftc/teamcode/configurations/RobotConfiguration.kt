@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.IMU
 import com.qualcomm.robotcore.hardware.Servo
+import com.qualcomm.robotcore.hardware.TouchSensor
 import dev.aether.collaborative_multitasking.SharedResource
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
@@ -85,6 +86,10 @@ abstract class RobotConfiguration {
     protected abstract val dropDownServo: Servo?
     fun dropDownServo(): Servo = dropDownServo
         ?: throw NullPointerException("Robot configuration has no Drop Down Servo.")
+
+    protected abstract val liftLimitSwitch: TouchSensor?
+    fun liftLimitSwitch(): TouchSensor = liftLimitSwitch
+        ?: throw NullPointerException("Robot configuration has no limit switch.")
 
     private fun deviceStatus(name: String, device: Any?): String = "$name: " + when (device) {
         (device == null) -> "DISCONNECTED"

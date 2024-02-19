@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.IMU
 import com.qualcomm.robotcore.hardware.Servo
+import com.qualcomm.robotcore.hardware.TouchSensor
 import dev.aether.collaborative_multitasking.Scheduler
 import dev.aether.collaborative_multitasking.SharedResource
 import dev.aether.collaborative_multitasking.Task
@@ -95,6 +96,10 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
 
     override val dropDownServo: Servo? by lazy {
         map.typedMaybeGet("dropDown")
+    }
+
+    override val liftLimitSwitch: TouchSensor? by lazy {
+        map.typedMaybeGet("liftSwitch")
     }
 
 

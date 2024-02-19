@@ -90,6 +90,32 @@ public class TeleOp extends LinearOpMode {
 
         //Reset odometry pods
         robot.clearEncoders();
+        robot.liftLeft().setPower(0.0);
+        robot.liftLeft().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.liftRight().setPower(0.0);
+        robot.liftRight().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        scheduler.task(e -> {
+            e.onStart(() -> {
+                robot.liftLeft().setPower(-0.4);
+                robot.liftRight().setPower(-0.4);
+                return kvoid;
+            });
+            e.isCompleted(() -> robot.liftLimitSwitch().isPressed());
+            e.onFinish(() -> {
+                robot.liftLeft().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                robot.liftLeft().setTargetPosition(0);
+                robot.liftLeft().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                robot.liftLeft().setPower(1.0);
+                robot.liftRight().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                robot.liftRight().setTargetPosition(0);
+                robot.liftRight().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                robot.liftRight().setPower(1.0);
+                return kvoid;
+            });
+            return kvoid;
+        });
+        scheduler.runToCompletion(this::opModeInInit);
 
         waitForStart();
         AtomicInteger targetLeft = new AtomicInteger();

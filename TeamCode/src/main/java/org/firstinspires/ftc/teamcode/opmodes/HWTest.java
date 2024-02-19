@@ -9,6 +9,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.configurations.RobotConfiguration;
 import org.firstinspires.ftc.teamcode.utilities.MotorSet;
 
+import java.util.function.Supplier;
+
 class Panic extends RuntimeException {
 }
 
@@ -147,6 +149,43 @@ public class HWTest extends LinearOpMode {
         throw new Panic();
     }
 
+    void testButton(String label, Supplier<Boolean> enabled) {
+        lastA = gamepad1.a;
+        lastB = gamepad1.b;
+
+        telemetry.addLine("Activate the " + label + " sensor...");
+        telemetry.addLine();
+        telemetry.addLine("[B]: STOP");
+        telemetry.update();
+
+        while (opModeIsActive()) {
+            if (enabled.get()) {
+                break;
+            }
+            if (gamepad1.b && !lastB) {
+                throw new Panic();
+            }
+            lastA = gamepad1.a;
+            lastB = gamepad1.b;
+        }
+
+        telemetry.addLine("Deactivate the " + label + " sensor...");
+        telemetry.addLine();
+        telemetry.addLine("[B]: STOP");
+        telemetry.update();
+
+        while (opModeIsActive()) {
+            if (!enabled.get()) {
+                break;
+            }
+            if (gamepad1.b && !lastB) {
+                throw new Panic();
+            }
+            lastA = gamepad1.a;
+            lastB = gamepad1.b;
+        }
+    }
+
     void testEncoders() {
         if (!confirm("Test encoders?")) return;
         testEncoder("Strafe odo", robot.odoPerpendicular());
@@ -183,6 +222,10 @@ public class HWTest extends LinearOpMode {
         if (!confirm("Test sensors?")) return;
         testDistance("Left", robot.distanceLeft());
         testDistance("Right", robot.distanceRight());
+        robot.liftLeft().setPower(0.0);
+        robot.liftLeft().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.liftLeft().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        testButton("Lift switch", robot.liftLimitSwitch()::isPressed);
     }
 
     @Override
