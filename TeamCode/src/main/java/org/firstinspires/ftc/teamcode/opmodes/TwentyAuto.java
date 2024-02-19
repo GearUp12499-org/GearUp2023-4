@@ -235,6 +235,7 @@ public abstract class TwentyAuto extends LinearOpMode {
                     });
                     e.isCompleted(() -> robot.liftLeft().getCurrentPosition() >= Var.AutoPositions.LiftScoring - 20);
                     TimingKt.minDuration(e, 100);
+                    TimingKt.maxDuration(e, 3000);
                     return kvoid;
                 })
                 .then(xButton.approach(new InchUnit(3.0)))
@@ -495,6 +496,7 @@ public abstract class TwentyAuto extends LinearOpMode {
                 });
                 e.isCompleted(() ->
                         !(robot.liftLeft().isBusy() || robot.liftRight().isBusy()));
+                TimingKt.maxDuration(e, 3000);
                 return kvoid;
             });
 
@@ -527,6 +529,7 @@ public abstract class TwentyAuto extends LinearOpMode {
                         });
                         e.isCompleted(() ->
                                 !(robot.liftLeft().isBusy() || robot.liftRight().isBusy()));
+                        TimingKt.maxDuration(e, 3000);
                         return kvoid;
                     });
 

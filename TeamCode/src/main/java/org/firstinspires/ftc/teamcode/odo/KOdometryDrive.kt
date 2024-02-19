@@ -140,7 +140,7 @@ class KOdometryDrive(
 
                 val correction = (kpFwd * pError + kiFwd * sumError) * switcher
                 // FIXME timeoutT.time()
-                val rampBase = ForwardingCurve.ramp(average, distInch - average)
+                val rampBase = ForwardingCurve.ramp(timeoutT.time(), distInch - average)
 
                 var afterFactor = 1.0
                 if (isCollisionPreventionViable) {
@@ -165,16 +165,6 @@ class KOdometryDrive(
                 val powers = speeds.map(Move::rampSpeedToPower).normalNoStretch()
                 lastPower = powers
                 powers.apply(driveMotors)
-
-                /* Log.i(
-                    "KOD",
-                    "SumOfError ${
-                        String.format(
-                            "%+.8f",
-                            sumError
-                        )
-                    } in*sec ki=$kiFwd, Error ${String.format("%+.8f", pError)} kp=$kpFwd"
-                ) */
             }
             isCompleted { -> complete || (timeout > 0 && timeoutT.time() >= timeout) }
             onFinish { ->
