@@ -10,6 +10,8 @@ import org.firstinspires.ftc.teamcode.utilities.LengthUnit
 import org.firstinspires.ftc.teamcode.utilities.MotorPowers
 import org.firstinspires.ftc.teamcode.utilities.Move
 import org.firstinspires.ftc.teamcode.utilities.inches
+import kotlin.math.max
+import kotlin.math.min
 import org.firstinspires.ftc.teamcode.Var.ApproachObject as AOV
 
 class ApproachObject2 @JvmOverloads constructor(
@@ -20,6 +22,8 @@ class ApproachObject2 @JvmOverloads constructor(
     companion object {
         const val kP = 0.1
         const val ACCEPTABLE_ERROR = 0.25
+
+        const val roundOff = 0.25 // in
     }
 
     private val motors = robot.driveMotors()
@@ -42,6 +46,9 @@ class ApproachObject2 @JvmOverloads constructor(
             +dmLock
             var completed = false
             var backupValue = 50.0
+
+            var lastError = 0.0
+            var isLastValuePopulated = false;
             onStart { ->
                 // don't stop immediately lmao
                 backupValue = 50.0
@@ -69,25 +76,37 @@ class ApproachObject2 @JvmOverloads constructor(
                 }
 
                 val err = right - left
-                val correction = (kP * err)
+                var virtErr = err
+
+                if (isLastValuePopulated) {
+                    virtErr = (err + lastError) / 2.0
+                }
+                lastError = err
+                isLastValuePopulated = true
+
+                val correction = (kP * virtErr)
                 val speed = -rampDown((avg - di).inches)
-                var speeds = MotorPowers(
+                val speeds = MotorPowers(
                     speed + correction,
                     speed - correction,
                     speed + correction,
                     speed - correction
                 )
-                speeds = speeds.map(Move::rampSpeedToPower)
-                speeds.apply(motors)
+                val powers = speeds.map(Move::rampSpeedToPower)
+                powers.apply(motors)
                 Log.d(
                     "ApproachObject2",
                     String.format(
-                        "LR %.3f %.3f Avg %.3f Left %+.3f Right %+.3f",
+                        "LR\t%.3f\t%.3f\tErr\t%.3f\tErr*\t%.3f\tAvg\t%.3f\tSLeft\t%+.3f\tSRight\t%+.3f\tPLeft\t%+.3f\tPRight\t%+.3f",
                         left,
                         right,
+                        err,
+                        virtErr,
                         avg,
                         speeds.frontLeft,
-                        speeds.frontRight
+                        speeds.frontRight,
+                        powers.frontLeft,
+                        powers.frontRight
                     )
                 )
             }

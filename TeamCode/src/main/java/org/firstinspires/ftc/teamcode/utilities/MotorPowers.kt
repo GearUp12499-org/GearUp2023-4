@@ -85,6 +85,12 @@ data class MotorPowers(
             funct(backRight)
         )
     }
+
+    fun any(predicate: (Double) -> Boolean): Boolean {
+        return predicate(frontLeft) || predicate(frontRight) || predicate(backLeft) || predicate(
+            backRight
+        )
+    }
 }
 
 data class MotorSet<out T : DcMotor>(

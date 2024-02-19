@@ -95,7 +95,7 @@ abstract class RobotConfiguration {
         (device == null) -> "DISCONNECTED"
         is DcMotor -> "${device.mode} P${device.power}"
         is Servo -> "-> ${device.position}"
-        is DistanceSensor -> "${device.getDistance(DistanceUnit.INCH)}in"
+        is DistanceSensor -> String.format("%.1fin", device.getDistance(DistanceUnit.INCH))
         else -> "${device!!::class.simpleName} READY"
     }
 
@@ -106,9 +106,7 @@ abstract class RobotConfiguration {
             "liftRight" to liftRight,
             "dumperRotate" to dumperRotate,
             "dumperLatch" to dumperLatch,
-            "drone" to drone,
-            "distanceLeft" to distanceLeft,
-            "distanceRight" to distanceRight
+            "drone" to drone
         ).entries
         ) {
             t.addLine(deviceStatus(field.key, field.value))

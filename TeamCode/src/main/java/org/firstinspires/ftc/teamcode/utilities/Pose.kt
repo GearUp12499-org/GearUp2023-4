@@ -19,7 +19,7 @@ class Move(forward: LengthUnit, right: LengthUnit, turn: RotationUnit) {
 
     companion object {
         const val RAMP_ALPHA = 0.175
-        private const val RAMP_EPSILON = 0.01
+        const val RAMP_EPSILON = 0.01
 
         @JvmStatic
         fun rampSpeedToPower(speed: Double): Double {

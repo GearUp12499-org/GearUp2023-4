@@ -35,9 +35,6 @@ public class HWTest extends LinearOpMode {
         for (String line : message.split("\n")) {
             telemetry.addLine(line);
         }
-        if (verbalize) {
-            telemetry.speak(message);
-        }
         telemetry.addLine();
         telemetry.addLine("[A]: YES or [B]: NO");
         telemetry.update();
@@ -114,7 +111,7 @@ public class HWTest extends LinearOpMode {
         testMotor("Front Right", motors.frontRight);
         testMotor("Back Left", motors.backLeft);
         testMotor("Back Right", motors.backRight);
-        testMotor("Intake", robot.intake(), "turning reverse (outtaking)");
+        testMotor("Intake", robot.intake(), "turning forward (intaking)");
         alert("Remove the drone from the launcher if it is present...");
         testMotor("Drone", robot.drone(), "spinning");
     }
@@ -233,7 +230,6 @@ public class HWTest extends LinearOpMode {
         robot = RobotConfiguration.currentConfiguration().invoke(hardwareMap);
         waitForStart();
         try {
-            verbalize = confirm("Say instructions out loud?");
             testMotors();
             testEncoders();
             testSensors();

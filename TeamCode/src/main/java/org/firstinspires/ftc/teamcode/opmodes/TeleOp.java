@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Var;
 import org.firstinspires.ftc.teamcode.abstractions.ApproachObject2;
 import org.firstinspires.ftc.teamcode.configurations.Robot;
@@ -382,6 +383,13 @@ public class TeleOp extends LinearOpMode {
             telemetry.addData("Heading", new RadianUnit(botHeading).to().getDegrees());
             telemetry.addData("Left Target", targetLeft);
             telemetry.addData("Right Target", targetRight);
+            telemetry.addLine();
+            double leftDistance = robot.distanceLeft().getDistance(DistanceUnit.INCH);
+            double rightDistance = robot.distanceRight().getDistance(DistanceUnit.INCH);
+            telemetry.addData("Left dist", "%.1fin", leftDistance);
+            telemetry.addData("Right dist", "%.1fin", rightDistance);
+            telemetry.addData("Diff (r - l)", "%.1fin", rightDistance-leftDistance);
+
             telemetry.update();
             while (frameTimer.time(TimeUnit.MILLISECONDS) < 5) {
                 sleep(1);
