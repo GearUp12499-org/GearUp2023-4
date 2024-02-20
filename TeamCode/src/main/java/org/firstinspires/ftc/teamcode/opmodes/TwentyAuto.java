@@ -133,14 +133,18 @@ public abstract class TwentyAuto extends LinearOpMode {
     protected abstract Parking parkingConf();
 
     private void placePixel() {
-        sleep(500);
+        sleep(300);
         robot.purpleDropper().setPosition(Var.PixelDropper.down);
-        sleep(1000);
+        sleep(300);
         // interpolate.
         ElapsedTime dt = new ElapsedTime();
         dt.reset();
-        while (dt.time() < 0.5) {
-            robot.purpleDropper().setPosition(dt.time() * 0.2 + Var.PixelDropper.down);
+        double duration = 0.25;
+        double spread = 0.1 / duration;
+        while (dt.time() < duration) {
+            // 0.5 * 0.2 = .1
+            //
+            robot.purpleDropper().setPosition(dt.time() * spread + Var.PixelDropper.down);
         }
         robot.purpleDropper().setPosition(Var.PixelDropper.back);
         sleep(500);

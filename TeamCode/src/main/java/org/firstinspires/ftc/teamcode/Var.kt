@@ -206,7 +206,7 @@ object Var {
         @JvmField
         val BlueLeftRightPixel = Pose(24.5.inches + RobotWidth / 2.0, 83.5.inches, (90).degrees)
 
-        // Lift scoring position: 1280
-        const val LiftScoring = 1100
+        // Lift scoring position: 1280, 1100
+        const val LiftScoring = 1280
     }
 }
