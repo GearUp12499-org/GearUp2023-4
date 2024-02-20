@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.utilities.LengthUnit
 import org.firstinspires.ftc.teamcode.utilities.MotorPowers
 import org.firstinspires.ftc.teamcode.utilities.Move
 import org.firstinspires.ftc.teamcode.utilities.inches
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import org.firstinspires.ftc.teamcode.Var.ApproachObject as AOV
@@ -22,8 +23,6 @@ class ApproachObject2 @JvmOverloads constructor(
     companion object {
         const val kP = 0.1
         const val ACCEPTABLE_ERROR = 0.25
-
-        const val roundOff = 0.25 // in
     }
 
     private val motors = robot.driveMotors()
@@ -47,8 +46,7 @@ class ApproachObject2 @JvmOverloads constructor(
             var completed = false
             var backupValue = 50.0
 
-            var lastError = 0.0
-            var isLastValuePopulated = false;
+            val allowCorrections = false
             onStart { ->
                 // don't stop immediately lmao
                 backupValue = 50.0
@@ -68,24 +66,18 @@ class ApproachObject2 @JvmOverloads constructor(
                     right = left
                 }
 
-                val avg = (left + right) / 2.0
+                val distTravel = min(left, right)
 
-                if (avg < di + ACCEPTABLE_ERROR) {
+                if (distTravel < di + ACCEPTABLE_ERROR) {
                     completed = true
                     return@onTick
                 }
 
                 val err = right - left
-                var virtErr = err
 
-                if (isLastValuePopulated) {
-                    virtErr = (err + lastError) / 2.0
-                }
-                lastError = err
-                isLastValuePopulated = true
-
-                val correction = (kP * virtErr)
-                val speed = -rampDown((avg - di).inches)
+//                val correction = (kP * virtErr)
+                val correction = 0.0
+                val speed = -rampDown((distTravel - di).inches)
                 val speeds = MotorPowers(
                     speed + correction,
                     speed - correction,
@@ -94,21 +86,34 @@ class ApproachObject2 @JvmOverloads constructor(
                 )
                 val powers = speeds.map(Move::rampSpeedToPower)
                 powers.apply(motors)
-                Log.d(
-                    "ApproachObject2",
-                    String.format(
-                        "LR\t%.3f\t%.3f\tErr\t%.3f\tErr*\t%.3f\tAvg\t%.3f\tSLeft\t%+.3f\tSRight\t%+.3f\tPLeft\t%+.3f\tPRight\t%+.3f",
-                        left,
-                        right,
-                        err,
-                        virtErr,
-                        avg,
-                        speeds.frontLeft,
-                        speeds.frontRight,
-                        powers.frontLeft,
-                        powers.frontRight
+                if (allowCorrections)
+                    Log.d(
+                        "ApproachObject2",
+                        String.format(
+                            "LR\t%.3f\t%.3f\t Err \t%.3f\tTrav\t%.3f\tSLeft\t%+.3f\tSRight\t%+.3f\tPLeft\t%+.3f\tPRight\t%+.3f",
+                            left,
+                            right,
+                            err,
+                            distTravel,
+                            speeds.frontLeft,
+                            speeds.frontRight,
+                            powers.frontLeft,
+                            powers.frontRight
+                        )
                     )
-                )
+                else
+                    Log.d(
+                        "ApproachObject2",
+                        String.format(
+                            "LR\t%.3f\t%.3f\t(Err)\t%+.3f\tTrav\t%.3f\t(correction off)\tSAll\t%+.3f\tPAll\t%+.3f",
+                            left,
+                            right,
+                            err,
+                            distTravel,
+                            speeds.frontLeft,
+                            powers.frontLeft
+                        )
+                    )
             }
             isCompleted { -> completed }
             maxDuration(3000)
