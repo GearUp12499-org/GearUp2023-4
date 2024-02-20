@@ -158,7 +158,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         RobotLog.ii("TwentyAuto", "LEFT");
         why.DriveForward(2.0, telemetry);
         turnPID.TurnRobot(-45.0);
-        why.DriveForward(17.0, telemetry);
+//        why.DriveForward(5.0, telemetry);
     }
 
     void centerRight() {
@@ -169,7 +169,7 @@ public abstract class TwentyAuto extends LinearOpMode {
 
     void unCenterRight() {
         RobotLog.ii("TwentyAuto", "CENTER");
-        why.DriveForward(21.0, telemetry);
+        why.DriveForward(2.0, telemetry); // 9.0 in
     }
 
     void rightRight() {
@@ -183,7 +183,8 @@ public abstract class TwentyAuto extends LinearOpMode {
         RobotLog.ii("TwentyAuto", "RIGHT");
         turnPID.TurnRobot(60.0);
         sleep(250);
-        why.DriveForward(10.0, telemetry);
+        // Wtf?
+        why.DriveForward(2.0, telemetry);
     }
 
     void leftLeft() {
