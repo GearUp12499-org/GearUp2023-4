@@ -231,15 +231,18 @@ public abstract class TwentyAuto extends LinearOpMode {
         turnPID.TurnRobot(90.0);
     }
 
+    private int yellowLiftTarget = Var.AutoPositions.LiftScoringLow;
+    private boolean isLowBallin = false;
+
     private void scoreYellowPixel(MultitaskScheduler scheduler, RobotConfiguration robot, ApproachObject2 xButton, KOdometryDrive drive) {
         scheduler.task(e -> {
                     e.onStart(() -> {
-                        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
+                        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoringLow);
                         robot.dumperLatch().setPosition(Var.Box.latched);
                         robot.dumperRotate().setPosition(Var.Box.dumpRotate);
                         return kvoid;
                     });
-                    e.isCompleted(() -> robot.liftLeft().getCurrentPosition() >= Var.AutoPositions.LiftScoring - 20);
+                    e.isCompleted(() -> robot.liftLeft().getCurrentPosition() >= yellowLiftTarget - 20);
                     TimingKt.minDuration(e, 100);
                     TimingKt.maxDuration(e, 3000);
                     return kvoid;
@@ -324,6 +327,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         newOdo = new KOdometryDrive(scheduler, robot);
         why = new SyncFail(scheduler, newOdo, this::panic_button);
         theXButton = new ApproachObject2(scheduler, robot, 18.0);
+        isLowBallin = globalPosition() == FieldGlobalPosition.Backstage;
 
         // Set up robot hardware
         robot.clearEncoders();
@@ -340,6 +344,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         ElapsedTime dDownRepeat = new ElapsedTime();
         double downNextInterval = buttonRepeatRate;
         boolean lastDDown = false;
+        boolean lastX = false;
 
         // Display current detection results
         while (opModeInInit()) {
@@ -364,6 +369,9 @@ public abstract class TwentyAuto extends LinearOpMode {
             telemetry.addLine("Configuration (GP1)");
             telemetry.addData("TimeToPartnerCleared", clearDuration);
             telemetry.addLine("dpad +/- 1s");
+            telemetry.addLine();
+            telemetry.addData("Yellow Height", isLowBallin ? "low" : "high");
+            telemetry.addLine("(x button)");
             telemetry.update();
             if (gamepad1.dpad_up && !lastDUp) {
                 clearDuration += 1.0;
@@ -392,8 +400,18 @@ public abstract class TwentyAuto extends LinearOpMode {
             if (clearDuration < 0) clearDuration = 0;
             if (clearDuration > maxAwait) clearDuration = maxAwait;
 
+            if (gamepad1.x && !lastX) {
+                isLowBallin = !isLowBallin;
+            }
+
             lastDUp = gamepad1.dpad_up;
             lastDDown = gamepad1.dpad_down;
+            lastX = gamepad1.x;
+        }
+        if (isLowBallin) {
+            yellowLiftTarget = Var.AutoPositions.LiftScoringLow;
+        } else {
+            yellowLiftTarget = Var.AutoPositions.LiftScoringHigh;
         }
         waitForStart();
         if (!opModeIsActive()) return;
@@ -587,7 +605,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         }
 
         if (allianceColor() == AllianceColor.Red) nearMedFar = 2 - nearMedFar;
-        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
+        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoringLow);
 
 //        switch (nearMedFar) {
 //            case 0:
@@ -619,7 +637,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         sleep(250);
         turnPID.TurnRobot(95);
         why.DriveReverse(48);
-        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
+        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoringLow);
         while (timer.time() < clearDuration) {
             telemetry.addLine(String.format(
                     Locale.getDefault(),
@@ -640,7 +658,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         sleep(250);
         turnPID.TurnRobot(-95);
         why.DriveReverse(48);
-        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
+        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoringLow);
         while (timer.time() < clearDuration) {
             telemetry.addLine(String.format(
                     Locale.getDefault(),
@@ -659,7 +677,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         why.DriveReverse(24);
         turnPID.TurnRobot(95);
         why.DriveReverse(48);
-        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
+        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoringLow);
         while (timer.time() < clearDuration) {
             telemetry.addLine(String.format(
                     Locale.getDefault(),
@@ -679,7 +697,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         why.DriveReverse(24);
         turnPID.TurnRobot(-90);
         why.DriveReverse(72);
-        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
+        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoringLow);
         while (timer.time() < clearDuration) {
             telemetry.addLine(String.format(
                     Locale.getDefault(),
@@ -700,7 +718,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         sleep(250);
         turnPID.TurnRobot(90);
         why.DriveReverse(48);
-        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
+        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoringLow);
         while (timer.time() < clearDuration) {
             telemetry.addLine(String.format(
                     Locale.getDefault(),
@@ -721,7 +739,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         sleep(250);
         turnPID.TurnRobot(-90);
         why.DriveReverse(48);
-        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoring);
+        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoringLow);
         while (timer.time() < clearDuration) {
             telemetry.addLine(String.format(
                     Locale.getDefault(),

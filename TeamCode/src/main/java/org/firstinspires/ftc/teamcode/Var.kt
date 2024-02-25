@@ -123,7 +123,7 @@ object Var {
         /**
          * Lift preset height for scoring, encoder ticks
          */
-        const val liftScoringReadyPreset = 450
+        const val liftScoringReadyPreset = 1850
 
         /**
          * Lift preset height for hanging, encoder ticks
@@ -207,6 +207,7 @@ object Var {
         val BlueLeftRightPixel = Pose(24.5.inches + RobotWidth / 2.0, 83.5.inches, (90).degrees)
 
         // Lift scoring position: 1280, 1100
-        const val LiftScoring = 1280
+        const val LiftScoringLow = 1145
+        const val LiftScoringHigh = 1280
     }
 }

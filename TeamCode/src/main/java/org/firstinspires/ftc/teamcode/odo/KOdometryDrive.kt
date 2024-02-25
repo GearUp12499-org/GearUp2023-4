@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.odo
 
 import android.util.Log
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor
 import com.qualcomm.robotcore.util.ElapsedTime
 import dev.aether.collaborative_multitasking.MultitaskScheduler
 import dev.aether.collaborative_multitasking.Task
@@ -11,6 +12,7 @@ import org.firstinspires.ftc.teamcode.utilities.LengthUnit
 import org.firstinspires.ftc.teamcode.utilities.MotorPowers
 import org.firstinspires.ftc.teamcode.utilities.Move
 import org.firstinspires.ftc.teamcode.utilities.RotationUnit
+import java.util.Optional
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.min
@@ -86,6 +88,14 @@ class KOdometryDrive(
     private fun distanceRight() = tick2inch(rightOdo.currentPosition)
     private fun distanceStrafe() = -tick2inch(strafeOdo.currentPosition)
 
+    private fun collisionInfo(): Optional<Double> {
+        val readA = collisionA.getDistance(DistanceUnit.INCH);
+        val readB = collisionB.getDistance(DistanceUnit.INCH);
+        if (readA > CollisionDetectionDistance) return Optional.empty()
+        if (readB > CollisionDetectionDistance) return Optional.empty()
+        return Optional.of(CollideRamp.rampDown(min(readA, readB)))
+    }
+
     // DO NOT RENAME collide2 to collide -- this will cause a method signature conflict
     fun driveForward(target: LengthUnit, collide2: Boolean) = driveForward(target=target, collide=collide2)
     @JvmOverloads
@@ -146,12 +156,9 @@ class KOdometryDrive(
 
                 var afterFactor = 1.0
                 if (isCollisionPreventionViable) {
-                    val collider = min(
-                        collisionA.getDistance(DistanceUnit.INCH),
-                        collisionB.getDistance(DistanceUnit.INCH)
-                    )
-                    if (collider < CollisionDetectionDistance) {
-                        afterFactor = min(rampBase, CollideRamp.rampDown(collider - CollisionTargetDistance))
+                    val collideData = collisionInfo();
+                    if (collideData.isPresent) {
+                        afterFactor = collideData.get()
                     }
                 }
                 val speed = rampBase * switcher

@@ -374,8 +374,10 @@ public class TeleOp extends LinearOpMode {
             robot.tele(telemetry);
 
             //Updates the average distance traveled forward: positive is right or forward; negative is backward or left
-            telemetry.addData("Distance Driven Forward:",
-                    OdoToInches((para2.getCurrentPosition() + para1.getCurrentPosition()) / 2.0));
+            telemetry.addData("left:",
+                    OdoToInches((para1.getCurrentPosition())));
+            telemetry.addData("right:",
+                    OdoToInches((para2.getCurrentPosition())));
             telemetry.addData("Inches Strafed: ", OdoToInches(robot.intake().getCurrentPosition()));
             telemetry.addData("Left Slide Ticks", robot.liftLeft().getCurrentPosition());
             telemetry.addData("Right Slide Ticks", robot.liftRight().getCurrentPosition());
