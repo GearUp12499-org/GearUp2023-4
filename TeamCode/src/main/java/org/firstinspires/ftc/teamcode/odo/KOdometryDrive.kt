@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.odo
 
 import android.util.Log
-import com.qualcomm.hardware.rev.Rev2mDistanceSensor
 import com.qualcomm.robotcore.util.ElapsedTime
 import dev.aether.collaborative_multitasking.MultitaskScheduler
 import dev.aether.collaborative_multitasking.Task
@@ -89,8 +88,8 @@ class KOdometryDrive(
     private fun distanceStrafe() = -tick2inch(strafeOdo.currentPosition)
 
     private fun collisionInfo(): Optional<Double> {
-        val readA = collisionA.getDistance(DistanceUnit.INCH);
-        val readB = collisionB.getDistance(DistanceUnit.INCH);
+        val readA = collisionA.getDistance(DistanceUnit.INCH)
+        val readB = collisionB.getDistance(DistanceUnit.INCH)
         if (readA > CollisionDetectionDistance) return Optional.empty()
         if (readB > CollisionDetectionDistance) return Optional.empty()
         return Optional.of(CollideRamp.rampDown(min(readA, readB)))
@@ -156,7 +155,7 @@ class KOdometryDrive(
 
                 var afterFactor = 1.0
                 if (isCollisionPreventionViable) {
-                    val collideData = collisionInfo();
+                    val collideData = collisionInfo()
                     if (collideData.isPresent) {
                         afterFactor = collideData.get()
                     }

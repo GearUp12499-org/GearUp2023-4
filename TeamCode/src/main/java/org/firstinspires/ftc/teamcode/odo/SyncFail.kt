@@ -4,30 +4,30 @@ import dev.aether.collaborative_multitasking.MultitaskScheduler
 import org.firstinspires.ftc.teamcode.utilities.inches
 
 class SyncFail(val scheduler: MultitaskScheduler, val kOdometryDrive: KOdometryDrive, val crasher: () -> Boolean) {
-    fun DriveForward(distance: Double, vararg whoTFCares: Any?) {
+    fun driveForward(distance: Double, vararg whoTFCares: Any?) {
         kOdometryDrive.driveForward(distance.inches)
         scheduler.runToCompletion(crasher)
     }
-    fun DriveForwardWithCollision(distance: Double) {
+    fun driveForwardWithCollision(distance: Double) {
         kOdometryDrive.driveForward(distance.inches, true)
         scheduler.runToCompletion(crasher)
     }
 
-    fun DriveReverse(distance: Double, vararg whoTFCares: Any?) {
+    fun driveReverse(distance: Double, vararg whoTFCares: Any?) {
         kOdometryDrive.driveReverse(distance.inches)
         scheduler.runToCompletion(crasher)
     }
-    fun DriveReverseWithCollision(distance: Double) {
+    fun driveReverseWithCollision(distance: Double) {
         kOdometryDrive.driveReverse(distance.inches, true)
         scheduler.runToCompletion(crasher)
     }
 
-    fun StrafeRight(distance: Double, vararg oopsie: Any?) {
+    fun strafeRight(distance: Double, vararg oopsie: Any?) {
         kOdometryDrive.strafeRight(distance.inches)
         scheduler.runToCompletion(crasher)
     }
 
-    fun StrafeLeft(distance: Double, vararg oopsie: Any?) {
+    fun strafeLeft(distance: Double, vararg oopsie: Any?) {
         kOdometryDrive.strafeLeft(distance.inches)
         scheduler.runToCompletion(crasher)
     }

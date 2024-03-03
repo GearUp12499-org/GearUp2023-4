@@ -10,15 +10,13 @@ import org.firstinspires.ftc.teamcode.utilities.LengthUnit
 import org.firstinspires.ftc.teamcode.utilities.MotorPowers
 import org.firstinspires.ftc.teamcode.utilities.Move
 import org.firstinspires.ftc.teamcode.utilities.inches
-import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.min
 import org.firstinspires.ftc.teamcode.Var.ApproachObject as AOV
 
 class ApproachObject2 @JvmOverloads constructor(
     private val scheduler: MultitaskScheduler,
     robot: RobotConfiguration,
-    val SensorOverflow: Double = 100.0
+    val sensorOverflow: Double = 100.0
 ) {
     companion object {
         const val kP = 0.1
@@ -55,14 +53,14 @@ class ApproachObject2 @JvmOverloads constructor(
                 var left = distanceLeft.getDistance(DistanceUnit.INCH)
                 var right = distanceRight.getDistance(DistanceUnit.INCH)
 
-                if (left < SensorOverflow) backupValue = left
-                if (right < SensorOverflow) backupValue = right
-                if (left > SensorOverflow && right > SensorOverflow) {
+                if (left < sensorOverflow) backupValue = left
+                if (right < sensorOverflow) backupValue = right
+                if (left > sensorOverflow && right > sensorOverflow) {
                     left = backupValue
                     right = backupValue
-                } else if (left > SensorOverflow) {
+                } else if (left > sensorOverflow) {
                     left = right
-                } else if (right > SensorOverflow) {
+                } else if (right > sensorOverflow) {
                     right = left
                 }
 

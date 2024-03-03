@@ -55,15 +55,15 @@ public class TwentyBlueRightTest extends LinearOpMode {
         drivePID.strafeRight(22, telemetry);
 
         //Right spike marker BlueRightAuto
-        why.DriveReverse(16.0, telemetry);
+        why.driveReverse(16.0, telemetry);
         turnPID.TurnRobot(-60.0);
         turnPID.TurnRobot(60);
-        why.StrafeRight(4.5, telemetry);
-        why.DriveReverse(34, telemetry);
+        why.strafeRight(4.5, telemetry);
+        why.driveReverse(34, telemetry);
         sleep(250);
         turnPID.TurnRobot(90);
-        why.DriveReverse(78, telemetry);
-        why.StrafeRight(20.5, telemetry);
+        why.driveReverse(78, telemetry);
+        why.strafeRight(20.5, telemetry);
 
         while (opModeIsActive()) {
             telemetry.addData("LEFT  ", drivePID.LeftOdoDist());
