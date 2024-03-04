@@ -62,12 +62,12 @@ object Var {
     object DropDownServo {
         @JvmField
         val positions = doubleArrayOf(
-            0.60,
-            0.4744,
+            0.633,
+            0.5094,
 //            0.4538,
 //            0.3999,
 //            0.3760,
-            0.3580
+            0.3725
         )
         @JvmField
         val up = positions[0]
