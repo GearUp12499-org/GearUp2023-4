@@ -62,15 +62,16 @@ object Var {
     object DropDownServo {
         @JvmField
         val positions = doubleArrayOf(
-            0.633,
-            0.5094,
+            0.59391,
+//            0.5094,
 //            0.4538,
 //            0.3999,
 //            0.3760,
-            0.3725
+            0.327865
         )
         @JvmField
         val up = positions[0]
+        const val storage = 0.633
     }
 
     object TeleOp {
@@ -158,7 +159,7 @@ object Var {
         /**
          * How hard we spin the intake?
          */
-        const val intakePower = 0.6
+        const val intakePower = 0.8
     }
 
     object ApproachObject {
