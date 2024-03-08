@@ -237,17 +237,27 @@ public abstract class TwentyAuto extends LinearOpMode {
     private void scoreYellowPixel(MultitaskScheduler scheduler, RobotConfiguration robot, ApproachObject2 xButton, KOdometryDrive drive) {
         scheduler.task(e -> {
                     e.onStart(() -> {
-                        robot.liftLeft().setTargetPosition(Var.AutoPositions.LiftScoringLow);
+                        robot.liftLeft().setTargetPosition(yellowLiftTarget);
                         robot.dumperLatch().setPosition(Var.Box.latched);
                         robot.dumperRotate().setPosition(Var.Box.dumpRotate);
                         return kvoid;
                     });
-                    e.isCompleted(() -> robot.liftLeft().getCurrentPosition() >= yellowLiftTarget - 20);
+                    e.isCompleted(() -> {
+                        int now = robot.liftLeft().getCurrentPosition();
+                        Log.i("TwentyAuto",
+                                String.format(
+                                        Locale.getDefault(),
+                                        "at %d, %.2f%% of %d",
+                                        now,
+                                        now / (double) yellowLiftTarget * 100.0,
+                                        yellowLiftTarget));
+                        return now >= yellowLiftTarget - 20;
+                    });
                     TimingKt.minDuration(e, 100);
                     TimingKt.maxDuration(e, 3000);
                     return kvoid;
                 })
-                .then(xButton.approach(new InchUnit(3.0)))
+                .then(xButton.approach(new InchUnit(2.0)))
                 .then(e -> {
                     TimingKt.delay(e, 200);
                     return kvoid;
