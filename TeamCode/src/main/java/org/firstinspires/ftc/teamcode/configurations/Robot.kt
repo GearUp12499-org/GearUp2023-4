@@ -36,11 +36,11 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
 
     @JvmField
     var liftLeftB // 0
-            : DcMotor = map.typedGet("slideLeft")
+            : DcMotor? = map.typedMaybeGet("slideLeft")
 
     @JvmField
     var liftRightB // 1
-            : DcMotor = map.typedGet("slideRight")
+            : DcMotor? = map.typedMaybeGet("slideRight")
 
     @JvmField
     var dumperRotateB // 2
@@ -67,8 +67,8 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
                 0.0
             )
         }
-    override val liftLeft: DcMotor get() = liftLeftB
-    override val liftRight: DcMotor get() = liftRightB
+    override val liftLeft: DcMotor get() = liftLeftB!!
+    override val liftRight: DcMotor get() = liftRightB!!
     override val liftLock: SharedResource = SharedResource("lift") {
         liftLeft.power = 0.0
         liftRight.power = 0.0
@@ -108,15 +108,19 @@ class Robot(map: HardwareMap) : RobotConfiguration() {
         setReverse(backLeft)
         enableBrakes(frontLeft, frontRight, backLeft, backRight)
 
-        liftLeftB.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        liftLeftB.targetPosition = 0
-        liftLeftB.power = 1.0
-        liftLeftB.mode = DcMotor.RunMode.RUN_TO_POSITION
-        liftRightB.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        liftRightB.targetPosition = 0
-        liftRightB.power = 1.0
-        liftRightB.mode = DcMotor.RunMode.RUN_TO_POSITION
-        setReverse(liftRightB)
+        if (liftLeftB != null) {
+            liftLeftB!!.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+            liftLeftB!!.targetPosition = 0
+            liftLeftB!!.power = 1.0
+            liftLeftB!!.mode = DcMotor.RunMode.RUN_TO_POSITION
+        }
+        if (liftRightB != null) {
+            liftRightB!!.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+            liftRightB!!.targetPosition = 0
+            liftRightB!!.power = 1.0
+            liftRightB!!.mode = DcMotor.RunMode.RUN_TO_POSITION
+            setReverse(liftRightB!!)
+        }
 
         // Adjust the orientation parameters to match your robot
         val parameters = IMU.Parameters(

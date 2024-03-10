@@ -484,9 +484,9 @@ public abstract class TwentyAuto extends LinearOpMode {
         Consumer<Double> rightOnBlue = allianceColor() == AllianceColor.Blue ? why::strafeRight : why::strafeLeft;
         navFrontstage(result, rightOnBlue);
 
-        sleep(200);
+        sleep(500);
         alignTag(aprilTag, targetTag);
-        sleep(200);
+        sleep(500);
         alignTag(aprilTag, targetTag);
         scoreYellowPixel(scheduler, robot, theXButton, newOdo);
 
@@ -540,10 +540,9 @@ public abstract class TwentyAuto extends LinearOpMode {
 
         navBackstage(scheduler, result, awayFromWall);
 
-        sleep(200);
-
+        sleep(500);
         alignTag(aprilTag, targetTag);
-        sleep(200);
+        sleep(500);
         alignTag(aprilTag, targetTag);
         scoreYellowPixel(scheduler, robot, theXButton, newOdo);
 
@@ -638,7 +637,7 @@ public abstract class TwentyAuto extends LinearOpMode {
         scheduler.runToCompletion(this::panic_button);
     }
 
-    public static final double[] frontstageTravelDistances = {18.5, 20.0, 27.0};
+    public static final double[] frontstageTravelDistances = {18.5, 20.0, 24.0};
 
     private void frontstageLeft() {
         turnPID.TurnRobot(-45.0);
